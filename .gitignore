@@ -1,0 +1,14 @@
+# Rust
+src-tauri/target/
+
+# Node
+node_modules/
+
+# Локальные секреты и конфиги
+*.local
+config.json
+cache.json
+
+# Tauri (генерируется)
+src-tauri/gen/
+*.part

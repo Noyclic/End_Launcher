@@ -1,0 +1,46 @@
+[package]
+name = "end-launcher"
+version = "0.1.0"
+description = "End Launcher — Minecraft Java + Bedrock launcher"
+authors = ["you"]
+edition = "2021"
+license = "MIT"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+reqwest = { version = "0.12", features = ["json", "stream"] }
+base64 = "0.22"
+dirs = "5"
+tokio = { version = "1", features = ["fs", "io-util", "time", "net"] }
+futures-util = "0.3"
+sha1 = "0.10"
+md5 = "0.7"
+zip = { version = "0.6", default-features = false, features = ["deflate"] }
+
+# P2P-режим (эксперимент) подключается только с флагом: npm run dev -- --features p2p
+iroh = { version = "=0.92.0", optional = true }
+# NodeTicket (строка-тикет с адресами) живёт в iroh-base за флагом ticket
+iroh-base = { version = "=0.92.0", features = ["ticket"], optional = true }
+getrandom = { version = "0.2", optional = true }
+# проброс порта на роутере (UPnP) для прямого TCP-способа
+igd-next = { version = "=0.17.0", optional = true }
+
+# Системное хранилище секретов (токены, API-ключ): только Windows и macOS, на Linux — обфускация
+[target.'cfg(windows)'.dependencies]
+keyring = { version = "3", features = ["windows-native"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+keyring = { version = "3", features = ["apple-native"] }
+
+[features]
+p2p = ["dep:iroh", "dep:iroh-base", "dep:getrandom", "dep:igd-next"]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1

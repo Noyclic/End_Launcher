@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ru" data-theme="void">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Браузер — скачивание модов</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <!-- Стартовая страница встроенного браузера. Лежит внутри приложения, поэтому показывается всегда —
+       даже если нужный сайт в вашей сети не открывается (раньше вместо неё был пустой серый экран).
+       Панель адреса сверху добавляет лаунчер. Скриптов здесь нет: плитки — обычные ссылки. -->
+  <body class="browser-start">
+    <main class="bs-wrap">
+      <h1>Браузер для модов</h1>
+      <p class="bs-lead">
+        Введите адрес или поисковый запрос в строке сверху — или откройте один из сайтов:
+      </p>
+      <div class="bs-tiles">
+        <a class="bs-tile" href="https://modrinth.com/mods"><b>Modrinth</b><span>самый удобный каталог</span></a>
+        <a class="bs-tile" href="https://www.curseforge.com/minecraft/mc-mods"><b>CurseForge</b><span>огромный каталог модов</span></a>
+        <a class="bs-tile" href="https://www.planetminecraft.com/mods/"><b>Planet Minecraft</b><span>моды и карты</span></a>
+        <a class="bs-tile" href="https://www.google.com/search?q=minecraft+mods"><b>Поиск</b><span>найти мод в интернете</span></a>
+      </div>
+      <h2>Как это работает</h2>
+      <ul class="bs-list">
+        <li>Нажмите «Download» на любом сайте — файл <b>.jar</b> сам попадёт в папку <b>mods</b> выбранной сборки.</li>
+        <li>Если файл с Modrinth, лаунчер проверит версию игры и загрузчик и удалит несовместимый.</li>
+        <li>Результат появится зелёной (или красной) плашкой в этом окне и в окне лаунчера.</li>
+      </ul>
+      <h2>Сайт не открывается?</h2>
+      <p class="bs-note">
+        Некоторые сайты (особенно за Cloudflare) в ряде стран открываются нестабильно или не открываются вовсе.
+        Тогда откройте нужный сайт в обычном браузере, скачайте мод и <b>перетащите файл .jar в окно лаунчера</b> —
+        он попадёт в mods и проверится так же. В лаунчере для этого есть кнопка «Modrinth в обычном браузере».
+      </p>
+    </main>
+  </body>
+</html>

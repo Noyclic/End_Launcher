@@ -1,0 +1,590 @@
+/* End Launcher — тема Края. Все цвета в переменных: смена темы = смена значений. */
+
+:root, :root[data-theme='void'] {
+  --el-bg: #08060e; --el-panel: rgba(18, 13, 32, 0.85);
+  --el-line: rgba(198, 178, 255, 0.09);
+  --el-text: #efeaf9; --el-dim: #8d84a6;
+  --el-accent: #b47ede; --el-accent-deep: #6d3bb0;
+  --el-accent-soft: rgba(180, 126, 222, 0.14);
+  --el-good: #9ee6a8; --el-bad: #ff6b81;
+  --el-particle: rgba(194, 107, 245, 0.7);
+}
+:root[data-theme='endstone'] {
+  --el-bg: #0b0a07; --el-panel: rgba(24, 22, 13, 0.85);
+  --el-line: rgba(232, 228, 162, 0.10);
+  --el-text: #f2efdd; --el-dim: #a09a7c;
+  --el-accent: #dcd78f; --el-accent-deep: #8f8a4e;
+  --el-accent-soft: rgba(220, 215, 143, 0.13);
+  --el-good: #9ee6a8; --el-bad: #ff6b81;
+  --el-particle: rgba(220, 215, 143, 0.55);
+}
+:root[data-theme='dragon'] {
+  --el-bg: #0d0510; --el-panel: rgba(30, 13, 36, 0.85);
+  --el-line: rgba(224, 91, 208, 0.12);
+  --el-text: #f9ecf7; --el-dim: #a384a6;
+  --el-accent: #e05bd0; --el-accent-deep: #8f2f86;
+  --el-accent-soft: rgba(224, 91, 208, 0.14);
+  --el-good: #9ee6a8; --el-bad: #ff6b81;
+  --el-particle: rgba(224, 91, 208, 0.6);
+}
+:root[data-theme='shulker'] {
+  --el-bg: #05070f; --el-panel: rgba(12, 16, 34, 0.86);
+  --el-line: rgba(122, 140, 255, 0.11);
+  --el-text: #eceefc; --el-dim: #7f88ad;
+  --el-accent: #7a8cff; --el-accent-deep: #3d4cc9;
+  --el-accent-soft: rgba(122, 140, 255, 0.14);
+  --el-good: #9ee6a8; --el-bad: #ff6b81;
+  --el-particle: rgba(122, 140, 255, 0.6);
+}
+
+* { box-sizing: border-box; margin: 0; }
+
+body {
+  background: var(--el-bg);
+  color: var(--el-text);
+  font-family: 'Inter', system-ui, sans-serif;
+  transition: background-color .6s ease, color .6s ease;
+  overflow: hidden;
+}
+
+/* плавная смена темы у всех элементов */
+/* (раньше transition стоял на ВСЕХ элементах — это дорого; теперь только там, где нужна плавная смена темы) */
+.sidebar, .account, .panel, .mod-row, .playbar, .theme-card, .chip, .nav-btn, input, select, textarea {
+  transition: background-color .35s ease, border-color .35s ease, color .35s ease;
+}
+
+.end-void {
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 60% 45% at 15% -5%, color-mix(in srgb, var(--el-accent-deep) 26%, transparent), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 90% 110%, color-mix(in srgb, var(--el-accent-deep) 20%, transparent), transparent 70%),
+    var(--el-bg);
+  transition: background .8s ease;
+}
+#ender-particles { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+
+.layout { position: relative; z-index: 2; display: flex; height: 100vh; }
+
+.mono { font-family: 'JetBrains Mono', monospace; }
+.dim { color: var(--el-dim); }
+.small { font-size: 11px; margin-top: 8px; }
+
+/* sidebar */
+.sidebar {
+  width: 220px; padding: 20px 16px; display: flex; flex-direction: column; gap: 8px;
+  background: var(--el-panel); border-right: 1px solid var(--el-line);
+}
+.logo { display: flex; gap: 12px; align-items: center; margin-bottom: 24px; }
+.logo-cube {
+  width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+  font-family: 'Russo One'; font-size: 18px; color: var(--el-on-accent, #fff);
+  background: linear-gradient(135deg, var(--el-accent), var(--el-accent-deep));
+  box-shadow: 0 0 24px -4px var(--el-accent);
+}
+.logo-name { font-family: 'Russo One'; font-size: 14px; }
+.logo-sub { font-family: 'JetBrains Mono'; font-size: 10px; letter-spacing: 3px; color: var(--el-dim); }
+
+.nav-btn {
+  display: flex; gap: 12px; align-items: center; width: 100%;
+  padding: 10px 12px; border: none; border-radius: 10px; cursor: pointer;
+  background: transparent; color: var(--el-dim); font: 500 14px 'Inter';
+}
+.nav-btn:hover { background: rgba(255,255,255,.05); color: var(--el-text); }
+.nav-btn.active {
+  background: var(--el-accent-soft); color: var(--el-text);
+  box-shadow: inset 0 0 0 1px var(--el-accent);
+}
+
+.account {
+  margin-top: auto; display: flex; gap: 10px; align-items: center;
+  padding: 10px; border: 1px solid var(--el-line); border-radius: 10px;
+}
+.avatar {
+  width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center;
+  font-family: 'Russo One'; color: var(--el-on-accent, #fff);
+  background: linear-gradient(135deg, var(--el-accent), var(--el-accent-deep));
+}
+.acc-name { font-weight: 600; font-size: 14px; }
+.acc-mode { font-family: 'JetBrains Mono'; font-size: 10px; color: var(--el-dim); }
+
+/* pages */
+main { flex: 1; padding: 40px; overflow-y: auto; }
+.page { display: none; max-width: 720px; }
+.page.active { display: block; animation: fadeUp .4s cubic-bezier(.23,1,.32,1) both; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; } }
+
+h1 { font-family: 'Russo One'; font-size: 32px; letter-spacing: 1px; }
+h2 { font-size: 11px; letter-spacing: 2px; margin: 24px 0 10px; }
+
+.row { display: flex; gap: 10px; margin-top: 16px; }
+
+input, select, textarea {
+  width: 100%; padding: 10px 12px; border-radius: 10px;
+  border: 1px solid var(--el-line); background: rgba(0,0,0,.4);
+  color: var(--el-text); font: 400 14px 'JetBrains Mono'; outline: none;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--el-accent); }
+
+button {
+  padding: 10px 18px; border-radius: 10px; border: none; cursor: pointer;
+  background: linear-gradient(90deg, var(--el-accent-deep), var(--el-accent));
+  color: var(--el-on-accent, #fff); font: 600 14px 'Inter';
+}
+button:hover { filter: brightness(1.1); }
+button:active { transform: scale(.97); }
+button:disabled { opacity: .35; cursor: not-allowed; }
+
+.big-btn {
+  width: 100%; max-width: 420px; margin-top: 20px; padding: 18px;
+  font-family: 'Russo One'; font-size: 22px; letter-spacing: 2px; border-radius: 16px;
+}
+
+.themes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.theme-card {
+  display: flex; gap: 10px; align-items: center; padding: 12px;
+  border-radius: 12px; border: 1px solid var(--el-line); background: var(--el-panel);
+  color: var(--el-text); font: 500 13px 'Inter';
+}
+.theme-card.active { border-color: var(--el-accent); background: var(--el-accent-soft); }
+.theme-card .sw { display: flex; border-radius: 6px; overflow: hidden; }
+.theme-card .sw i { width: 18px; height: 18px; display: block; }
+
+.mod-card {
+  display: flex; gap: 12px; align-items: center; margin-top: 10px;
+  padding: 12px; border-radius: 12px; border: 1px solid var(--el-line);
+  background: var(--el-panel);
+}
+.mod-card img { width: 40px; height: 40px; border-radius: 8px; }
+.mod-card .t { font-weight: 600; }
+.mod-card .d { font-size: 12px; color: var(--el-dim); }
+.mod-card button { margin-left: auto; }
+
+#ai-output {
+  margin-top: 14px; padding: 14px; border-radius: 10px; min-height: 60px;
+  background: rgba(0,0,0,.4); border: 1px solid var(--el-line);
+  font-size: 12px; white-space: pre-wrap; color: var(--el-text);
+}
+
+/* своя палитра */
+.palette { display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap; }
+.palette label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--el-dim); }
+.palette input[type='color'] {
+  width: 64px; height: 40px; padding: 3px; cursor: pointer; background: var(--el-panel);
+}
+button.ghost {
+  background: transparent; color: var(--el-text); box-shadow: inset 0 0 0 1px var(--el-line);
+}
+.swatches { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+button.swatch {
+  width: 28px; height: 28px; padding: 0; border-radius: 50%;
+  background: var(--c); box-shadow: inset 0 0 0 2px rgba(255,255,255,.15);
+}
+
+/* прогресс установки */
+.progress {
+  position: relative;
+  height: 6px; max-width: 420px; margin-top: 14px; border-radius: 6px;
+  background: var(--el-line); overflow: hidden; visibility: hidden;
+}
+#progress-bar, #ai-progress-bar {
+  height: 100%; width: 0;
+  background: linear-gradient(90deg, var(--el-accent-deep), var(--el-accent));
+  transition: width .2s ease;
+}
+#play-status { margin-top: 10px; white-space: pre-wrap; }
+#analyze-crash { margin-top: 12px; }
+
+/* тумблер */
+.toggle { display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 6px; }
+.toggle input[type='checkbox'] {
+  appearance: none; -webkit-appearance: none; width: 44px; height: 24px; padding: 0; flex: none;
+  border-radius: 24px; background: var(--el-line); position: relative; cursor: pointer;
+  transition: background .2s ease;
+}
+.toggle input[type='checkbox']::after {
+  content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px;
+  border-radius: 50%; background: var(--el-text); transition: transform .2s ease;
+}
+.toggle input[type='checkbox']:checked { background: var(--el-accent); }
+.toggle input[type='checkbox']:checked::after { transform: translateX(20px); background: var(--el-on-accent, #fff); }
+
+/* ═══════════ РАСКЛАДКИ ИНТЕРФЕЙСА (Настройки → Интерфейс) ═══════════
+   По умолчанию — классический End (атрибут data-ui="end" на <html>). */
+.content { flex: 1; display: flex; flex-direction: column; min-width: 0; height: 100vh; }
+.content main { flex: 1; min-height: 0; }
+.account { cursor: pointer; }
+.nav-btn .ico { width: 20px; text-align: center; }
+.playbar, #tl-nick { display: none; }
+:root[data-ui='end'] .not-classic, :root:not([data-ui='end']) .only-classic { display: none; }
+
+/* блок «Играть» (классика = прежний вид) */
+.play-ui { display: flex; flex-direction: column; }
+.play-ui .pb-selects { order: 1; }
+.play-ui #play-btn { order: 2; }
+.play-ui .pb-info { order: 3; display: flex; flex-direction: column; }
+.pb-info .progress { order: 1; }
+.pb-info #play-status { order: 2; }
+.pb-info #analyze-crash { order: 3; align-self: flex-start; }
+
+/* карточки библиотеки */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; margin-top: 18px; }
+.inst-card {
+  position: relative; display: flex; flex-direction: column; gap: 10px; padding: 14px;
+  border-radius: 16px; border: 1px solid var(--el-line); background: var(--el-panel);
+  cursor: pointer; outline: none; transition: border-color .2s ease, transform .2s ease, background-color .5s ease;
+}
+.inst-card:hover, .inst-card:focus-visible { border-color: var(--el-accent); transform: translateY(-2px); }
+.inst-card.active { border-color: var(--el-accent); background: var(--el-accent-soft); }
+.inst-icon {
+  width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center;
+  font-family: 'Russo One'; font-size: 20px; color: var(--el-on-accent, #fff);
+  background: linear-gradient(135deg, var(--el-accent), var(--el-accent-deep));
+}
+.inst-name { font-weight: 600; overflow-wrap: anywhere; }
+.chip {
+  align-self: flex-start; font: 500 10px 'JetBrains Mono'; padding: 3px 8px; border-radius: 20px;
+  background: var(--el-accent-soft); color: var(--el-accent);
+}
+.inst-play { position: absolute; top: 12px; right: 54px; width: 34px; height: 34px; padding: 0; border-radius: 50%; font-size: 13px; }
+.inst-card.add { align-items: center; justify-content: center; border-style: dashed; color: var(--el-dim); min-height: 130px; }
+.inst-card.add .inst-icon { background: var(--el-accent-soft); color: var(--el-accent); }
+
+/* ── общее для Modrinth / Prism / TL: панель «Играть» + библиотека ── */
+:root:not([data-ui='end']) .library-wrap { display: block; }
+:root:not([data-ui='end']) #page-play { max-width: none; }
+:root:not([data-ui='end']) .playbar {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 12px 20px;
+  background: var(--el-panel); border-top: 1px solid var(--el-line); backdrop-filter: blur(12px);
+}
+:root:not([data-ui='end']) .play-ui { flex-direction: row; align-items: center; gap: 16px; flex-wrap: wrap; width: 100%; }
+:root:not([data-ui='end']) .pb-selects { margin-top: 0; width: auto; }
+:root:not([data-ui='end']) .pb-selects select { width: auto; min-width: 110px; padding: 9px 10px; font-size: 13px; }
+:root:not([data-ui='end']) .play-ui .pb-info { order: 2; flex: 1; min-width: 160px; gap: 6px; }
+:root:not([data-ui='end']) #play-status { order: 1; margin: 0; font-size: 11px; }
+:root:not([data-ui='end']) .progress { order: 2; margin-top: 0; max-width: none; }
+:root:not([data-ui='end']) #analyze-crash { order: 3; margin-top: 0; padding: 6px 12px; font-size: 12px; }
+:root:not([data-ui='end']) .play-ui #play-btn {
+  order: 3; width: auto; max-width: none; margin-top: 0; min-width: 190px;
+  padding: 14px 24px; font-size: 17px; border-radius: 14px;
+}
+
+/* ── Modrinth: узкая панель с иконками слева, панель «Играть» снизу ── */
+:root[data-ui='modrinth'] .sidebar { width: 84px; padding: 16px 8px; align-items: center; }
+:root[data-ui='modrinth'] .logo { margin-bottom: 14px; justify-content: center; }
+:root[data-ui='modrinth'] .logo-text { display: none; }
+:root[data-ui='modrinth'] nav { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+:root[data-ui='modrinth'] .nav-btn {
+  flex-direction: column; gap: 4px; padding: 10px 2px; font-size: 10px; text-align: center; justify-content: center;
+}
+:root[data-ui='modrinth'] .nav-btn .ico { font-size: 20px; line-height: 1; }
+:root[data-ui='modrinth'] .account { flex-direction: column; gap: 4px; width: 100%; padding: 8px 4px; text-align: center; }
+:root[data-ui='modrinth'] .acc-name { font-size: 11px; max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+:root[data-ui='modrinth'] .acc-mode { font-size: 8px; letter-spacing: 1px; }
+:root[data-ui='modrinth'] .content main { padding: 32px 40px; }
+
+/* ── Prism и TL: панель вкладок сверху ── */
+:root[data-ui='prism'] .sidebar, :root[data-ui='tl'] .sidebar {
+  width: auto; flex-direction: row; align-items: center; padding: 8px 14px; gap: 6px;
+  border-right: none; border-bottom: 1px solid var(--el-line);
+}
+:root[data-ui='prism'] .logo, :root[data-ui='tl'] .logo { margin: 0 14px 0 0; }
+:root[data-ui='prism'] .logo-text { display: none; }
+:root[data-ui='prism'] nav, :root[data-ui='tl'] nav { display: flex; flex-direction: row; gap: 4px; }
+:root[data-ui='prism'] .nav-btn, :root[data-ui='tl'] .nav-btn {
+  width: auto; flex-direction: column; gap: 2px; padding: 6px 14px; font-size: 11px; justify-content: center; text-align: center;
+}
+:root[data-ui='prism'] .nav-btn .ico, :root[data-ui='tl'] .nav-btn .ico { font-size: 18px; line-height: 1; width: auto; }
+:root[data-ui='prism'] .account, :root[data-ui='tl'] .account { margin: 0 0 0 auto; padding: 4px 10px; }
+:root[data-ui='prism'] .content main, :root[data-ui='tl'] .content main { padding: 24px 32px; overflow-y: auto; }
+
+/* Prism: справа панель действий (кнопка «Играть» сверху) */
+:root[data-ui='prism'] .layout {
+  display: grid; grid-template-columns: minmax(0, 1fr) 280px; grid-template-rows: auto minmax(0, 1fr); height: 100vh;
+}
+:root[data-ui='prism'] .content { display: contents; }
+:root[data-ui='prism'] .sidebar { grid-column: 1 / -1; grid-row: 1; }
+:root[data-ui='prism'] .content main { grid-column: 1; grid-row: 2; }
+:root[data-ui='prism'] .playbar {
+  grid-column: 2; grid-row: 2; flex-direction: column; align-items: stretch; flex-wrap: nowrap;
+  border-top: none; border-left: 1px solid var(--el-line); padding: 16px; overflow-y: auto;
+}
+:root[data-ui='prism'] .play-ui { flex-direction: column; align-items: stretch; flex-wrap: nowrap; }
+:root[data-ui='prism'] .play-ui #play-btn { order: 1; width: 100%; min-width: 0; }
+:root[data-ui='prism'] .pb-selects { order: 2; flex-direction: column; }
+:root[data-ui='prism'] .pb-selects select { width: 100%; }
+:root[data-ui='prism'] .play-ui .pb-info { order: 3; flex: none; }
+
+/* TL: вкладки сверху, внизу ник + версия + большая «Играть» */
+:root[data-ui='tl'] .layout { flex-direction: column; }
+:root[data-ui='tl'] .content { width: 100%; height: auto; flex: 1; min-height: 0; }
+:root[data-ui='tl'] #tl-nick { display: block; order: 0; width: 180px; }
+:root[data-ui='tl'] .playbar { padding: 14px 24px; }
+:root[data-ui='tl'] .play-ui #play-btn { min-width: 240px; font-size: 20px; padding: 16px 28px; }
+
+/* менеджер модов и баннер обновления */
+.mod-row {
+  display: flex; align-items: center; gap: 12px; padding: 8px 12px; margin-top: 8px;
+  border: 1px solid var(--el-line); border-radius: 10px; background: var(--el-panel);
+}
+.mod-row .name { flex: 1; overflow-wrap: anywhere; font: 12px 'JetBrains Mono'; }
+.mod-row.off .name { opacity: .45; text-decoration: line-through; }
+.mod-row .kb { font: 10px 'JetBrains Mono'; color: var(--el-dim); }
+.mod-row button { padding: 6px 12px; font-size: 12px; }
+.mod-row .toggle { margin: 0; }
+#mod-updates .mod-row { border-color: var(--el-accent); }
+#update-banner {
+  display: none; align-items: center; gap: 12px; margin-bottom: 18px; padding: 10px 14px;
+  border: 1px solid var(--el-accent); border-radius: 12px; background: var(--el-accent-soft);
+  font-size: 13px;
+}
+#update-banner span { flex: 1; }
+#update-banner button { padding: 6px 12px; font-size: 12px; }
+
+/* сборки: меню «⋯» и форма создания */
+.inst-more {
+  position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; padding: 0;
+  border-radius: 50%; font-size: 18px; line-height: 1;
+  background: transparent; color: var(--el-text); box-shadow: inset 0 0 0 1px var(--el-line);
+}
+.inst-menu {
+  position: absolute; top: 52px; right: 12px; z-index: 30; min-width: 200px; padding: 6px;
+  display: flex; flex-direction: column; gap: 2px;
+  background: var(--el-bg); border: 1px solid var(--el-line); border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.5);
+}
+.inst-menu button {
+  background: transparent; color: var(--el-text); text-align: left; padding: 8px 10px;
+  font-size: 13px; border-radius: 8px;
+}
+.inst-menu button:hover { background: var(--el-accent-soft); filter: none; }
+.inst-name input { padding: 4px 8px; font-size: 13px; }
+.panel { margin-top: 16px; padding: 14px; border: 1px solid var(--el-line); border-radius: 14px; background: var(--el-panel); }
+
+/* ═══════════ АНИМАЦИИ ═══════════
+   Только transform и opacity: они считаются на видеокарте и почти ничего не стоят процессору.
+   Всё отключается системной настройкой «уменьшить движение» и переключателем в Настройках. */
+@keyframes cardIn { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes popIn { from { opacity: 0; transform: scale(.95) translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes sweep { 0%, 55% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+@keyframes indeterminate { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
+@keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes ping { from { transform: scale(1); opacity: .7; } to { transform: scale(2.6); opacity: 0; } }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* backwards, а не both: после показа карточка снова слушается :hover */
+  .inst-card { animation: cardIn .42s cubic-bezier(.22,.8,.24,1) backwards; animation-delay: calc(var(--i, 0) * 45ms); }
+  .inst-menu, .popover { animation: popIn .16s ease backwards; }
+  .logo-cube { animation: floaty 6s ease-in-out infinite; }
+  .big-btn { position: relative; overflow: hidden; }
+  .big-btn::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(110deg, transparent 35%, rgba(255,255,255,.2) 50%, transparent 65%);
+    transform: translateX(-120%); animation: sweep 4.5s ease-in-out infinite;
+  }
+  .big-btn:disabled::before { animation: none; opacity: 0; }
+  .progress.indet #progress-bar { width: 35%; animation: indeterminate 1.1s linear infinite; }
+  .fab.on i::after {
+    content: ''; position: absolute; inset: 0; border-radius: 50%; background: #4ade80;
+    animation: ping 1.6s ease-out infinite;
+  }
+}
+/* переключатель «Анимации» выключен: ни анимаций, ни плавных переходов, ни размытия */
+:root[data-anim='off'] *, :root[data-anim='off'] *::before, :root[data-anim='off'] *::after {
+  animation: none !important; transition: none !important;
+}
+:root[data-anim='off'] .playbar { backdrop-filter: none; }
+
+/* ═══════════ БОКОВОЕ МЕНЮ: прячется и выезжает по наведению ═══════════
+   Двигаем transform (на видеокарте), а не ширину — страница не «перерисовывается» на каждом кадре. */
+.sb-arrow { display: none; }
+:root[data-sb='auto'][data-ui='end'] .sidebar, :root[data-sb='auto'][data-ui='modrinth'] .sidebar {
+  position: fixed; left: 0; top: 0; bottom: 0; z-index: 40;
+  transform: translateX(calc(-100% + 16px));
+  transition: transform .3s cubic-bezier(.22,.8,.24,1) .22s, box-shadow .3s ease .22s, background-color .35s ease, border-color .35s ease;
+  will-change: transform;
+}
+:root[data-sb='auto'][data-ui='end'] .sidebar:hover, :root[data-sb='auto'][data-ui='modrinth'] .sidebar:hover,
+:root[data-sb='auto'][data-ui='end'] .sidebar:focus-within, :root[data-sb='auto'][data-ui='modrinth'] .sidebar:focus-within {
+  transform: translateX(0); box-shadow: 10px 0 36px rgba(0,0,0,.5); transition-delay: 0s;
+}
+:root[data-sb='auto'][data-ui='end'] .content, :root[data-sb='auto'][data-ui='modrinth'] .content { margin-left: 16px; }
+:root[data-sb='auto'][data-ui='end'] .sb-arrow, :root[data-sb='auto'][data-ui='modrinth'] .sb-arrow {
+  display: flex; position: absolute; top: 0; bottom: 0; right: 0; width: 16px;
+  align-items: center; justify-content: center; font-size: 10px; color: var(--el-accent); pointer-events: none;
+  transition: transform .3s ease;
+}
+:root[data-sb='auto'][data-ui='end'] .sidebar:hover .sb-arrow, :root[data-sb='auto'][data-ui='modrinth'] .sidebar:hover .sb-arrow,
+:root[data-sb='auto'][data-ui='end'] .sidebar:focus-within .sb-arrow, :root[data-sb='auto'][data-ui='modrinth'] .sidebar:focus-within .sb-arrow {
+  transform: rotate(180deg);
+}
+
+/* ═══════════ ЗНАЧОК P2P и всплывающая панель ═══════════ */
+.fab {
+  position: fixed; top: 14px; right: 18px; z-index: 60; width: 40px; height: 40px; padding: 0;
+  border-radius: 50%; font-size: 18px; line-height: 1;
+  background: var(--el-panel); color: var(--el-text); box-shadow: inset 0 0 0 1px var(--el-line);
+}
+.fab:hover { box-shadow: inset 0 0 0 1px var(--el-accent); filter: none; }
+.fab i { display: none; position: absolute; top: 5px; right: 5px; width: 9px; height: 9px; border-radius: 50%; background: #4ade80; }
+.fab.on i { display: block; }
+.popover {
+  position: fixed; top: 62px; right: 18px; z-index: 60; width: min(400px, calc(100vw - 36px));
+  max-height: calc(100vh - 90px); overflow-y: auto; padding: 16px; transform-origin: top right;
+  background: var(--el-bg); border: 1px solid var(--el-line); border-radius: 16px;
+  box-shadow: 0 16px 48px rgba(0,0,0,.55);
+}
+.popover .row { margin-top: 10px; }
+:root[data-ui='prism'] .account, :root[data-ui='tl'] .account { margin-right: 56px; }
+
+/* главная: приветствие, статистика, популярные моды, новости */
+.greet { margin: 6px 0 0; color: var(--el-dim); font-size: 14px; }
+.home-extra { margin-top: 28px; }
+.stats { display: flex; gap: 12px; flex-wrap: wrap; }
+.stat {
+  min-width: 140px; padding: 12px 16px; border: 1px solid var(--el-line); border-radius: 14px; background: var(--el-panel);
+}
+.stat .n { font: 700 22px 'Russo One', 'Inter', sans-serif; color: var(--el-accent); }
+.stat .l { font-size: 12px; color: var(--el-dim); margin-top: 2px; }
+.hscroll { display: flex; gap: 12px; overflow-x: auto; padding: 4px 2px 12px; scroll-snap-type: x proximity; }
+.mini-mod {
+  flex: none; width: 150px; padding: 12px; border: 1px solid var(--el-line); border-radius: 14px; background: var(--el-panel);
+  cursor: pointer; scroll-snap-align: start; contain: layout paint;
+  transition: border-color .2s ease, transform .2s ease;
+}
+.mini-mod:hover { border-color: var(--el-accent); transform: translateY(-2px); }
+.mini-mod img, .mini-mod .ph { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; background: var(--el-accent-soft); display: block; }
+.mini-mod .t { margin-top: 8px; font-weight: 600; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mini-mod .d { font-size: 11px; margin-top: 2px; }
+.news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.news-card {
+  border: 1px solid var(--el-line); border-radius: 14px; background: var(--el-panel); overflow: hidden; contain: layout paint;
+}
+.news-card img { width: 100%; height: 110px; object-fit: cover; display: block; background: var(--el-accent-soft); }
+.news-card .nt { padding: 10px 12px; font-size: 13px; font-weight: 600; }
+.empty-hero {
+  margin-top: 18px; padding: 34px 20px; text-align: center; border: 1px dashed var(--el-line);
+  border-radius: 18px; background: var(--el-panel);
+}
+.empty-hero .big { font-size: 42px; line-height: 1; }
+.empty-hero .t { margin: 10px 0 6px; font: 700 18px 'Russo One', 'Inter', sans-serif; }
+.empty-hero button { margin-top: 16px; }
+#p2p-codes-note { white-space: pre-wrap; }
+.p2p-more { margin-top: 10px; }
+.p2p-more summary { cursor: pointer; padding: 4px 0; }
+
+/* ═══════════ КРАСИВЫЕ СПИСКИ И ПЕРЕКЛЮЧАТЕЛИ (cselect.js) ═══════════ */
+.native-hidden {
+  position: absolute !important; opacity: 0; pointer-events: none; width: 1px !important; height: 1px !important;
+  min-width: 0 !important; padding: 0 !important; border: 0 !important; margin: 0 !important;
+}
+.cselect, .seg { position: relative; display: block; width: 100%; min-width: 0; }
+.row > .cselect, .row > .seg { flex: 1 1 150px; }
+.pb-selects > .cselect, .pb-selects > .seg { flex: 0 1 auto; width: auto; min-width: 150px; }
+.cselect .cs-btn {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; text-align: left;
+  padding: 10px 12px; border-radius: 10px; border: 1px solid var(--el-line); background: rgba(0,0,0,.4);
+  color: var(--el-text); font: 400 14px 'JetBrains Mono'; box-shadow: none; cursor: pointer;
+}
+.cselect .cs-btn:hover { filter: none; border-color: var(--el-accent); }
+.cselect .cs-btn.open { border-color: var(--el-accent); }
+.cselect .cs-btn:disabled { opacity: .5; cursor: default; }
+.cs-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cs-chev { flex: none; color: var(--el-accent); transition: transform .2s ease; }
+.cs-btn.open .cs-chev { transform: rotate(180deg); }
+.cs-pop {
+  position: fixed; z-index: 200; display: flex; flex-direction: column; padding: 6px; outline: none;
+  background: var(--el-bg); border: 1px solid var(--el-line); border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(0,0,0,.55); transform-origin: top;
+}
+@media (prefers-reduced-motion: no-preference) { .cs-pop { animation: popIn .14s ease backwards; } }
+.cs-search { margin-bottom: 6px; padding: 8px 10px; font-size: 13px; }
+.cs-list { overflow-y: auto; min-height: 0; flex: 1; }
+.cs-item {
+  display: flex; justify-content: space-between; gap: 12px; padding: 8px 10px; border-radius: 8px;
+  font: 400 13px 'JetBrains Mono'; cursor: pointer; color: var(--el-text);
+}
+.cs-item.act { background: var(--el-accent-soft); }
+.cs-item.on { color: var(--el-accent); font-weight: 600; }
+.cs-item.on::after { content: '✓'; }
+.cs-empty { padding: 10px; font-size: 12px; color: var(--el-dim); }
+.seg-group {
+  display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 12px;
+  border: 1px solid var(--el-line); background: rgba(0,0,0,.4);
+}
+.seg .seg-btn {
+  flex: 1 1 auto; padding: 7px 12px; border-radius: 9px; font: 500 13px 'Inter'; white-space: nowrap;
+  background: transparent; color: var(--el-dim); box-shadow: none;
+}
+.seg .seg-btn:hover { filter: none; color: var(--el-text); }
+.seg .seg-btn.on { background: linear-gradient(135deg, var(--el-accent), var(--el-accent-deep)); color: var(--el-on-accent, #fff); }
+.seg .seg-btn:disabled { opacity: .5; cursor: default; }
+:root[data-ui='prism'] .pb-selects > .cselect, :root[data-ui='prism'] .pb-selects > .seg { width: 100%; }
+
+/* ═══════════ ПИТОМЕЦ (pet.js) ═══════════
+   Движение — transform с transition (видеокарта). Сам элемент ловит только клики по себе. */
+.pet { position: fixed; left: 0; top: 0; z-index: 35; will-change: transform; cursor: grab; user-select: none; touch-action: none; }
+.pet.drag { cursor: grabbing; }
+.pet-body { font-size: var(--pet-size, 46px); line-height: 1; transform-origin: 50% 100%; filter: drop-shadow(0 4px 4px rgba(0,0,0,.4)); }
+.pet-body img { display: block; height: var(--pet-size, 46px); width: auto; max-width: 180px; object-fit: contain; pointer-events: none; }
+.pet.flip .pet-flip { transform: scaleX(-1); } /* эмодзи смотрят влево; идём вправо — зеркалим */
+.pet-bubble {
+  position: absolute; bottom: 100%; left: 50%; margin-bottom: 4px; padding: 4px 10px; border-radius: 10px;
+  background: var(--el-bg); color: var(--el-text); border: 1px solid var(--el-line);
+  font: 500 12px 'Inter', sans-serif; white-space: nowrap; opacity: 0; pointer-events: none;
+  transform: translateX(-50%) scale(.9); transition: opacity .2s ease, transform .2s ease;
+}
+.pet.say .pet-bubble { opacity: 1; transform: translateX(-50%) scale(1); }
+@keyframes petWalk { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-5px) rotate(2deg); } }
+@keyframes petIdle { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.04); } }
+@keyframes petJump { 0% { transform: translateY(0); } 40% { transform: translateY(-34px); } 100% { transform: translateY(0); } }
+@media (prefers-reduced-motion: no-preference) {
+  .pet-body { animation: petIdle 3.2s ease-in-out infinite; }
+  .pet.walking .pet-body { animation: petWalk .42s ease-in-out infinite; }
+  .pet.jump .pet-body { animation: petJump .6s ease-out; }
+}
+
+/* уведомления внизу окна */
+.toast {
+  position: fixed; left: 50%; bottom: 96px; z-index: 300; max-width: min(560px, 90vw); padding: 12px 18px;
+  border-radius: 12px; background: var(--el-bg); border: 1px solid var(--el-accent); color: var(--el-text);
+  font: 500 13px 'Inter', sans-serif; white-space: pre-wrap; box-shadow: 0 10px 32px rgba(0,0,0,.55);
+  opacity: 0; pointer-events: none; transform: translate(-50%, 10px); transition: opacity .2s ease, transform .2s ease;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.toast.bad { border-color: var(--el-bad); }
+
+/* стартовая страница встроенного браузера (browser.html) */
+body.browser-start { display: block; height: auto; min-height: 100vh; overflow: auto; }
+.bs-wrap { max-width: 760px; margin: 0 auto; padding: 36px 28px 60px; }
+.bs-wrap h1 { margin: 0 0 8px; }
+.bs-wrap h2 { margin: 30px 0 10px; font: 600 14px 'JetBrains Mono', monospace; color: var(--el-dim); letter-spacing: 1px; text-transform: uppercase; }
+.bs-lead { color: var(--el-dim); margin: 0 0 18px; }
+.bs-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.bs-tile {
+  display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border-radius: 14px;
+  border: 1px solid var(--el-line); background: var(--el-panel); color: var(--el-text); text-decoration: none;
+  transition: border-color .2s ease, transform .2s ease;
+}
+.bs-tile:hover { border-color: var(--el-accent); transform: translateY(-2px); }
+.bs-tile span { font-size: 12px; color: var(--el-dim); }
+.bs-list { margin: 0; padding-left: 20px; line-height: 1.7; }
+.bs-note { line-height: 1.7; color: var(--el-dim); }
+
+/* «Мой остров» (island.js) */
+.island-card {
+  margin: 4px 0 26px; padding: 14px 16px 12px; border: 1px solid var(--el-line); border-radius: 18px;
+  background: radial-gradient(ellipse at 50% 35%, var(--el-accent-soft), transparent 70%), var(--el-panel);
+}
+.island-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+#island { display: block; width: 100%; height: 340px; margin: 6px 0; touch-action: none; cursor: grab; border-radius: 12px; }
+#island:active { cursor: grabbing; }
+.island-tools { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.blk-palette { display: flex; gap: 6px; flex-wrap: wrap; }
+.blk-palette .blk {
+  width: 28px; height: 28px; padding: 0; border-radius: 8px; border: 2px solid rgba(0,0,0,.35);
+  box-shadow: inset 0 -5px 0 rgba(0,0,0,.18); transition: transform .15s ease;
+}
+.blk-palette .blk:hover { filter: none; transform: translateY(-2px); }
+.blk-palette .blk.on { border-color: var(--el-accent); box-shadow: inset 0 -5px 0 rgba(0,0,0,.18), 0 0 0 2px var(--el-accent); }
+.island-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.island-actions button { padding: 7px 12px; font-size: 12px; }

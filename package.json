@@ -2,12 +2,12 @@
   "name": "end-launcher",
   "private": true,
   "version": "0.1.0",
-  "description": "End Launcher — лаунчер Minecraft (Java + Bedrock) в стилистике Края",
+  "description": "End Launcher - лаунчер Minecraft (Java + Bedrock) в стилистике Кран",
   "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "tauri dev",
-    "build": "tauri build"
+    "build": "tauri build",
     "tauri": "tauri"
   },
   "devDependencies": {

@@ -25,7 +25,7 @@ const { invoke } = window.__TAURI__.core;
   if (!ctx) return;
   const fit = () => {
     // Cap the backing resolution on high-DPI displays: less memory and faster clears.
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
     canvas.width = Math.max(1, Math.round(innerWidth * dpr));
     canvas.height = Math.max(1, Math.round(innerHeight * dpr));
     canvas.style.width = `${innerWidth}px`;
@@ -36,13 +36,13 @@ const { invoke } = window.__TAURI__.core;
 
   const liteAtStart = (() => { try { return localStorage.getItem('end-lite') === '1'; } catch { return false; } })();
   // Keep the decorative background lightweight; custom images and the game are the main workload.
-  const parts = Array.from({ length: liteAtStart ? 8 : 18 }, () => ({
+  const parts = Array.from({ length: liteAtStart ? 6 : 12 }, () => ({
     x: Math.random() * innerWidth, y: Math.random() * innerHeight,
     s: Math.random() < 0.85 ? 1 + Math.random() * 2 : 3 + Math.random() * 3,
     vy: -(0.08 + Math.random() * 0.25), vx: (Math.random() - 0.5) * 0.1,
     a: 0.15 + Math.random() * 0.5, tw: Math.random() * Math.PI * 2,
   }));
-  const FRAME = 1000 / 30;
+  const FRAME = 1000 / 24;
   let color = 'rgba(194,107,245,0.7)', colorAt = -1e9, last = 0;
   let active = parts.length, cost = 0, frames = 0, off = false, raf = 0, cleared = false;
   const shouldRun = () => !off && !document.hidden && rootAnimOn();
@@ -1584,7 +1584,7 @@ async function openP2p() {
   invoke('p2p_detect_port').then((p) => { if (p) $('p2p-port').value = p; }).catch(() => {});
   p2pRefresh();
   clearInterval(p2pTimer);
-  p2pTimer = setInterval(p2pRefresh, 2000); // обновляем счётчик игроков, пока панель открыта
+  p2pTimer = setInterval(p2pRefresh, 5000); // реже опрашиваем статус, пока панель открыта
 }
 function closeP2p() {
   p2pPop.style.display = 'none';

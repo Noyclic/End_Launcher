@@ -2256,3 +2256,73 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   .customizer-tools .customizer-color { flex-basis:100%; }
   .customizer-animation-presets > button { flex:1 1 42%; }
 }
+
+
+/* UI polish pass 9: keyboard focus, modal sizing, and small-window usability. */
+:root {
+  --el-focus-ring: color-mix(in srgb, var(--el-accent, #b47ede) 78%, white);
+}
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline:2px solid var(--el-focus-ring);
+  outline-offset:3px;
+}
+:where(button, a, input, select, textarea, [tabindex]):focus:not(:focus-visible) {
+  outline:none;
+}
+.account-dialog, .customizer-window, .welcome-card {
+  min-width:0;
+  max-width:100%;
+}
+.account-dialog {
+  max-height:calc(100dvh - 32px);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+}
+.account-dialog-head, .account-provider-title {
+  min-width:0;
+}
+.account-dialog-head > div, .account-provider-title > div {
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+.account-provider-card { min-width:0; }
+.account-provider-card .row { min-width:0; flex-wrap:wrap; }
+.account-provider-card .row > input,
+.account-provider-card .row > button { min-width:0; flex:1 1 180px; }
+.welcome-card {
+  max-height:calc(100dvh - 24px);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+}
+.welcome-options > label,
+.welcome-options select { min-width:0; max-width:100%; }
+#page-mods .mods-search-controls { min-width:0; }
+#page-mods .mods-search-controls > * { min-width:0; max-width:100%; }
+#page-mods #mod-query { flex:2 1 220px; }
+#page-mods .mods-search-controls select { flex:1 1 120px; }
+#page-mods .mods-search-controls button { flex:0 1 auto; }
+#page-play .library-toolbar-actions > * { min-width:0; }
+#page-play .library-toolbar-actions .library-search { min-width:min(220px,100%); }
+
+@media (max-width:620px) {
+  .account-modal { padding:8px; align-items:flex-start; }
+  .account-dialog { width:100%; max-height:calc(100dvh - 16px); padding:14px; }
+  .account-dialog-head { gap:10px; }
+  .account-provider-card .row > input,
+  .account-provider-card .row > button { flex-basis:100%; width:100%; }
+  .welcome-wizard { padding:8px; align-items:flex-start; overflow-y:auto; }
+  .welcome-card { width:100%; max-height:calc(100dvh - 16px); padding:16px; }
+  #page-mods .mods-search-controls { align-items:stretch; }
+  #page-mods .mods-search-controls > * { flex:1 1 100%; width:100%; }
+  #page-play .library-toolbar-actions .library-search { flex-basis:100%; }
+}
+@media (prefers-reduced-motion:reduce) {
+  *, *::before, *::after {
+    scroll-behavior:auto !important;
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+  }
+}

@@ -224,25 +224,61 @@ async fn install_one(
         .ok_or("некорректное имя файла")?
         .to_string();
 
-    let bytes = client
+    let response = client
         .get(&file.url)
+        .timeout(Duration::from_secs(90))
         .send()
         .await
         .map_err(err)?
         .error_for_status()
-        .map_err(err)?
-        .bytes()
-        .await
         .map_err(err)?;
+    const MAX_MOD_SIZE: u64 = 512 * 1024 * 1024;
+    if response.content_length().is_some_and(|size| size > MAX_MOD_SIZE) {
+        return Err(format!("{name}: файл превышает лимит 512 МБ"));
+    }
 
-    if let Some(want) = file.hashes.get("sha1") {
-        let mut h = Sha1::new();
-        h.update(&bytes);
-        if format!("{:x}", h.finalize()) != want.to_lowercase() {
-            return Err(format!("{name}: контрольная сумма не совпала"));
+    // Stream to a temporary file: failed downloads or bad hashes never leave a broken .jar behind.
+    let destination = dir.join(&name);
+    let temporary = destination.with_extension("endlauncher-part");
+    let mut output = tokio::fs::File::create(&temporary).await.map_err(err)?;
+    let mut body = response.bytes_stream();
+    let mut hasher = Sha1::new();
+    let mut size = 0u64;
+    let mut failure = None;
+    while let Some(chunk) = body.next().await {
+        let chunk = match chunk {
+            Ok(bytes) => bytes,
+            Err(error) => { failure = Some(error.to_string()); break; }
+        };
+        size = size.saturating_add(chunk.len() as u64);
+        if size > MAX_MOD_SIZE {
+            failure = Some("файл превышает лимит 512 МБ".into());
+            break;
+        }
+        hasher.update(&chunk);
+        if let Err(error) = output.write_all(&chunk).await {
+            failure = Some(error.to_string());
+            break;
         }
     }
-    tokio::fs::write(dir.join(&name), &bytes).await.map_err(err)?;
+    if let Some(error) = failure {
+        drop(output);
+        let _ = tokio::fs::remove_file(&temporary).await;
+        return Err(format!("{name}: загрузка не завершена: {error}"));
+    }
+    output.flush().await.map_err(err)?;
+    drop(output);
+
+    if let Some(want) = file.hashes.get("sha1") {
+        if format!("{:x}", hasher.finalize()) != want.to_lowercase() {
+            let _ = tokio::fs::remove_file(&temporary).await;
+            return Err(format!("{name}: контрольная сумма не совпала; временный файл удалён"));
+        }
+    }
+    if let Err(error) = tokio::fs::rename(&temporary, &destination).await {
+        let _ = tokio::fs::remove_file(&temporary).await;
+        return Err(format!("{name}: не удалось сохранить файл: {error}"));
+    }
 
     let deps = v
         .dependencies

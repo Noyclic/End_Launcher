@@ -2191,3 +2191,7 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   #page-play .library-toolbar-heading { justify-content:space-between; }
   #page-play .library-toolbar-actions > button { flex:1 1 auto; }
 }
+
+
+/* Keep the HTML hidden state authoritative when a component has an explicit display rule. */
+#page-play .launcher-banner[hidden] { display: none !important; }

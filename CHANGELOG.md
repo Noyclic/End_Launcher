@@ -1,5 +1,13 @@
 # Changelog
 
+## UI fidelity pass — layout-specific polish
+
+- Refined the instance library toolbar, card density, active-selection state, and launch controls independently for Prism-inspired, Modrinth-inspired, TL Legacy-inspired, GDLauncher Carbon-inspired, official Minecraft Launcher-inspired, ATLauncher-inspired, and Lunar-inspired layouts.
+- Kept each layout within End Launcher's existing markup and behaviour so core launcher functions remain shared rather than duplicated.
+- Added responsive wrapping for toolbar controls at narrower window widths.
+- Used original CSS styling only; no third-party logos, icons, artwork, or source code were copied.
+- Visual runtime review and full Tauri build are still required before considering the pass fully verified.
+
 ## 0.4.0 — Instance import / export and library UX
 
 - Added OS-level drag-and-drop routing: `.jar` files go to the active build's mods; `.mrpack`, recognised `.zip` packs, and folders are treated as build imports.

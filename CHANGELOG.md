@@ -269,3 +269,12 @@
 - Fixed the full-window media overlay so it no longer intercepts mouse events intended for underlying launcher controls during editing.
 - Kept pointer events enabled on draggable media and widget children, while the parent overlay remains click-through.
 - Added regression checks for the overlay's pointer-event behavior and the draggable media children.
+
+
+### UI fidelity pass 21 — media hit testing and usable custom buttons
+
+- Reset existing custom image pointer-events when edit mode toggles, preventing hidden drag targets from blocking normal UI clicks after editing.
+- Added action metadata to configured custom buttons and allowed only those buttons to receive clicks outside edit mode; passive text widgets remain click-through.
+- Re-applies the custom widget after action selection so pointer behavior reflects the chosen action.
+- Removed `aria-hidden` from the shared media/widget layer so user-created controls and image alternatives remain exposed to assistive technology.
+- Added regression checks for media pointer reset, action-button hit testing, and accessibility-tree exposure.

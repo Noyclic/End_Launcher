@@ -169,3 +169,10 @@
 - Improved the layer and media management panels with adaptive item grids and safer long-text wrapping.
 - Made animation presets, global color controls, and media controls wrap more predictably on small screens.
 - Added subtle mode-specific panel treatments without changing customization storage or event handlers.
+
+
+### UI fidelity pass 8 — first-run style selection
+
+- Fixed the welcome wizard's GDLauncher option to use the actual `gd` style identifier.
+- Exposed all eight existing interface styles in the first-run selector, so users can choose Prism, TL Legacy, Modrinth, GDLauncher Carbon, ATLauncher, Lunar, official Minecraft, or classic End before opening Settings.
+- Reused existing style IDs and labels; no authentication or launcher behavior changed.

@@ -898,7 +898,7 @@ pub fn open_launcher_folder() -> Result<(), String> {
 
 #[cfg(test)]
 mod import_path_tests {
-    use super::{normalized_archive_path, safe_relative};
+    use super::{allowed_import_file, allowed_import_root, excluded_import_root, normalized_archive_path, safe_relative};
     use std::path::PathBuf;
 
     #[test]
@@ -912,6 +912,53 @@ mod import_path_tests {
     fn safe_relative_rejects_absolute_and_parent_paths() {
         for path in ["../outside.txt", "mods/../../outside.txt", "/tmp/outside.txt", "\\\\server\\share\\file", "C:\\\\Windows\\file.txt"] {
             assert!(safe_relative(path).is_none(), "path should be rejected: {path}");
+        }
+    }
+
+    #[test]
+    fn import_allowlists_are_case_insensitive_and_narrow() {
+        assert!(allowed_import_root("mods"));
+        assert!(allowed_import_root("RESOURCEPACKS"));
+        assert!(allowed_import_file("Options.txt"));
+        assert!(allowed_import_file("servers.dat"));
+        for name in ["launcher_accounts.json", "versions", "libraries", "assets", "runtime", ".git"] {
+            assert!(excluded_import_root(name), "should exclude: {name}");
+        }
+        for name in ["launcher.exe", "passwords.txt", "random-folder"] {
+            assert!(!allowed_import_root(name), "should not allow root: {name}");
+            assert!(!allowed_import_file(name), "should not allow file: {name}");
+        }
+    }
+
+    #[test]
+    fn archive_import_accepts_supported_paths_and_wrapper_directories() {
+        assert_eq!(
+            normalized_archive_path("overrides/mods/example.jar", true),
+            Some(PathBuf::from("mods/example.jar"))
+        );
+        assert_eq!(
+            normalized_archive_path("some-pack/.minecraft/config/options.txt", true),
+            Some(PathBuf::from("config/options.txt"))
+        );
+        assert_eq!(
+            normalized_archive_path("options.txt", false),
+            Some(PathBuf::from("options.txt"))
+        );
+    }
+
+    #[test]
+    fn archive_import_rejects_launcher_internals_and_unknown_roots() {
+        for path in [
+            "versions/1.20.1/1.20.1.jar",
+            "libraries/com/example/library.jar",
+            "assets/indexes/1.json",
+            "launcher_accounts.json",
+            "random-folder/file.txt",
+        ] {
+            assert!(
+                normalized_archive_path(path, true).is_none(),
+                "path should not be imported: {path}"
+            );
         }
     }
 

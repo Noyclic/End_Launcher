@@ -55,7 +55,10 @@ const { invoke } = window.__TAURI__.core;
   let color = 'rgba(194,107,245,0.7)', colorAt = -1e9, last = 0;
   let active = parts.length, cost = 0, frames = 0, off = false, raf = 0, cleared = false;
   const shouldRun = () => !off && !document.hidden && !motionPreference?.matches && rootAnimOn();
-  function rootAnimOn() { return document.documentElement.dataset.anim !== 'off'; }
+  function rootAnimOn() {
+    const root = document.documentElement;
+    return root.dataset.anim !== 'off' && root.dataset.particles !== 'off';
+  }
   function clear() {
     if (cleared) return;
     ctx.clearRect(0, 0, innerWidth, innerHeight); cleared = true;
@@ -100,7 +103,7 @@ const { invoke } = window.__TAURI__.core;
   if (motionPreference?.addEventListener) motionPreference.addEventListener('change', start);
   else motionPreference?.addListener?.(start);
   if (typeof MutationObserver !== 'undefined') {
-    new MutationObserver(start).observe(document.documentElement, { attributes: true, attributeFilter: ['data-anim'] });
+    new MutationObserver(start).observe(document.documentElement, { attributes: true, attributeFilter: ['data-anim', 'data-particles'] });
   }
   start();
 })();;
@@ -2059,7 +2062,9 @@ ensureNewsLoaded();
     document.documentElement.style.setProperty('--custom-animation-opacity', String(state.animationOpacity / 100));
     document.documentElement.style.setProperty('--custom-animation-speed', String(state.animationSpeed / 100));
     document.documentElement.style.setProperty('--custom-animation-quality', String(state.animationQuality / 100));
-    document.documentElement.dataset.anim = state.particles && state.animationQuality > 0 && document.getElementById('ui-anim')?.checked !== false ? (state.animationQuality < 30 ? 'low' : state.animationQuality < 70 ? 'on' : state.animationQuality < 95 ? 'high' : 'max') : 'off';
+    const animationsEnabled = document.getElementById('ui-anim')?.checked !== false && state.animationQuality > 0;
+    document.documentElement.dataset.particles = state.particles ? 'on' : 'off';
+    document.documentElement.dataset.anim = animationsEnabled ? (state.animationQuality < 30 ? 'low' : state.animationQuality < 70 ? 'on' : state.animationQuality < 95 ? 'high' : 'max') : 'off';
     let dim = document.querySelector('.custom-dim-overlay');
     if (!dim) { dim = document.createElement('div'); dim.className = 'custom-dim-overlay'; document.body.appendChild(dim); }
     if (state.background) {

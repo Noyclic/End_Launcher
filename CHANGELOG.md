@@ -278,3 +278,11 @@
 - Re-applies the custom widget after action selection so pointer behavior reflects the chosen action.
 - Removed `aria-hidden` from the shared media/widget layer so user-created controls and image alternatives remain exposed to assistive technology.
 - Added regression checks for media pointer reset, action-button hit testing, and accessibility-tree exposure.
+
+
+### UI fidelity pass 22 — shared navigation and reliable news loading
+
+- Routed sidebar navigation through the shared page activation function so page-specific refresh and lazy-loading behavior runs for normal clicks as well as internal navigation.
+- Fixed the news lazy-loader observing a wrapper that starts `display:none`; it now observes the visible parent container and loads when that home section approaches the viewport.
+- Repaired custom button actions that targeted nonexistent sidebar buttons for “Library” and “News”; they now open the real home page, scroll to the library or load/scroll to news.
+- Added regression checks for shared navigation, the visible news observer target, and valid custom-button destinations.

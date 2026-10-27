@@ -1982,7 +1982,9 @@ idle(loadReleases);
     if (!state.media.length && !state.widgets.length) list.innerHTML = '<p class="dim small">Пока пусто — добавь GIF, скриншот, мем, текст или кнопку.</p>';
   }
   function open() { modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); }
-  function close() { modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); setEdit(false); }
+  // Закрытие панели не должно отключать режим перемещения: можно закрыть настройки и двигать элементы на самой странице.
+  // Режим выключается только повторным нажатием на кнопку «Режим перемещения».
+  function close() { modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }
   function setEdit(on) {
     edit = on; document.body.classList.toggle('customizer-active', on);
     $c('customizer-edit').textContent = `↔ Режим перемещения: ${on ? 'ВКЛ' : 'ВЫКЛ'}`;

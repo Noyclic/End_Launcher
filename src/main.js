@@ -2110,7 +2110,7 @@ ensureNewsLoaded();
       semanticCounts.set(semanticKey, semanticOccurrence + 1);
       // Existing nodes may be in the middle of a drag; observer refreshes must not reset their inline offsets.
       if (onlyNew && el.dataset.customId) return;
-      if (el.closest('.customizer-modal') || el.classList.contains('custom-media-item') || el.classList.contains('custom-widget')) return;
+      if (el.closest('.customizer-modal, .account-modal, .welcome-wizard') || el.classList.contains('custom-media-item') || el.classList.contains('custom-widget')) return;
       el.dataset.customizable = 'true';
       const id = stableCustomId(el, i, legacyOccurrence, semanticOccurrence);
       restoreCustomBaseStyles(el);
@@ -2370,7 +2370,7 @@ ensureNewsLoaded();
     // This handler is attached to document, so currentTarget would be the document itself.
     const target = e.target instanceof Element ? e.target : e.target?.parentElement;
     const el = target?.closest('[data-customizable="true"]');
-    if (!el || el.closest('.customizer-modal')) return;
+    if (!el || el.closest('.customizer-modal, .account-modal, .welcome-wizard')) return;
     e.preventDefault();
     dragged = el;
     const rect = el.getBoundingClientRect();
@@ -2412,7 +2412,7 @@ ensureNewsLoaded();
   // In edit mode, selecting a built-in control must not trigger its real action.
   // Capture phase is intentional: it prevents launch/navigation handlers from running first.
   document.addEventListener('click', (e) => {
-    if (!edit || e.target.closest('.customizer-modal')) return;
+    if (!edit || e.target.closest('.customizer-modal, .account-modal, .welcome-wizard')) return;
     const el = e.target.closest('[data-customizable="true"]');
     if (!el) return;
     e.preventDefault();

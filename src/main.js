@@ -2754,9 +2754,15 @@ ensureNewsLoaded();
   $c('customizer-rainbow').checked = state.rainbow; $c('customizer-rainbow').addEventListener('change', e => { state.rainbow = e.target.checked; save(); apply(); });
   $c('customizer-reset').addEventListener('click', () => {
     if (!confirm('Сбросить все пользовательские позиции, картинки, фон и эффекты?')) return;
+    try {
+      localStorage.removeItem(STORE);
+      if (localStorage.getItem(STORE) !== null) throw new Error('Хранилище не удалило сохранённую тему');
+    } catch {
+      $c('customizer-status').textContent = 'Не удалось сбросить кастомизацию: браузерное хранилище недоступно. Старые настройки сохранены.';
+      return;
+    }
     selectedLayer = null;
     state = createDefaultState();
-    localStorage.removeItem(STORE);
     apply();
     syncControls();
     $c('customizer-status').textContent = '✓ Кастомизация сброшена';

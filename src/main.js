@@ -1914,6 +1914,10 @@ ensureNewsLoaded();
   };
   const applyDesign = () => {
     const root = document.documentElement;
+    if (!state.design || Object.keys(state.design).length === 0) {
+      ['--el-bg','--el-panel','--el-text','--el-dim','--el-accent','--el-accent-deep','--el-accent-soft','--el-line','--el-particle'].forEach(name => root.style.removeProperty(name));
+      return;
+    }
     const d = { ...designDefaults, ...state.design };
     Object.entries(d).forEach(([key,value]) => { if (!/^#[0-9a-f]{6}$/i.test(value)) d[key] = designDefaults[key]; });
     root.style.setProperty('--el-bg', d.bg);

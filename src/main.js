@@ -35,7 +35,8 @@ const { invoke } = window.__TAURI__.core;
   fit(); addEventListener('resize', fit, { passive: true });
 
   const liteAtStart = (() => { try { return localStorage.getItem('end-lite') === '1'; } catch { return false; } })();
-  const parts = Array.from({ length: liteAtStart ? 10 : 36 }, () => ({
+  // Keep the decorative background lightweight; custom images and the game are the main workload.
+  const parts = Array.from({ length: liteAtStart ? 8 : 18 }, () => ({
     x: Math.random() * innerWidth, y: Math.random() * innerHeight,
     s: Math.random() < 0.85 ? 1 + Math.random() * 2 : 3 + Math.random() * 3,
     vy: -(0.08 + Math.random() * 0.25), vx: (Math.random() - 0.5) * 0.1,

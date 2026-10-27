@@ -137,3 +137,12 @@
 - Reworked the search controls into a responsive grid for narrow windows without changing their IDs or search/install handlers.
 - Improved account dialog heading/provider identity hierarchy, with mode-specific dialog surfaces that remain consistent with the selected layout.
 - Existing authentication controls and backend calls are unchanged. Runtime interaction and visual checks remain necessary.
+
+
+### UI fidelity pass 4 — settings and assistant
+
+- Improved settings-page section spacing, responsive rows, and the customization entry card.
+- Styled the optional AI settings disclosure and assistant input layout to make controls easier to scan.
+- Added restrained mode-specific treatments for Prism, TL Legacy, Modrinth, GDLauncher-inspired, official-inspired, ATLauncher, and Lunar-inspired layouts.
+- Refined active navigation treatment without changing page routing or control IDs.
+- No authentication, game launch, or AI request logic was changed. Runtime visual review remains pending.

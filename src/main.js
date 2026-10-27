@@ -2246,7 +2246,8 @@ ensureNewsLoaded();
   function setEdit(on) {
     edit = on; document.body.classList.toggle('customizer-active', on);
     $c('customizer-edit').textContent = `↔ Режим перемещения: ${on ? 'ВКЛ' : 'ВЫКЛ'}`;
-    layer.style.pointerEvents = on ? 'auto' : 'none';
+    // The full-screen media layer must never block the app; only its media/widgets opt into pointer events.
+    layer.style.pointerEvents = 'none';
     document.querySelectorAll('[data-customizable="true"]').forEach(el => { el.style.pointerEvents = ''; });
     $c('customizer-status').textContent = on ? 'Перетаскивай подсвеченные элементы. Нажми кнопку ещё раз, чтобы закончить.' : 'Режим перемещения выключен';
   }

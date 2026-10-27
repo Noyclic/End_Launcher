@@ -1027,10 +1027,21 @@ function applyUi(mode) {
   syncLibraryChrome();
   syncLauncherBanner();
 }
+let uiChoiceRevision = 0;
 async function chooseUi(mode) {
+  if (!UI_STYLES[mode]) mode = 'end';
+  const revision = ++uiChoiceRevision;
   applyUi(mode);
-  // -> Rust: config.rs :: set_ui_style(style) — запоминаем между запусками
-  await invoke('set_ui_style', { style: mode }).catch(console.error);
+  try {
+    // -> Rust: config.rs :: set_ui_style(style) — запоминаем между запусками
+    await invoke('set_ui_style', { style: mode });
+    try { localStorage.setItem('el-ui-style', mode); } catch {}
+    return true;
+  } catch (error) {
+    console.error(error);
+    if (revision === uiChoiceRevision) showToast('Не удалось сохранить стиль интерфейса. Выбранный вид останется до перезапуска.', false);
+    return false;
+  }
 }
 $('ui-restart')?.addEventListener('click', () => {
   const status = $('ui-restart-status');
@@ -1072,8 +1083,23 @@ $('launcher-banner-play')?.addEventListener('click', () => {
   if (instances.some((item) => item.id === activeId)) playBtn.click();
   else openNewInstance();
 });
-// -> Rust: config.rs :: get_ui_style()
-invoke('get_ui_style').then(applyUi);
+// -> Rust: config.rs :: get_ui_style(). Ignore stale startup reads if the user already made a choice.
+const uiStartupRevision = uiChoiceRevision;
+invoke('get_ui_style').then((storedMode) => {
+  if (uiChoiceRevision !== uiStartupRevision) return;
+  const mode = UI_STYLES[storedMode] ? storedMode : 'end';
+  let legacyMode = null;
+  try {
+    const candidate = localStorage.getItem('el-ui-style');
+    if (UI_STYLES[candidate]) legacyMode = candidate;
+  } catch {}
+  // Older first-run setup only wrote to localStorage, not config.json. Recover that choice once.
+  if (mode === 'end' && legacyMode && legacyMode !== 'end') {
+    chooseUi(legacyMode);
+    return;
+  }
+  applyUi(mode);
+}).catch((error) => console.error('Не удалось загрузить стиль интерфейса:', error));
 
 // ─────────────── ВНЕШНИЙ ВИД: автоскрытие меню и анимации ───────────────
 // Эти два переключателя — чисто про вид, хранятся в localStorage окна приложения.
@@ -2565,12 +2591,14 @@ ensureNewsLoaded();
     dots.forEach((d,i) => d.classList.toggle('active', i === step-1));
   }
   choices.forEach(b => b.addEventListener('click', () => setMode(b.dataset.welcomeMode)));
-  $('welcome-next').addEventListener('click', () => {
+  $('welcome-next').addEventListener('click', async () => {
     if (step < 3) { step++; renderStep(); return; }
-    safeWrite('el-first-run-complete','1'); safeWrite('el-edition',mode);
-    document.documentElement.dataset.edition = mode === 'minimal' ? 'minimal' : 'ai';
     const layout = $('welcome-layout').value;
-    document.documentElement.dataset.ui = layout;
+    // Apply the complete layout (including the playbar, banner and toolbar) and persist it in Rust.
+    await chooseUi(layout);
+    safeWrite('el-first-run-complete','1');
+    safeWrite('el-edition',mode);
+    document.documentElement.dataset.edition = mode === 'minimal' ? 'minimal' : 'ai';
     safeWrite('el-ui-style',layout);
     safeWrite('ui-anim',$('welcome-animations').checked ? '1' : '0');
     safeWrite('pet-on',$('welcome-mascot-enabled').checked ? '1' : '0');

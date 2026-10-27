@@ -1978,7 +1978,14 @@ ensureNewsLoaded();
   const selectedTools = $c('customizer-selected-tools');
   if (!modal || !layer) return;
   const STORE = 'end-launcher-full-customization-v1';
-  let state = { positions: {}, elementStyles: {}, media: [], widgets: [], design: {}, dim: 0, size: 180, glow: '#b47ede', particles: true, animationQuality: 60, animationOpacity: 65, animationSpeed: 100, glitch: false, rainbow: false, background: '', font: 'inherit', scale: 100, radius: 16 };
+  const createDefaultState = () => ({
+    positions: {}, elementStyles: {}, media: [], widgets: [], design: {},
+    dim: 0, size: 180, glow: '#b47ede', particles: true,
+    animationQuality: 60, animationOpacity: 65, animationSpeed: 100,
+    glitch: false, rainbow: false, background: '', font: 'inherit',
+    scale: 100, radius: 16
+  });
+  let state = createDefaultState();
   let profiles = {};
   let selectedWidget = null;
   let selectedLayer = null;
@@ -2474,7 +2481,7 @@ ensureNewsLoaded();
     const name = $c('customizer-profile-select').value;
     if (!name || !profiles[name]) return;
     const previousState = state;
-    state = { ...state, ...JSON.parse(JSON.stringify(profiles[name])) };
+    state = { ...createDefaultState(), ...JSON.parse(JSON.stringify(profiles[name])) };
     syncControls();
     if (!save()) {
       state = previousState;
@@ -2636,7 +2643,8 @@ ensureNewsLoaded();
       }
       if (JSON.stringify(safe).length > 9 * 1024 * 1024) throw new Error('Данные темы слишком большие');
       const previousState = state;
-      state = { ...state, ...safe };
+      // Import replaces the current theme; values absent from an older export receive defaults.
+      state = { ...createDefaultState(), ...safe };
       state.elementStyles ||= {};
       state.positions ||= {};
       state.media ||= [];
@@ -2746,7 +2754,8 @@ ensureNewsLoaded();
   $c('customizer-rainbow').checked = state.rainbow; $c('customizer-rainbow').addEventListener('change', e => { state.rainbow = e.target.checked; save(); apply(); });
   $c('customizer-reset').addEventListener('click', () => {
     if (!confirm('Сбросить все пользовательские позиции, картинки, фон и эффекты?')) return;
-    selectedLayer=null; state = { positions: {}, elementStyles: {}, media: [], widgets: [], design: {}, dim: 0, size: 180, glow: '#b47ede', particles: true, animationQuality: 60, animationOpacity: 65, animationSpeed: 100, glitch: false, rainbow: false, background: '', font: 'inherit', scale: 100, radius: 16 };
+    selectedLayer = null;
+    state = createDefaultState();
     localStorage.removeItem(STORE);
     apply();
     syncControls();

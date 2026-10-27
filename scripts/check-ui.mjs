@@ -97,6 +97,12 @@ check(customizeStart >= 0 && restoreIndex > customizeStart && restoreIndex < pos
   'The original element styles must be restored before position overrides are applied');
 check(js.includes("customizer-status').textContent = '✓ Кастомизация сброшена'"),
   'Customizer reset should clearly report completion');
+check(/document\.addEventListener\('click',[\s\S]*?e\.stopImmediatePropagation\(\);[\s\S]*?renderSelectedTools\(\);[\s\S]*?\}, true\);/.test(js),
+  'Customizer must intercept built-in control clicks during edit mode and open the selected element tools');
+check(js.includes("selectedLayer = {type:'media', index}; renderLayers(); renderSelectedTools();"),
+  'Selecting a custom image must reveal its properties');
+check(js.includes("selectedLayer = {type:'widget', index}; renderLayers(); renderSelectedTools();"),
+  'Selecting a custom widget must reveal its properties');
 check(/max-height:\s*calc\(100dvh - 24px\)/.test(css),
   'Customizer must remain scrollable inside short windows');
 
@@ -108,4 +114,4 @@ check(js.includes("!isImageData(item.src)") && js.includes('safe.media.length > 
 check(html.includes('id="customizer-import"') && html.includes('id="customizer-export"'),
   'Theme backup import/export controls are missing');
 
-console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, and customizer baseline restoration.');
+console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection.');

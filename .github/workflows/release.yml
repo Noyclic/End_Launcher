@@ -5,6 +5,11 @@ on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Существующий тег релиза, например v0.1.0'
+        required: true
+        type: string
 
 jobs:
   build:
@@ -13,7 +18,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [windows-latest, ubuntu-22.04, macos-latest]
+        include:
+          - platform: windows-latest
+            args: ''
+          - platform: ubuntu-22.04
+            args: ''
+          # macOS: одна универсальная сборка (и Apple Silicon, и Intel)
+          - platform: macos-latest
+            args: '--target universal-apple-darwin'
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
@@ -21,17 +33,50 @@ jobs:
         with:
           node-version: lts/*
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
       - name: Системные зависимости (Linux)
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev patchelf
       - run: npm install
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: 'End Launcher ${{ github.ref_name }}'
+          tagName: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
+          releaseName: 'End Launcher ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}'
           releaseDraft: true
           prerelease: true
+          args: ${{ matrix.args }}
+
+
+  sign-manifest:
+    name: Подписать манифест релиза End Shield
+    needs: build
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Установить криптографическую библиотеку
+        run: python -m pip install cryptography
+      - name: Скачать файлы чернового релиза
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: mkdir -p release-assets && gh release download "${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}" --dir release-assets --repo "$GITHUB_REPOSITORY"
+      - name: Подписать SHA-256 манифест
+        env:
+          END_SHIELD_PRIVATE_KEY_PEM: ${{ secrets.END_SHIELD_PRIVATE_KEY_PEM }}
+        run: python scripts/sign_release_manifest.py release-assets
+      - name: Загрузить подписанный манифест
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}" release-assets/end-shield-manifest.json release-assets/end-shield-manifest.sig --clobber --repo "$GITHUB_REPOSITORY"

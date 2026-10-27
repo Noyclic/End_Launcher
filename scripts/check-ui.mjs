@@ -122,6 +122,12 @@ check(!html.includes('id="custom-media-layer" aria-hidden="true"'),
 
 check(js.includes("selectedLayer = {type:'media', index}; renderLayers(); renderSelectedTools();"),
   'Selecting a custom image must reveal its properties');
+check(js.includes("el.closest('.customizer-modal, .account-modal, .welcome-wizard')")
+    && js.includes("e.target.closest('.customizer-modal, .account-modal, .welcome-wizard')"),
+  'Account and welcome dialogs must be excluded from customization and capture-phase edit selection so auth/setup controls keep working');
+check(js.includes("if (!el || el.closest('.customizer-modal, .account-modal, .welcome-wizard')) return;"),
+  'The document drag handler must ignore controls inside account and setup dialogs');
+
 check(js.includes("selectedLayer = {type:'widget', index}; renderLayers(); renderSelectedTools();"),
   'Selecting a custom widget must reveal its properties');
 
@@ -181,9 +187,11 @@ const applyDesignStart = js.indexOf('const applyDesign = () => {');
 const applyDesignEnd = js.indexOf('const apply = (refreshEditor = true) => {', applyDesignStart);
 const applyDesignCode = js.slice(applyDesignStart, applyDesignEnd);
 check(applyDesignStart >= 0 && applyDesignEnd > applyDesignStart
-    && applyDesignCode.includes("if (root.dataset.theme !== 'custom')")
+    && applyDesignCode.includes("if (root.dataset.theme === 'custom')")
+    && applyDesignCode.includes('applyPalette(palette);')
+    && applyDesignCode.includes('clearPalette();')
     && applyDesignCode.includes("root.style.removeProperty(name)"),
-  'Resetting full-customizer colors must preserve the independently selected Settings palette');
+  'Resetting full-customizer colors must restore the active Settings palette or clear customizer-only overrides');
 check(js.includes('const apply = (refreshEditor = true) => {')
     && js.includes('if (refreshEditor) { renderList(); renderLayers(); }'),
   'Customizer must support visual updates without rebuilding editor controls');

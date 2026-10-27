@@ -124,6 +124,18 @@ check(js.includes("selectedLayer = {type:'media', index}; renderLayers(); render
   'Selecting a custom image must reveal its properties');
 check(js.includes("selectedLayer = {type:'widget', index}; renderLayers(); renderSelectedTools();"),
   'Selecting a custom widget must reveal its properties');
+
+const selectedToolsStart = js.indexOf('function renderSelectedTools() {');
+const selectedToolsEnd = js.indexOf('function renderList() {', selectedToolsStart);
+const selectedToolsCode = js.slice(selectedToolsStart, selectedToolsEnd);
+check(js.includes('const apply = (refreshEditor = true) => {')
+    && js.includes('if (refreshEditor) { renderList(); renderLayers(); }'),
+  'Customizer must support visual updates without rebuilding editor controls');
+check(selectedToolsStart >= 0 && selectedToolsEnd > selectedToolsStart
+    && (selectedToolsCode.match(/apply\(false\)/g) || []).length >= 10
+    && !selectedToolsCode.includes('apply()'),
+  'Live property edits must keep focused inputs mounted to avoid interrupting range-slider interaction');
+
 check(/max-height:\s*calc\(100dvh - 24px\)/.test(css),
   'Customizer must remain scrollable inside short windows');
 
@@ -152,4 +164,4 @@ check(!widgetActions.includes("document.querySelector('[data-page=\"library\"]')
     && !widgetActions.includes("document.querySelector('[data-page=\"news\"]')"),
   'Custom widget actions must not target nonexistent sidebar buttons');
 
-console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, and lazy-news section visibility.');
+console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls.');

@@ -2298,6 +2298,9 @@ ensureNewsLoaded();
   let customizerReturnFocus = null;
   function open() {
     customizerReturnFocus = document.activeElement;
+    // The layer panel may have been open before cards/news were lazily loaded.
+    renderList();
+    renderLayers();
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
     $c('customizer-close')?.focus();
@@ -2721,7 +2724,11 @@ ensureNewsLoaded();
       refreshScheduled = true;
       requestAnimationFrame(() => {
         refreshScheduled = false;
-        apply(false);
+        makeCustomizable();
+        if (customIdStateMigrated) {
+          customIdStateMigrated = false;
+          save();
+        }
       });
     });
     customizerDomObserver.observe(observerRoot, { childList: true, subtree: true });

@@ -208,3 +208,13 @@
 
 - Move focus to the account dialog close control when the account picker opens.
 - Restore focus to the previous control when the dialog closes, including with Escape or backdrop click.
+
+
+### UI fidelity pass 14 — keyboard access, theme portability, and regression checks
+
+- Added keyboard focus trapping to the account picker and full customizer; Escape remains a single close path and focus restoration targets are cleared after closing.
+- Made decorative canvas particles stop when the operating system requests reduced motion, while retaining the launcher's own animation controls.
+- Hardened theme import: bounds the file and embedded image sizes, limits media/widget counts, checks image data URLs, clamps numeric layout properties, and validates palette/font fields before applying them.
+- Made theme export report success/failure and defer object-URL cleanup so the download has time to start.
+- Made the customizer and account dialogs scroll reliably in short windows and improved compact-height layout.
+- Added a dependency-free frontend UI regression check for duplicate IDs, all eight layout styles, modal semantics, reduced motion, hidden banner behavior, and theme-import bounds; CI runs it after JavaScript syntax checks.

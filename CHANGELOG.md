@@ -146,3 +146,11 @@
 - Added restrained mode-specific treatments for Prism, TL Legacy, Modrinth, GDLauncher-inspired, official-inspired, ATLauncher, and Lunar-inspired layouts.
 - Refined active navigation treatment without changing page routing or control IDs.
 - No authentication, game launch, or AI request logic was changed. Runtime visual review remains pending.
+
+
+### UI fidelity pass 5 — library and launch surfaces
+
+- Refined the selected-installation banner and made its title, metadata, and launch action hold together across wide and narrow windows.
+- Tightened library toolbar hierarchy and search sizing, with actions wrapping into a compact layout on smaller windows.
+- Added restrained banner/button treatments for Prism, Modrinth, TL Legacy, official-inspired, ATLauncher, and Lunar-inspired layouts.
+- Kept existing launcher controls, selection state, and click handlers intact. Visual review in the running Tauri app remains pending.

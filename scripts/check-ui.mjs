@@ -88,6 +88,15 @@ check(js.includes("root.dataset.anim !== 'off' && root.dataset.particles !== 'of
   'Canvas particles must observe both global animation and particle settings');
 check(js.includes("attributeFilter: ['data-anim', 'data-particles']"),
   'Canvas loop must react when the particle toggle changes');
+check(js.includes('const customizerBaseStyles = new WeakMap();') && js.includes('restoreCustomBaseStyles(el);'),
+  'Customizer must restore each element\'s original inline styles before applying a theme');
+const customizeStart = js.indexOf('const makeCustomizable = () => {');
+const restoreIndex = js.indexOf('restoreCustomBaseStyles(el);', customizeStart);
+const positionIndex = js.indexOf('const pos = state.positions[id];', customizeStart);
+check(customizeStart >= 0 && restoreIndex > customizeStart && restoreIndex < positionIndex,
+  'The original element styles must be restored before position overrides are applied');
+check(js.includes("customizer-status').textContent = '✓ Кастомизация сброшена'"),
+  'Customizer reset should clearly report completion');
 check(/max-height:\s*calc\(100dvh - 24px\)/.test(css),
   'Customizer must remain scrollable inside short windows');
 
@@ -99,4 +108,4 @@ check(js.includes("!isImageData(item.src)") && js.includes('safe.media.length > 
 check(html.includes('id="customizer-import"') && html.includes('id="customizer-export"'),
   'Theme backup import/export controls are missing');
 
-console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, and bounded theme import.');
+console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, and customizer baseline restoration.');

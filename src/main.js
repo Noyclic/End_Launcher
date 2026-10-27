@@ -1938,7 +1938,7 @@ ensureNewsLoaded();
     if (style.color) el.style.color = style.color;
     if (style.background) el.style.backgroundColor = style.background;
     if (style.borderColor) el.style.borderColor = style.borderColor;
-    if (style.hidden) el.style.visibility = 'hidden'; else el.style.visibility = '';
+    el.classList.toggle('customizer-hidden', !!style.hidden);
   };
   const makeCustomizable = () => {
     const elements = [...document.querySelectorAll(CUSTOMIZABLE_SELECTOR)];

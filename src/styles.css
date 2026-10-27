@@ -2335,3 +2335,48 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
     transition-duration:.01ms !important;
   }
 }
+
+
+/* UI fidelity pass 14: resilient modal sizing and keyboard-first focus management. */
+.customizer-window {
+  max-height: calc(100dvh - 24px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+.account-modal, .customizer-modal {
+  overscroll-behavior: contain;
+}
+.account-dialog, .customizer-window {
+  scroll-padding-block: 16px;
+}
+.customizer-profiles select,
+.customizer-profiles button,
+.customizer-profiles .custom-upload {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.customizer-profiles .custom-upload {
+  white-space: normal;
+  text-align: center;
+}
+.customizer-window :where(button, input, select, textarea, [tabindex]):focus-visible,
+.account-dialog :where(button, input, select, textarea, [tabindex]):focus-visible {
+  outline-width: 3px;
+  outline-offset: 2px;
+}
+@media (max-height: 700px) {
+  .customizer-modal { padding: 10px; }
+  .customizer-window { max-height: calc(100dvh - 20px); padding: 14px; }
+  .customizer-head { gap: 10px; }
+  .customizer-tools { margin: 12px 0; padding: 10px; gap: 8px; }
+  .account-modal { padding-block: 8px; }
+  .account-dialog { max-height: calc(100dvh - 16px); padding: 16px; }
+}
+@media (max-height: 500px) {
+  .customizer-window { max-height: calc(100dvh - 12px); padding: 10px; }
+  .customizer-window > .customizer-head { position: sticky; top: -10px; z-index: 2; padding: 8px 0; background: var(--el-bg); }
+  .account-dialog-head { position: sticky; top: -16px; z-index: 2; padding: 8px 0; background: var(--el-panel); }
+}

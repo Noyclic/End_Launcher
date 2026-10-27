@@ -627,7 +627,8 @@ fn allowed_modrinth_url(url: &str) -> bool {
 async fn download_modrinth_files(index: &serde_json::Value, target: &Path) -> Result<(usize, usize), String> {
     let files = index.get("files").and_then(|v| v.as_array()).ok_or("В .mrpack отсутствует список files")?;
     if files.len() > 20_000 { return Err("В манифесте слишком много файлов; лимит — 20 000".into()); }
-    let client = reqwest::Client::builder().user_agent("EndLauncher/0.4 pack-import").build().map_err(err)?;
+    // Use the application-wide client so imports share connection pooling and network defaults.
+    let client = crate::net::client();
     let mut downloaded = 0usize;
     let mut skipped_optional = 0usize;
     let mut total = 0u64;
@@ -646,7 +647,8 @@ async fn download_modrinth_files(index: &serde_json::Value, target: &Path) -> Re
             if required { return Err(format!("Для файла «{relative_raw}» нет безопасной HTTPS-ссылки")); }
             skipped_optional += 1; continue;
         };
-        let response = match client.get(url).send().await {
+        // A stalled mirror must not keep this file transfer waiting indefinitely.
+        let response = match client.get(url).timeout(std::time::Duration::from_secs(90)).send().await {
             Ok(r) if r.status().is_success() => r,
             Ok(r) => {
                 if required { return Err(format!("Не удалось скачать «{relative_raw}»: HTTP {}", r.status())); }

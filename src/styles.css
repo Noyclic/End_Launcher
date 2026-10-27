@@ -2072,3 +2072,58 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   .account-dialog-head { gap:8px; }
   .account-provider-title { align-items:flex-start; }
 }
+
+
+/* Fourth fidelity pass: settings, assistant and navigation surfaces. */
+#page-settings > h1, #page-ai > h1 { margin-bottom:18px; }
+#page-settings > h2 { margin-top:24px; margin-bottom:10px; letter-spacing:.07em; }
+#page-settings > .row { align-items:stretch; gap:10px; }
+#page-settings > .row > input { min-width:0; flex:1 1 220px; }
+#page-settings .customize-launcher-card {
+  display:flex; align-items:center; justify-content:space-between; gap:18px;
+  padding:18px; margin:0 0 24px; border:1px solid var(--el-line);
+  border-radius:var(--el-radius, 12px); background:var(--el-panel);
+}
+#page-settings .customize-launcher-card p { margin:6px 0 0; max-width:620px; }
+#page-settings .customize-launcher-card .big-btn { flex:0 0 auto; }
+#page-settings .settings-ai-tab { margin-top:20px; padding:14px 16px; border:1px solid var(--el-line); border-radius:var(--el-radius, 12px); background:var(--el-panel); }
+#page-settings .settings-ai-tab > summary { cursor:pointer; padding:3px 0; }
+#page-settings .security-card { margin-top:10px; }
+#page-ai > .row { align-items:stretch; }
+#page-ai > .row > select { min-width:0; flex:1 1 220px; }
+#page-ai #ai-input { width:100%; min-height:150px; resize:vertical; }
+#page-ai .ai-browser-row > button { flex:1 1 220px; }
+
+:root[data-ui='prism'] #page-settings .customize-launcher-card,
+:root[data-ui='prism'] #page-settings .settings-ai-tab { border-radius:4px; box-shadow:none; }
+:root[data-ui='prism'] #page-settings > h2 { border-bottom:1px solid var(--el-line); padding-bottom:8px; }
+:root[data-ui='prism'] #page-ai #ai-input { border-radius:4px; }
+:root[data-ui='tl'] #page-settings .customize-launcher-card { border-radius:6px; }
+:root[data-ui='tl'] #page-settings > h2 { padding-bottom:8px; border-bottom:1px solid var(--el-line); }
+:root[data-ui='modrinth'] #page-settings .customize-launcher-card,
+:root[data-ui='modrinth'] #page-settings .settings-ai-tab {
+  border-color:#4f8d6a66; border-radius:14px; background:linear-gradient(135deg,#1a2b22,#171d1a);
+}
+:root[data-ui='modrinth'] #page-settings .customize-launcher-card .big-btn { border-radius:9px; }
+:root[data-ui='gd'] #page-settings .customize-launcher-card,
+:root[data-ui='gd'] #page-settings .settings-ai-tab { border-radius:14px; box-shadow:0 8px 24px #0002; }
+:root[data-ui='official'] #page-settings .customize-launcher-card,
+:root[data-ui='official'] #page-settings .settings-ai-tab { border-radius:8px; border-color:#3c5b45; background:#19251e; }
+:root[data-ui='official'] #page-settings .customize-launcher-card .big-btn { border-radius:5px; }
+:root[data-ui='at'] #page-settings .customize-launcher-card,
+:root[data-ui='at'] #page-settings .settings-ai-tab { border-radius:3px; }
+:root[data-ui='lunar'] #page-settings .customize-launcher-card,
+:root[data-ui='lunar'] #page-settings .settings-ai-tab { border-radius:16px; border-color:#7778ff44; box-shadow:0 10px 28px #0003; }
+:root[data-ui='lunar'] #page-settings .customize-launcher-card .big-btn { border-radius:10px; }
+
+:root[data-ui='prism'] .nav-btn.active { box-shadow:inset 3px 0 0 var(--el-accent); }
+:root[data-ui='modrinth'] .nav-btn.active { border-radius:10px; }
+:root[data-ui='official'] .nav-btn.active { border-radius:4px; }
+:root[data-ui='lunar'] .nav-btn.active { border-radius:12px; box-shadow:0 4px 16px #0002; }
+
+@media (max-width:680px) {
+  #page-settings .customize-launcher-card { align-items:stretch; flex-direction:column; }
+  #page-settings .customize-launcher-card .big-btn { width:100%; }
+  #page-settings > .row > input { flex-basis:100%; }
+  #page-ai > .row > select { flex-basis:100%; }
+}

@@ -193,6 +193,7 @@ async fn install_one(
     let resp = client
         .get(format!("{MODRINTH}/project/{project}/version"))
         .query(&q)
+        .timeout(Duration::from_secs(20))
         .send()
         .await
         .map_err(err)?;
@@ -225,8 +226,18 @@ async fn install_one(
         .ok_or("некорректное имя файла")?
         .to_string();
 
+    let download_url = reqwest::Url::parse(&file.url)
+        .map_err(|_| format!("{name}: Modrinth вернул некорректный URL"))?;
+    if download_url.scheme() != "https"
+        || download_url.host_str().is_none()
+        || download_url.username() != ""
+        || download_url.password().is_some()
+    {
+        return Err(format!("{name}: разрешены только безопасные HTTPS-ссылки"));
+    }
+
     let response = client
-        .get(&file.url)
+        .get(download_url)
         .timeout(Duration::from_secs(90))
         .send()
         .await

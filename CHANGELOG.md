@@ -246,3 +246,11 @@
 - Prevented stale scale, rotation, opacity, border, spacing, typography, and position overrides from leaking between theme changes or remaining after reset.
 - Made the reset action explicitly report that the customization was cleared.
 - Extended the regression checks to verify that baseline restoration occurs before current positions and element styles are applied.
+
+
+### UI fidelity pass 18 — safer edit-mode selection
+
+- Changed built-in element selection to capture-phase click handling so choosing a control for customization cannot activate its normal action (such as navigation or launch).
+- Selecting a built-in element now updates both the layer list and the property tools panel.
+- Selecting a custom GIF/image or user-created widget now opens its own property tools immediately.
+- Added regression checks for action suppression and property-panel updates in the customizer.

@@ -200,6 +200,17 @@ check(js.includes('Файл темы больше 10 МБ') && js.includes('cons
   'Theme import size limits are missing');
 check(js.includes("!isImageData(item.src)") && js.includes('safe.media.length > 50') && js.includes('safe.widgets.length > 100'),
   'Theme import must validate embedded images and user-created layer limits');
+check(/const save = \(\) => \{[\s\S]*?return true;[\s\S]*?return false;[\s\S]*?\};/.test(js),
+  'Customizer persistence helper must report whether localStorage actually accepted the state');
+check(js.includes("'✓ Тема импортирована и сохранена'") && js.includes('Тема проверена, но не применена: не удалось сохранить её'),
+  'Theme import must not report success if persistence fails');
+check(js.includes('const previousState = state;') && js.includes('state = previousState;')
+    && js.includes('state.media = previousMedia;') && js.includes('state.background = previousBackground;'),
+  'Failed theme/media/background writes must roll back to the previously saved appearance');
+check(js.includes('const previousProfile = profiles[name];') && js.includes('if (!saveProfiles())')
+    && js.includes('Не удалось сохранить профили: слишком много данных.'),
+  'Failed profile writes must preserve the previous profile instead of reporting a false success');
+
 check(html.includes('id="customizer-import"') && html.includes('id="customizer-export"'),
   'Theme backup import/export controls are missing');
 

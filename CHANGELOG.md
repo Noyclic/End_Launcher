@@ -154,3 +154,9 @@
 - Tightened library toolbar hierarchy and search sizing, with actions wrapping into a compact layout on smaller windows.
 - Added restrained banner/button treatments for Prism, Modrinth, TL Legacy, official-inspired, ATLauncher, and Lunar-inspired layouts.
 - Kept existing launcher controls, selection state, and click handlers intact. Visual review in the running Tauri app remains pending.
+
+
+### UI fidelity pass 6 — hidden-state regression fix
+
+- Ensured the selected-installation banner respects its native `hidden` state even though the responsive layout gives it an explicit flex display when visible.
+- This keeps the banner limited to layouts where the existing UI logic enables it, instead of accidentally displaying it in every layout.

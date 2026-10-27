@@ -2252,11 +2252,20 @@ ensureNewsLoaded();
   }
   function startDrag(e) {
     if (!edit || e.button !== 0) return;
-    const el = e.currentTarget;
-    if (el.closest('.customizer-modal')) return;
-    e.preventDefault(); dragged = el; const rect = el.getBoundingClientRect();
-    dragStart = { x: e.clientX, y: e.clientY, lastX: e.clientX, lastY: e.clientY, rect, oldX: state.positions[el.dataset.customId]?.x || 0, oldY: state.positions[el.dataset.customId]?.y || 0 };
-    window.addEventListener('pointermove', moveDrag); window.addEventListener('pointerup', endDrag, { once: true });
+    // This handler is attached to document, so currentTarget would be the document itself.
+    const target = e.target instanceof Element ? e.target : e.target?.parentElement;
+    const el = target?.closest('[data-customizable="true"]');
+    if (!el || el.closest('.customizer-modal')) return;
+    e.preventDefault();
+    dragged = el;
+    const rect = el.getBoundingClientRect();
+    dragStart = {
+      x: e.clientX, y: e.clientY, lastX: e.clientX, lastY: e.clientY, rect,
+      oldX: state.positions[el.dataset.customId]?.x || 0,
+      oldY: state.positions[el.dataset.customId]?.y || 0
+    };
+    window.addEventListener('pointermove', moveDrag);
+    window.addEventListener('pointerup', endDrag, { once: true });
   }
   function startDragWidget(e) {
     if (!edit || e.button !== 0) return; e.preventDefault(); e.stopPropagation(); dragged = e.currentTarget; const index = Number(dragged.dataset.widgetIndex); const item = state.widgets[index];

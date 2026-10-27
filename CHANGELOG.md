@@ -255,3 +255,10 @@
 - Selecting a custom GIF/image or user-created widget now opens its own property tools immediately.
 - Prevented the account keyboard shortcut from bypassing edit mode and opening a dialog while the user is trying to customize the layout.
 - Added regression checks for action suppression and property-panel updates in the customizer.
+
+
+### UI fidelity pass 19 — repair actual built-in element dragging
+
+- Fixed the document-level pointer handler to resolve the nearest customizable DOM element from the event target instead of treating `document` as the dragged element.
+- Ensured the drag path ignores targets outside editable elements and still excludes the customizer dialog itself.
+- Added a regression assertion to prevent the broken `currentTarget` pattern from returning.

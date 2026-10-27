@@ -690,6 +690,15 @@ pub struct InstalledMod {
 
 /// Имя файла приходит с фронтенда: только один компонент пути и только .jar / .jar.disabled.
 fn safe_mod_file(name: &str) -> Result<PathBuf, String> {
+    // Validate names consistently on every OS. On Unix, Path treats Windows
+    // backslashes and drive prefixes as ordinary characters, not separators.
+    if name.is_empty()
+        || name.contains('/')
+        || name.contains('\\')
+        || name.contains(':')
+    {
+        return Err("недопустимое имя файла".into());
+    }
     let p = Path::new(name);
     if p.components().count() != 1 || p.file_name().and_then(|n| n.to_str()) != Some(name) {
         return Err("недопустимое имя файла".into());

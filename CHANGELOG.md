@@ -286,3 +286,10 @@
 - Fixed the news lazy-loader observing a wrapper that starts `display:none`; it now observes the visible parent container and loads when that home section approaches the viewport.
 - Repaired custom button actions that targeted nonexistent sidebar buttons for “Library” and “News”; they now open the real home page, scroll to the library or load/scroll to news.
 - Added regression checks for shared navigation, the visible news observer target, and valid custom-button destinations.
+
+
+### UI fidelity pass 23 — stable live property controls
+
+- Separated visual application from rebuilding the customizer editor panel with an `apply(refreshEditor)` option.
+- Changed property-field handlers to apply updated visuals without recreating the selected-tools subtree, so range sliders and number inputs don't lose focus while the user edits values.
+- Added a regression check that guards against property-panel redraws during live edits.

@@ -712,6 +712,16 @@ p, li, label.toggle span, h1, h2 { overflow-wrap: anywhere; }
 .customizer-profiles input{flex:1 1 150px}
 .customizer-profiles select{flex:1 1 150px}
 .customizer-window{font-family:var(--custom-font,inherit)}
+/* Global theme studio: controls for the launcher-wide design tokens. */
+.customizer-window{width:min(1120px,100%);max-height:94vh}
+.customizer-design{display:flex;align-items:center;gap:12px;flex-wrap:wrap;flex-basis:100%;padding:14px;border:1px solid var(--el-line);border-radius:14px;background:color-mix(in srgb,var(--el-panel) 88%,var(--el-accent-soft))}
+.customizer-design-heading{display:flex;flex-direction:column;gap:4px;flex-basis:100%;padding-bottom:4px}
+.customizer-design-heading strong{font-size:13px;letter-spacing:.06em;color:var(--el-text)}
+.customizer-design .customizer-color{padding:7px 9px;border:1px solid var(--el-line);border-radius:9px;background:color-mix(in srgb,var(--el-bg) 55%,transparent)}
+.customizer-design .customizer-color input[type=color]{width:38px;height:30px;cursor:pointer}
+.customizer-design #design-reset{margin-left:auto}
+@media(max-width:620px){.customizer-modal{padding:8px}.customizer-window{padding:12px;max-height:97vh}.customizer-design .customizer-color{flex:1 1 135px;justify-content:space-between}.customizer-design #design-reset{margin-left:0}}
+
 body:not(.customizer-active) .custom-widget{pointer-events:none}
 .custom-widget{position:absolute;min-width:12px;max-width:min(80vw,520px);padding:5px 9px;border:1px solid transparent;border-radius:var(--custom-radius,16px);box-shadow:0 0 18px color-mix(in srgb,var(--custom-glow,#b47ede) 35%,transparent);font-family:var(--custom-font,inherit);text-align:center;white-space:pre-wrap;overflow-wrap:anywhere;pointer-events:none;user-select:none}
 .custom-widget-button{border:1px solid color-mix(in srgb,var(--custom-glow,#b47ede) 75%,white);border-radius:var(--custom-radius,16px);padding:10px 18px;cursor:pointer;font-weight:700}

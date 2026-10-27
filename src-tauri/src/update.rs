@@ -24,10 +24,8 @@ pub async fn check_launcher_update() -> Result<Option<UpdateInfo>, String> {
     if GITHUB_REPO.is_empty() {
         return Ok(None); // репозиторий не указан
     }
-    let list: Vec<serde_json::Value> = reqwest::Client::builder()
-        .user_agent("end-launcher")
-        .build()
-        .map_err(|e| e.to_string())?
+    // Reuse the shared client and its connection pool for update checks.
+    let list: Vec<serde_json::Value> = crate::net::client()
         .get(format!("https://api.github.com/repos/{GITHUB_REPO}/releases?per_page=5"))
         .send()
         .await

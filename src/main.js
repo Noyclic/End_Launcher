@@ -1990,7 +1990,9 @@ ensureNewsLoaded();
     '.home-extra', '.launcher-banner', '.library-toolbar', '.playbar',
     '#page-settings h1', '#page-settings .settings-card, #page-settings .setting-row',
     '#page-ai h1', '.nav-btn', '.page > h1', '.page > h2', '.page > section',
-    '.card', '.panel', '.toolbar', 'input', 'select', 'textarea', '.tab-bar', '.modal-card'
+    '.card', '.panel', '.toolbar', 'input', 'select', 'textarea', '.tab-bar', '.modal-card',
+    '.inst-card', '.mini-mod', '.mod-card', '.mod-row', '.news-card', '.stat', '.island-card',
+    '.hscroll > *', '.news-grid > *', '.stats > *'
   ].join(',');
   let customIdStateMigrated = false;
   const stableCustomId = (el, index) => {
@@ -2672,6 +2674,28 @@ ensureNewsLoaded();
   });
   refreshProfiles(); syncControls();
   apply();
+
+  // React to dynamically rendered cards/mod rows so they also become editable.
+  // Observe only the app layout: the custom media layer is a sibling, avoiding self-triggered loops.
+  const observerRoot = document.querySelector('.layout');
+  if (observerRoot && typeof MutationObserver !== 'undefined') {
+    let refreshScheduled = false;
+    const customizerDomObserver = new MutationObserver((records) => {
+      const hasCustomizableAddition = records.some((record) =>
+        [...record.addedNodes].some((node) => {
+          if (!(node instanceof Element) || node.closest('.customizer-modal')) return false;
+          return node.matches(CUSTOMIZABLE_SELECTOR) || !!node.querySelector(CUSTOMIZABLE_SELECTOR);
+        })
+      );
+      if (!hasCustomizableAddition || refreshScheduled) return;
+      refreshScheduled = true;
+      requestAnimationFrame(() => {
+        refreshScheduled = false;
+        apply(false);
+      });
+    });
+    customizerDomObserver.observe(observerRoot, { childList: true, subtree: true });
+  }
 })();
 
 

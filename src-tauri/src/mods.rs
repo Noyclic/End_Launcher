@@ -8,6 +8,7 @@
 //! перехватывается — файл качает Rust, сверяет по SHA-1 с Modrinth (версия игры и загрузчик)
 //! и кладёт в mods/. Странице сайта доступ к командам лаунчера НЕ дан.
 
+use futures_util::StreamExt;
 use serde::{Deserialize, Serialize};
 use sha1::{Digest, Sha1};
 use std::collections::{HashMap, HashSet};
@@ -17,6 +18,7 @@ use std::sync::Mutex;
 use std::time::Duration;
 use tauri::webview::{DownloadEvent, PageLoadEvent};
 use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
+use tokio::io::AsyncWriteExt;
 
 const MODRINTH: &str = "https://api.modrinth.com/v2";
 

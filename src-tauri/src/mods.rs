@@ -101,10 +101,7 @@ fn dir_for(project_type: &str) -> PathBuf {
 }
 
 fn http() -> Result<reqwest::Client, String> {
-    reqwest::Client::builder()
-        .user_agent("end-launcher/0.1.0") // Modrinth требует User-Agent
-        .build()
-        .map_err(err)
+    Ok(crate::net::client()) // общий клиент приложения (см. net.rs)
 }
 
 /// slug/id приходит с фронтенда (в т.ч. из ответа ИИ) и попадает в URL — пускаем только безопасное.

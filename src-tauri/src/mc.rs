@@ -592,7 +592,8 @@ async fn try_download(client: &reqwest::Client, job: &Job) -> Result<(), String>
 }
 
 async fn fetch_one(client: &reqwest::Client, job: &Job) -> Result<(), String> {
-    if let Ok(meta) = tokio::fs::metadata(&job.path).await {
+    // std::fs, а не tokio::fs: проверка тысяч ассетов не должна плодить задачи в пуле потоков
+    if let Ok(meta) = std::fs::metadata(&job.path) {
         if job.size.map_or(true, |s| s == meta.len()) {
             return Ok(()); // уже на месте
         }
@@ -620,11 +621,7 @@ pub async fn download_all(
     if total == 0 {
         return Ok(());
     }
-    let client = reqwest::Client::builder()
-        .user_agent("end-launcher/0.1.0")
-        .connect_timeout(Duration::from_secs(15))
-        .build()
-        .map_err(err)?;
+    let client = crate::net::client();
     runtime::emit_progress(app, stage, 0, total);
     let mut done = 0usize;
     let mut results = stream::iter(jobs)

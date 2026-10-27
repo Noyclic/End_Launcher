@@ -1,4 +1,4 @@
-//! Совместная игра P2P (ЭКСПЕРИМЕНТ): друг подключается к вашему миру напрямую, без Hamachi/Radmin.
+//! Совместная игра P2P: друг подключается к вашему миру напрямую, без Hamachi/Radmin.
 //!
 //! Это НЕ виртуальная сеть (никаких драйверов и прав администратора), а туннель только для Minecraft:
 //! лаунчер хозяина даёт код комнаты, лаунчер друга открывает у него локальный порт, из которого
@@ -15,8 +15,7 @@
 //! Ключ доступа (в каждом коде) обязателен: без него хозяин закрывает соединение. Хозяин всегда
 //! соединяет гостей только со СВОИМ портом игры, другие порты недоступны.
 //!
-//! Код под cargo-feature `p2p` (по умолчанию выключен, чтобы основная сборка не зависела от
-//! него): npm run dev -- --features p2p
+//! Код под cargo-feature `p2p`; она включена по умолчанию (отключить: --no-default-features).
 //! Версия iroh закреплена (=0.92.0): API между версиями заметно меняется.
 
 use serde::Serialize;
@@ -25,7 +24,7 @@ use std::sync::Mutex;
 
 #[allow(dead_code)]
 const NOT_BUILT: &str =
-    "P2P не включён в этой сборке. Запустите: npm run dev -- --features p2p (или соберите с --features p2p)";
+    "В этой сборке P2P отключён (она собрана с --no-default-features).";
 
 #[allow(dead_code)]
 type Handle = tauri::async_runtime::JoinHandle<()>;
@@ -72,6 +71,20 @@ fn stop_current() {
     imp::clear_host();
 }
 
+/// Вызывается при выходе из приложения: останавливает всё и убирает проброс порта на роутере.
+pub fn shutdown() {
+    let old = STATE.lock().unwrap().take();
+    if let Some((_, _, h)) = old {
+        h.abort();
+    }
+    let kids: Vec<Handle> = std::mem::take(&mut *CHILDREN.lock().unwrap());
+    for k in kids {
+        k.abort();
+    }
+    #[cfg(feature = "p2p")]
+    imp::clear_host_blocking();
+}
+
 #[allow(dead_code)]
 fn set_state(mode: &str, info: String, handle: Handle) {
     *STATE.lock().unwrap() = Some((mode.to_string(), info, handle));
@@ -103,6 +116,8 @@ pub struct AddressCodes {
     pub has_relay: bool,
     /// сколько прямых адресов попало в тикет
     pub direct: usize,
+    /// слушает ли что-нибудь порт игры у хозяина (мир открыт для сети / сервер запущен)
+    pub game_ok: bool,
 }
 
 #[derive(Serialize)]
@@ -121,7 +136,7 @@ pub fn p2p_status() -> P2pStatus {
     }
 }
 
-/// Есть ли P2P в этой сборке (включается флагом --features p2p).
+/// Есть ли P2P в этой сборке (по умолчанию есть).
 #[tauri::command]
 pub fn p2p_available() -> bool {
     cfg!(feature = "p2p")
@@ -217,6 +232,7 @@ mod imp {
         token: [u8; 16],
         tcp: Option<String>,
         tcp_note: String,
+        game_port: u16,
     }
 
     static HOST: Mutex<Option<HostInfo>> = Mutex::new(None);
@@ -233,6 +249,22 @@ mod imp {
                     let _ = gw.remove_port(igd_next::PortMappingProtocol::TCP, p);
                 }
             });
+        }
+    }
+
+    /// Закрыть комнату при выходе из лаунчера и дождаться (до 2,5 с), пока роутер уберёт проброс порта.
+    pub fn clear_host_blocking() {
+        *HOST.lock().unwrap() = None;
+        let port = UPNP_PORT.lock().unwrap().take();
+        if let Some(p) = port {
+            let (tx, rx) = std::sync::mpsc::channel();
+            std::thread::spawn(move || {
+                if let Ok(gw) = igd_next::search_gateway(Default::default()) {
+                    let _ = gw.remove_port(igd_next::PortMappingProtocol::TCP, p);
+                }
+                let _ = tx.send(());
+            });
+            let _ = rx.recv_timeout(Duration::from_millis(2500));
         }
     }
 
@@ -454,14 +486,25 @@ mod imp {
             tcp_note: info.tcp_note.clone(),
             has_relay,
             direct,
+            game_ok: true, // реальное значение проставляет вызывающий (см. game_listening)
         }
+    }
+
+    /// Слушает ли что-нибудь порт игры: если нет, друг подключится к пустоте — об этом стоит предупредить.
+    async fn game_listening(port: u16) -> bool {
+        matches!(
+            timeout(Duration::from_millis(700), TcpStream::connect(("127.0.0.1", port))).await,
+            Ok(Ok(_))
+        )
     }
 
     pub async fn fresh_codes() -> Result<AddressCodes, String> {
         let info = HOST.lock().unwrap().clone();
         let info = info.ok_or("Комната не открыта — сначала нажмите «Создать комнату»")?;
         let addr = iroh_addr(&info.endpoint).await;
-        Ok(make_codes(&info, addr))
+        let mut codes = make_codes(&info, addr);
+        codes.game_ok = game_listening(info.game_port).await;
+        Ok(codes)
     }
 
     pub async fn host(port: u16) -> Result<AddressCodes, String> {
@@ -503,9 +546,11 @@ mod imp {
         let ((tcp, tcp_note), addr) =
             futures_util::future::join(start_tcp_gateway(port, token), iroh_addr(&endpoint)).await;
 
-        let info = HostInfo { endpoint, token, tcp, tcp_note };
+        let info = HostInfo { endpoint, token, tcp, tcp_note, game_port: port };
         *HOST.lock().unwrap() = Some(info.clone());
-        Ok(make_codes(&info, addr))
+        let mut codes = make_codes(&info, addr);
+        codes.game_ok = game_listening(port).await;
+        Ok(codes)
     }
 
     /// Гость: поднимает туннель через iroh (с DNS-поиском или без).

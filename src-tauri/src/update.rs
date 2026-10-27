@@ -4,7 +4,7 @@
 
 use serde::Serialize;
 
-pub const GITHUB_REPO: &str = "Noyclic/end-launcher";
+pub const GITHUB_REPO: &str = "Noyclic/End_Launcher";
 
 #[derive(Serialize)]
 pub struct UpdateInfo {

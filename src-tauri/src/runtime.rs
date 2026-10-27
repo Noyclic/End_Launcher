@@ -300,7 +300,7 @@ async fn download_file(
 async fn install_runtime(app: &AppHandle, component: &str) -> Result<PathBuf, String> {
     let platform = platform_key()
         .ok_or("эта платформа не поддерживается Mojang runtime — установите Java вручную")?;
-    let client = reqwest::Client::new();
+    let client = crate::net::client();
 
     let index: RuntimeIndex = client
         .get(RUNTIME_INDEX_URL)

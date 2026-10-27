@@ -24,9 +24,9 @@ Passwords are never stored.
 | Ely.by sign-in | `authserver.ely.by` | your login and password (sent once to sign in, not stored) |
 | Ely.by skins | `authlib-injector.yushi.moe` (download of authlib-injector) | file download |
 | Mod updates / launcher update notice | `api.modrinth.com` (SHA-1 hashes of your mod files), `api.github.com` (latest release of this project) | hashes and release metadata requests |
-| P2P (experimental, only in builds with the `p2p` flag and only if you use it) | the iroh project's public discovery and relay servers, and the other player | your endpoint ID and connection metadata (relays see your IP address); game traffic is end-to-end encrypted between the two players. A room ticket you share contains your IP addresses, so the player who receives it learns them |
+| P2P (only if you use it) | the iroh project's public discovery and relay servers, and the other player | your endpoint ID and connection metadata (relays see your IP address); game traffic is end-to-end encrypted between the two players. A room ticket you share contains your IP addresses, so the player who receives it learns them |
 | Home page news | `launchercontent.mojang.com` (patch notes feed and its images) | feed requests |
-| P2P direct TCP (only in `p2p` builds, only while a room is open) | your router (UPnP) and the friend | the launcher asks your router via UPnP to open a TCP port while the room is open; on Windows the firewall may ask for permission. The friend learns your public IP address from the code |
+| P2P direct TCP (only while a room is open) | your router (UPnP) and the friend | the launcher asks your router via UPnP to open a TCP port while the room is open; on Windows the firewall may ask for permission. The friend learns your public IP address from the code |
 | Local AI download (only when you press the button) | `api.github.com` / `github.com` (llama.cpp release), `huggingface.co` (models) | file downloads |
 | AI "Ender Brain" (only if you use it) | Groq (`api.groq.com`) | the text you submit (e.g. a crash log) |
 

@@ -1,6 +1,6 @@
 [package]
 name = "end-launcher"
-version = "0.1.0"
+version = "0.4.0"
 description = "End Launcher — Minecraft Java + Bedrock launcher"
 authors = ["you"]
 edition = "2021"
@@ -19,10 +19,12 @@ dirs = "5"
 tokio = { version = "1", features = ["fs", "io-util", "time", "net"] }
 futures-util = "0.3"
 sha1 = "0.10"
+sha2 = "0.10"
+ed25519-dalek = "2"
 md5 = "0.7"
 zip = { version = "0.6", default-features = false, features = ["deflate"] }
 
-# P2P-режим (эксперимент) подключается только с флагом: npm run dev -- --features p2p
+# P2P (совместная игра) собирается по умолчанию; отключить: cargo build --no-default-features
 iroh = { version = "=0.92.0", optional = true }
 # NodeTicket (строка-тикет с адресами) живёт в iroh-base за флагом ticket
 iroh-base = { version = "=0.92.0", features = ["ticket"], optional = true }
@@ -38,9 +40,12 @@ keyring = { version = "3", features = ["windows-native"] }
 keyring = { version = "3", features = ["apple-native"] }
 
 [features]
+default = ["p2p"]
 p2p = ["dep:iroh", "dep:iroh-base", "dep:getrandom", "dep:igd-next"]
 
 [profile.release]
-opt-level = 3
+# Меньше и быстрее: размер важнее пары процентов скорости — лаунчер почти не считает, он ждёт сеть и диск.
+opt-level = "s"
 lto = true
 codegen-units = 1
+strip = true

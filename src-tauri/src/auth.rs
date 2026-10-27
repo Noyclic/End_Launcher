@@ -38,7 +38,7 @@ fn short(text: &str) -> String {
 }
 
 fn client() -> Result<reqwest::Client, String> {
-    reqwest::Client::builder().user_agent("end-launcher/0.1.0").build().map_err(err)
+    Ok(crate::net::client())
 }
 
 fn client_id() -> Result<String, String> {

@@ -20,52 +20,76 @@ const { invoke } = window.__TAURI__.core;
 // или анимации выключены, цвет читаем раз в секунду, а не каждый кадр.
 (function particles() {
   const canvas = document.getElementById('ender-particles');
-  const ctx = canvas.getContext('2d');
-  const fit = () => { canvas.width = innerWidth; canvas.height = innerHeight; };
-  fit(); addEventListener('resize', fit);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
+  if (!ctx) return;
+  const fit = () => {
+    // Cap the backing resolution on high-DPI displays: less memory and faster clears.
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    canvas.width = Math.max(1, Math.round(innerWidth * dpr));
+    canvas.height = Math.max(1, Math.round(innerHeight * dpr));
+    canvas.style.width = `${innerWidth}px`;
+    canvas.style.height = `${innerHeight}px`;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  };
+  fit(); addEventListener('resize', fit, { passive: true });
 
-  const parts = Array.from({ length: 48 }, () => ({
-    x: Math.random() * innerWidth,
-    y: Math.random() * innerHeight,
+  const liteAtStart = (() => { try { return localStorage.getItem('end-lite') === '1'; } catch { return false; } })();
+  const parts = Array.from({ length: liteAtStart ? 10 : 36 }, () => ({
+    x: Math.random() * innerWidth, y: Math.random() * innerHeight,
     s: Math.random() < 0.85 ? 1 + Math.random() * 2 : 3 + Math.random() * 3,
-    vy: -(0.08 + Math.random() * 0.25),
-    vx: (Math.random() - 0.5) * 0.1,
-    a: 0.15 + Math.random() * 0.5,
-    tw: Math.random() * Math.PI * 2,
+    vy: -(0.08 + Math.random() * 0.25), vx: (Math.random() - 0.5) * 0.1,
+    a: 0.15 + Math.random() * 0.5, tw: Math.random() * Math.PI * 2,
   }));
-
   const FRAME = 1000 / 30;
-  let color = 'rgba(194,107,245,0.7)';
-  let colorAt = -1e9;
-  let last = 0;
-  let cleared = false;
-
-  function tick(t) {
-    requestAnimationFrame(tick);
-    if (document.hidden || document.documentElement.dataset.anim === 'off') {
-      if (!cleared) { ctx.clearRect(0, 0, canvas.width, canvas.height); cleared = true; }
-      return;
+  let color = 'rgba(194,107,245,0.7)', colorAt = -1e9, last = 0;
+  let active = parts.length, cost = 0, frames = 0, off = false, raf = 0, cleared = false;
+  const shouldRun = () => !off && !document.hidden && rootAnimOn();
+  function rootAnimOn() { return document.documentElement.dataset.anim !== 'off'; }
+  function clear() {
+    if (cleared) return;
+    ctx.clearRect(0, 0, innerWidth, innerHeight); cleared = true;
+  }
+  function stopIfNeeded() {
+    if (!shouldRun()) {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0; clear(); return true;
     }
-    if (t - last < FRAME) return;
-    const k = Math.min((t - last) / 16.7, 4); // поправка на пропущенные кадры
-    last = t;
-    cleared = false;
+    return false;
+  }
+  function tick(t) {
+    raf = 0;
+    if (stopIfNeeded()) return;
+    if (t - last < FRAME) { raf = requestAnimationFrame(tick); return; }
+    const k = Math.min((t - (last || t)) / 16.7, 4); last = t; cleared = false;
     if (t - colorAt > 1000) {
       color = getComputedStyle(document.documentElement).getPropertyValue('--el-particle').trim() || color;
       colorAt = t;
     }
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = color;
-    for (const p of parts) {
+    const t0 = performance.now();
+    ctx.clearRect(0, 0, innerWidth, innerHeight); ctx.fillStyle = color;
+    for (let i = 0; i < active; i++) {
+      const p = parts[i];
       p.y += p.vy * k; p.x += (p.vx + Math.sin(t / 1600 + p.tw) * 0.06) * k;
-      if (p.y < -10) { p.y = canvas.height + 10; p.x = Math.random() * canvas.width; }
+      if (p.y < -10) { p.y = innerHeight + 10; p.x = Math.random() * innerWidth; }
       ctx.globalAlpha = Math.max(0, p.a * (0.6 + 0.4 * Math.sin(t / 900 + p.tw)));
-      ctx.fillRect(p.x, p.y, p.s, p.s); // квадратные, как в Майнкрафте
+      ctx.fillRect(p.x, p.y, p.s, p.s);
     }
     ctx.globalAlpha = 1;
+    cost += performance.now() - t0;
+    if (++frames >= 90) {
+      const avg = cost / frames; cost = 0; frames = 0;
+      if (avg > 4) { if (active > 12) active = Math.max(12, Math.floor(active / 2)); else off = true; }
+    }
+    if (shouldRun()) raf = requestAnimationFrame(tick); else clear();
   }
-  requestAnimationFrame(tick);
-})();
+  function start() { if (!raf && shouldRun()) raf = requestAnimationFrame(tick); else if (!shouldRun()) clear(); }
+  document.addEventListener('visibilitychange', start);
+  if (typeof MutationObserver !== 'undefined') {
+    new MutationObserver(start).observe(document.documentElement, { attributes: true, attributeFilter: ['data-anim'] });
+  }
+  start();
+})();;
 
 // ─────────────── НАВИГАЦИЯ ───────────────
 document.querySelectorAll('.nav-btn').forEach((btn) =>
@@ -275,7 +299,6 @@ function showAccount() {
   $('avatar').textContent = name[0].toUpperCase();
   $('greet').textContent = `Привет, ${name}! Выберите сборку и играйте.`;
   $('acc-mode').textContent = KIND_LABEL[accounts.active] || 'ОФЛАЙН';
-  $('acc-kind').value = accounts.active;
   $('ms-status').textContent = accounts.microsoft
     ? `Microsoft: ${accounts.microsoft.username}` : 'Microsoft: вход не выполнен';
   $('ely-status').textContent = accounts.ely
@@ -294,16 +317,20 @@ async function refreshAccounts() {
 refreshAccounts();
 invoke('get_ms_client_id').then((id) => { $('ms-client-id').value = id || ''; });
 
-// каким входом запускать игру
-$('acc-kind').addEventListener('change', async (e) => {
+// Выбор аккаунта открывается с кнопки пользователя; офлайн тоже выбирается здесь.
+$('account-offline-btn').addEventListener('click', async () => {
+  const btn = $('account-offline-btn');
+  btn.disabled = true;
   try {
-    // -> Rust: auth.rs :: set_active_account(kind) — не даст выбрать вход, в который не вошли
-    await invoke('set_active_account', { kind: e.target.value });
-    $('acc-msg').textContent = '';
-  } catch (err) {
-    $('acc-msg').textContent = String(err);
+    await invoke('set_active_account', { kind: 'offline' });
+    $('acc-msg').textContent = '✓ Офлайн-режим выбран';
+    await refreshAccounts();
+    closeAccountModal();
+  } catch (e) {
+    $('acc-msg').textContent = String(e);
+  } finally {
+    btn.disabled = false;
   }
-  await refreshAccounts();
 });
 
 // ── Ely.by ──
@@ -439,7 +466,7 @@ async function loadInstances() {
   updatePlayBtn();
   showJavaStatus();
   renderHomeStats();
-  loadHomeMods();
+  idle(loadHomeMods);
 }
 
 async function setActive(id) {
@@ -453,7 +480,7 @@ async function setActive(id) {
   updatePlayBtn();
   showJavaStatus();
   renderHomeStats();
-  loadHomeMods();
+  idle(loadHomeMods);
 }
 $('instance-select').addEventListener('change', (e) => setActive(e.target.value));
 
@@ -487,6 +514,22 @@ function toggleMenu(card, inst) {
   item('📂 Открыть папку', async () => {
     // -> Rust: instances.rs :: open_instance_folder(id)
     await invoke('open_instance_folder', { id: inst.id }).catch((e) => { $('play-status').textContent = String(e); });
+  });
+
+  item('⧉ Создать копию сборки', async () => {
+    try {
+      const created = await invoke('duplicate_instance', { id: inst.id });
+      await loadInstances();
+      await setActive(created.id);
+      showToast(`Создана копия «${created.name}»`);
+    } catch (e) { showToast(String(e), false); }
+  });
+
+  item('📦 Экспортировать сборку в ZIP', async () => {
+    try {
+      const path = await invoke('export_instance', { id: inst.id });
+      showToast(`Архив создан: ${path}`);
+    } catch (e) { showToast(`Не удалось экспортировать: ${e}`, false); }
   });
   item('✎ Переименовать', () => {
     const nameEl = card.querySelector('.inst-name');
@@ -535,24 +578,81 @@ function toggleMenu(card, inst) {
   card.appendChild(menu);
 }
 
+let libraryQuery = '';
+let libraryListMode = (() => { try { return localStorage.getItem('el-library-list') === '1'; } catch { return false; } })();
+
+function syncLibraryChrome(filteredCount = instances.length) {
+  const count = $('library-count');
+  if (count) count.textContent = libraryQuery.trim()
+    ? `${filteredCount} из ${instances.length} сборок`
+    : `${instances.length} ${instances.length === 1 ? 'сборка' : 'сборок'}`;
+  const viewBtn = $('library-view');
+  if (viewBtn) {
+    viewBtn.textContent = libraryListMode ? '▦ Карточки' : '☷ Список';
+    viewBtn.title = libraryListMode ? 'Переключить на карточки' : 'Переключить на список';
+    viewBtn.setAttribute('aria-pressed', String(libraryListMode));
+  }
+  const title = $('library-toolbar-title');
+  if (title) title.textContent = ({
+    end: 'Мои сборки', modrinth: 'Библиотека', prism: 'Instances', tl: 'Версии Minecraft',
+    gd: 'Library', official: 'Установки', at: 'Instances', lunar: 'Мои версии',
+  })[currentUi] || 'Мои сборки';
+}
+
+function syncLauncherBanner() {
+  const banner = $('launcher-banner');
+  if (!banner) return;
+  const inst = instances.find((item) => item.id === activeId);
+  const title = $('launcher-banner-title');
+  const meta = $('launcher-banner-meta');
+  const kicker = $('launcher-banner-kicker');
+  if (title) title.textContent = inst ? inst.name : 'Твоя следующая история начинается здесь';
+  if (meta) meta.textContent = inst
+    ? `Minecraft ${inst.version} · ${LOADER_NAME[inst.loader] || inst.loader} · ${accounts.active === 'offline' ? 'Офлайн-профиль' : 'Аккаунт подключён'}`
+    : 'Создайте или выберите сборку, чтобы продолжить.';
+  if (kicker) kicker.textContent = ({
+    end: 'END LAUNCHER · БИБЛИОТЕКА', modrinth: 'БИБЛИОТЕКА · ВАШИ ПРОФИЛИ', prism: 'INSTANCES · ISOLATED PROFILES',
+    tl: 'MINECRAFT · ПРОФИЛЬ ЗАПУСКА', gd: 'GD STYLE · LIBRARY', official: 'MINECRAFT JAVA EDITION',
+    at: 'AT STYLE · INSTANCES', lunar: 'LUNAR STYLE · PLAY',
+  })[currentUi] || 'END LAUNCHER';
+  const play = $('launcher-banner-play');
+  if (play) {
+    play.disabled = !inst;
+    play.title = inst ? `Запустить ${inst.name}` : 'Сначала создайте сборку';
+  }
+}
+
 function renderLibrary() {
   const box = $('library');
   box.replaceChildren();
+  box.classList.toggle('list-view', libraryListMode);
   $('empty-hero').style.display = instances.length ? 'none' : '';
+  const query = libraryQuery.trim().toLocaleLowerCase();
   let ci = 0;
+  let shownCount = 0;
   for (const inst of instances) {
+    const searchable = `${inst.name} ${inst.version} ${LOADER_NAME[inst.loader] || inst.loader}`.toLocaleLowerCase();
+    const matches = !query || searchable.includes(query);
     const card = mk('div', 'inst-card' + (inst.id === activeId ? ' active' : ''));
+    card.dataset.instanceId = String(inst.id);
+    card.dataset.searchText = searchable;
+    card.style.display = matches ? '' : 'none';
+    if (matches) shownCount++;
     card.style.setProperty('--i', Math.min(ci++, 10));
     card.tabIndex = 0;
+    card.setAttribute('role', 'group');
+    card.setAttribute('aria-label', `${inst.name}${inst.id === activeId ? ' — выбрана' : ''}`);
     const play = mk('button', 'inst-play', '▶');
-    play.title = 'Играть';
+    play.title = `Играть: ${inst.name}`;
+    play.setAttribute('aria-label', `Запустить ${inst.name}`);
     play.addEventListener('click', async (e) => {
       e.stopPropagation();
       await setActive(inst.id);
-      playBtn.click(); // если кнопка занята (идёт установка) — клик ничего не сделает
+      playBtn.click();
     });
     const more = mk('button', 'inst-more', '⋯');
     more.title = 'Моды и другие действия';
+    more.setAttribute('aria-label', `Действия для ${inst.name}`);
     more.addEventListener('click', (e) => {
       e.stopPropagation();
       toggleMenu(card, inst);
@@ -565,7 +665,7 @@ function renderLibrary() {
       more,
     );
     card.addEventListener('click', () => setActive(inst.id));
-    card.addEventListener('keydown', (e) => { if (e.key === 'Enter') setActive(inst.id); });
+    card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActive(inst.id); } });
     box.appendChild(card);
   }
   const add = mk('div', 'inst-card add');
@@ -573,6 +673,8 @@ function renderLibrary() {
   add.append(mk('div', 'inst-icon', '＋'), mk('div', '', 'Новая сборка'));
   add.addEventListener('click', openNewInstance);
   box.appendChild(add);
+  syncLibraryChrome(shownCount);
+  syncLauncherBanner();
 }
 
 // ── список версий игры (для формы сборки и для страницы модов) ──
@@ -609,31 +711,65 @@ async function openNewInstance() {
 $('ni-cancel').addEventListener('click', () => { $('new-instance').style.display = 'none'; });
 $('ni-create').addEventListener('click', async () => {
   const btn = $('ni-create');
+  const name = $('ni-name').value.trim();
+  if (!name) {
+    $('ni-msg').textContent = 'Введи название сборки — например, Vanilla 1.21.';
+    $('ni-name').focus();
+    return;
+  }
+  if (!$('ni-version').value) {
+    $('ni-msg').textContent = 'Список версий пока недоступен. Проверь подключение к интернету и попробуй ещё раз.';
+    return;
+  }
   btn.disabled = true;
+  btn.textContent = 'Создаём…';
+  $('ni-msg').textContent = 'Подготавливаем папку сборки…';
   try {
     // -> Rust: instances.rs :: create_instance(name, version, loader)
     await invoke('create_instance', {
-      name: $('ni-name').value,
+      name,
       version: $('ni-version').value,
       loader: $('ni-loader').value,
     });
     $('new-instance').style.display = 'none';
     $('ni-name').value = '';
     await loadInstances();
+    showToast(`Сборка «${name}» создана`);
   } catch (e) {
     $('ni-msg').textContent = String(e);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '＋ Создать сборку';
   }
-  btn.disabled = false;
 });
 
 $('mods-back').addEventListener('click', () => goPage('play'));
 $('empty-create').addEventListener('click', openNewInstance);
 
-// клик по аккаунту слева -> Настройки
-$('account-box').addEventListener('click', () =>
-  document.querySelector('.nav-btn[data-page="settings"]').click());
+// Кнопка пользователя открывает единое окно выбора способа входа.
+function openAccountModal() {
+  const modal = $('account-modal');
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+}
+function closeAccountModal() {
+  const modal = $('account-modal');
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+}
+$('account-box').addEventListener('click', openAccountModal);
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && $('account-modal').classList.contains('open')) closeAccountModal();
+});
+$('account-modal-close').addEventListener('click', closeAccountModal);
+$('account-modal').addEventListener('click', (event) => { if (event.target === $('account-modal')) closeAccountModal(); });
+$('account-modal-close').addEventListener('click', closeAccountModal);
+$('account-modal').addEventListener('click', (e) => { if (e.target === $('account-modal')) closeAccountModal(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAccountModal(); });
 
 // ─────────────── ГЛАВНАЯ: статистика, популярные моды, новости ───────────────
+// второстепенное (новости, популярные моды, список версий) грузим, когда браузер свободен, а не в момент запуска
+const idle = (fn) => (window.requestIdleCallback ? window.requestIdleCallback(fn, { timeout: 1500 }) : setTimeout(fn, 300));
 const fmtNum = (n) => (n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1e3 ? Math.round(n / 1e3) + 'K' : String(n));
 
 async function renderHomeStats() {
@@ -721,10 +857,14 @@ async function loadNews() {
 
 // ─────────────── ИНТЕРФЕЙС: End / Modrinth / Prism / TL ───────────────
 const UI_STYLES = {
-  end:      ['End (классический)',   'Боковое меню и большая кнопка'],
-  modrinth: ['Как в Modrinth App',   'Иконки слева, карточки, «Играть» снизу'],
-  prism:    ['Как в Prism Launcher', 'Вкладки сверху, действия справа'],
-  tl:       ['Как в TL Legacy',      'Вкладки сверху, ник и «Играть» снизу'],
+  end:      ['End (классический)',   'Своя оболочка: боковое меню и большая кнопка'],
+  modrinth: ['Modrinth App · стиль', 'Зелёные акценты, компактная библиотека и нижняя панель запуска'],
+  prism:    ['Prism Launcher · стиль','Компактная сетка профилей, строгие отступы и плотные элементы управления'],
+  tl:       ['TL Legacy · стиль',    'Классическая тёмная оболочка, профиль и закреплённый запуск снизу'],
+  gd:       ['GDLauncher Carbon · стиль','Просторные карточки, широкая библиотека и зелёные акценты'],
+  official: ['Minecraft Launcher · стиль','Горизонтальная навигация, большая игровая область и зелёный акцент'],
+  at:       ['ATLauncher · стиль',   'Утилитарный список сборок и меню справа на широком экране'],
+  lunar:    ['Lunar Client · стиль', 'Фиолетовые акценты, широкие карточки и игровая витрина'],
 };
 let currentUi = 'end';
 
@@ -733,9 +873,12 @@ function renderUiCards() {
   box.replaceChildren();
   for (const [id, [name, desc]] of Object.entries(UI_STYLES)) {
     const b = mk('button', 'theme-card' + (id === currentUi ? ' active' : ''));
-    const t = mk('div');
+    const preview = mk('div', `ui-preview ui-preview-${id}`);
+    preview.setAttribute('aria-hidden', 'true');
+    preview.append(mk('span', 'preview-nav'), mk('span', 'preview-hero'), mk('span', 'preview-cards'), mk('span', 'preview-play'));
+    const t = mk('div', 'theme-card-copy');
     t.append(mk('div', '', name), mk('div', 'mono dim small', desc));
-    b.appendChild(t);
+    b.append(preview, t);
     b.addEventListener('click', () => chooseUi(id));
     box.appendChild(b);
   }
@@ -766,15 +909,60 @@ function applyUi(mode) {
   root.dataset.ui = mode;
   const target = mode === 'end' ? $('slot-page') : $('slot-bar');
   if ($('play-ui').parentElement !== target) target.appendChild($('play-ui'));
+  const banner = $('launcher-banner');
+  if (banner) banner.hidden = !['gd', 'official', 'lunar'].includes(mode);
+  const toolbar = $('library-toolbar');
+  if (toolbar) toolbar.dataset.mode = mode;
   renderUiCards();
   syncTlNick();
+  syncLibraryChrome();
+  syncLauncherBanner();
 }
 async function chooseUi(mode) {
   applyUi(mode);
   // -> Rust: config.rs :: set_ui_style(style) — запоминаем между запусками
   await invoke('set_ui_style', { style: mode }).catch(console.error);
 }
+$('ui-restart')?.addEventListener('click', () => {
+  const status = $('ui-restart-status');
+  if (status) status.textContent = 'Перезагружаю интерфейс…';
+  // Preferences are stored separately; reloading the webview applies the selected layout cleanly.
+  window.setTimeout(() => window.location.reload(), 120);
+});
 renderUiCards();
+$('library-filter')?.addEventListener('input', (event) => {
+  libraryQuery = event.target.value || '';
+  renderLibrary();
+});
+$('library-add')?.addEventListener('click', openNewInstance);
+$('library-import')?.addEventListener('click', () => {
+  const guide = $('library-import-guide');
+  const open = guide.style.display === 'none' || !guide.style.display;
+  guide.style.display = open ? 'flex' : 'none';
+  $('library-import')?.setAttribute('aria-expanded', String(open));
+  if (open) showToast('Перетащи .mrpack, ZIP или папку сборки прямо в окно. Исходная папка останется нетронутой.');
+});
+$('library-import-close')?.addEventListener('click', () => {
+  $('library-import-guide').style.display = 'none';
+  $('library-import')?.setAttribute('aria-expanded', 'false');
+});
+$('library-view')?.addEventListener('click', () => {
+  libraryListMode = !libraryListMode;
+  try { localStorage.setItem('el-library-list', libraryListMode ? '1' : '0'); } catch {}
+  renderLibrary();
+});
+$('layout-extras-toggle')?.addEventListener('click', () => {
+  const extras = document.querySelector('.home-extra');
+  if (!extras) return;
+  const open = !extras.classList.contains('layout-extras-open');
+  extras.classList.toggle('layout-extras-open', open);
+  $('layout-extras-toggle').setAttribute('aria-expanded', String(open));
+  $('layout-extras-toggle').textContent = open ? '× Скрыть дополнения' : '⋯ Дополнительно';
+});
+$('launcher-banner-play')?.addEventListener('click', () => {
+  if (instances.some((item) => item.id === activeId)) playBtn.click();
+  else openNewInstance();
+});
 // -> Rust: config.rs :: get_ui_style()
 invoke('get_ui_style').then(applyUi);
 
@@ -789,13 +977,17 @@ function writeFlag(key, on) {
 function applyLook() {
   const sb = readFlag('sb-auto', true);
   const anim = readFlag('anim', true);
+  const lite = readFlag('end-lite', false);
   root.dataset.sb = sb ? 'auto' : 'fixed';
-  root.dataset.anim = anim ? 'on' : 'off';
+  root.dataset.anim = anim && !lite ? 'on' : 'off';
+  root.dataset.lite = lite ? 'on' : 'off';
   $('ui-autohide').checked = sb;
   $('ui-anim').checked = anim;
+  if ($('ui-lite')) $('ui-lite').checked = lite;
 }
 $('ui-autohide').addEventListener('change', (e) => { writeFlag('sb-auto', e.target.checked); applyLook(); });
 $('ui-anim').addEventListener('change', (e) => { writeFlag('anim', e.target.checked); applyLook(); });
+$('ui-lite')?.addEventListener('change', (e) => { writeFlag('end-lite', e.target.checked); applyLook(); });
 applyLook();
 
 // ─────────────── ИГРАТЬ ───────────────
@@ -970,24 +1162,73 @@ window.__TAURI__.event.listen('mod-downloaded', ({ payload }) => {
   refreshInstalled();
   renderHomeStats();
 });
-// перетащили .jar в окно лаунчера -> в mods выбранной сборки (запасной путь, если браузер не подошёл)
-window.__TAURI__.event.listen('tauri://drag-drop', async ({ payload }) => {
-  const jars = ((payload && payload.paths) || []).filter((p) => /\.jar$/i.test(p));
-  if (!jars.length) {
-    showToast('Перетащите файлы .jar — они попадут в mods выбранной сборки', false);
+// Drag-and-drop: .jar импортируется как мод, .mrpack/.zip/папка — как отдельная сборка.
+const dropOverlay = $('instance-drop-overlay');
+let dropBusy = false;
+function setDropOverlay(active, title = 'Отпусти, чтобы импортировать', subtitle = '.mrpack · .zip · папка сборки · .jar моды') {
+  if (!dropOverlay) return;
+  dropOverlay.classList.toggle('active', active);
+  dropOverlay.setAttribute('aria-hidden', String(!active));
+  $('instance-drop-title').textContent = title;
+  $('instance-drop-subtitle').textContent = subtitle;
+}
+async function processDroppedPaths(paths) {
+  if (dropBusy || !Array.isArray(paths) || !paths.length) return;
+  dropBusy = true;
+  const jars = paths.filter((path) => /\.jar$/i.test(path));
+  const imports = paths.filter((path) => !/\.jar$/i.test(path));
+  try {
+    if (jars.length) {
+      if (!activeId) throw new Error('Сначала создай сборку, куда добавить моды .jar.');
+      showToast(`Добавляю моды: ${jars.length}…`);
+      const rep = await invoke('import_mod_files', { paths: jars });
+      showToast(rep.join('\n'), !rep.some((line) => line.startsWith('✖')));
+      $('mod-toast').textContent = rep.join('\n');
+      refreshInstalled(); renderHomeStats();
+    }
+    for (const path of imports) {
+      showToast('Импортирую сборку… Не закрывай лаунчер, пока скачиваются файлы модпака.');
+      try {
+        const result = await invoke('import_instance', { path });
+        await loadInstances();
+        const name = result?.instance?.name || 'Сборка';
+        if (result?.warning) showToast(`Импортирована «${name}». ${result.warning}`, false);
+        else if (result?.format === 'modrinth') showToast(`«${name}» импортирована. Загружено файлов модпака: ${result.downloaded_files ?? 0}.`);
+        else showToast(`«${name}» импортирована и выбрана.`);
+      } catch (error) {
+        showToast(`Не удалось импортировать «${path.split(/[\\/]/).pop()}»: ${String(error)}`, false);
+      }
+    }
+    if (!jars.length && !imports.length) showToast('Не найдено файлов для импорта.', false);
+  } finally {
+    dropBusy = false;
+    setDropOverlay(false);
+  }
+}
+function onNativeDragDrop(event) {
+  const payload = event?.payload || event;
+  if (!payload) return;
+  if (payload.type === 'enter' || payload.type === 'over') {
+    setDropOverlay(true);
     return;
   }
-  showToast('Добавляю моды…');
-  try {
-    // -> Rust: mods.rs :: import_mod_files(paths)
-    const rep = await invoke('import_mod_files', { paths: jars });
-    showToast(rep.join('\n'), !rep.some((l) => l.startsWith('✖')));
-    refreshInstalled();
-    renderHomeStats();
-  } catch (e) {
-    showToast(String(e), false);
+  if (payload.type === 'leave') { setDropOverlay(false); return; }
+  if (payload.type === 'drop') {
+    setDropOverlay(false);
+    processDroppedPaths(payload.paths || []);
   }
-});
+}
+try {
+  const tauriWindow = window.__TAURI__?.window?.getCurrentWindow?.();
+  if (tauriWindow?.onDragDropEvent) {
+    tauriWindow.onDragDropEvent(onNativeDragDrop).catch((error) => console.warn('Drag/drop listener:', error));
+  } else {
+    // Fallback for Tauri builds exposing drag events only through the global event API.
+    window.__TAURI__.event.listen('tauri://drag-drop', ({ payload }) => processDroppedPaths(payload?.paths || []));
+  }
+} catch (error) {
+  console.warn('Native drag/drop is unavailable:', error);
+}
 
 function modCard(m) {
   const card = mk('div', 'mod-card');
@@ -1090,9 +1331,14 @@ async function refreshInstalled() {
   try {
     // -> Rust: mods.rs :: list_mods() -> [{file, enabled, size_kb}]
     const list = await invoke('list_mods');
+    const query = ($('installed-mod-filter')?.value || '').trim().toLocaleLowerCase();
+    const filtered = list.filter((m) => m.file.toLocaleLowerCase().includes(query));
+    const count = $('installed-mod-count');
+    if (count) count.textContent = query ? `${filtered.length} / ${list.length} файлов` : `${list.length} файлов`;
     box.replaceChildren();
     if (!list.length) box.appendChild(mk('p', 'mono dim small', 'в папке mods пока ничего нет'));
-    for (const m of list) {
+    else if (!filtered.length) box.appendChild(mk('p', 'mono dim small', 'по этому фильтру ничего не найдено'));
+    for (const m of filtered) {
       const row = mk('div', 'mod-row' + (m.enabled ? '' : ' off'));
       const sw = mk('label', 'toggle');
       const cb = mk('input');
@@ -1127,6 +1373,7 @@ async function refreshInstalled() {
   }
 }
 $('mods-refresh').addEventListener('click', refreshInstalled);
+$('installed-mod-filter')?.addEventListener('input', () => refreshInstalled());
 
 $('mods-check').addEventListener('click', async () => {
   const box = $('mod-updates');
@@ -1176,6 +1423,20 @@ function applyAiToggle() {
 }
 // -> Rust: config.rs :: get_ai_enabled()
 invoke('get_ai_enabled').then((on) => { aiEnabled = on; applyAiToggle(); });
+$('settings-open-ai')?.addEventListener('click', () => {
+  if (!aiEnabled) {
+    $('settings-status').textContent = 'Сначала включи ИИ-помощника в этой вкладке.';
+    $('ai-enabled').focus();
+    return;
+  }
+  // AI has no permanent navigation button in the minimal edition; open it on demand from Settings.
+  document.querySelectorAll('.nav-btn').forEach((b) => b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach((p) => p.classList.remove('active'));
+  const aiPage = $('page-ai');
+  if (aiPage) aiPage.classList.add('active');
+  const settingsTab = document.querySelector('.nav-btn[data-page="settings"]');
+  if (settingsTab) settingsTab.classList.remove('active');
+});
 $('ai-enabled').addEventListener('change', async (e) => {
   aiEnabled = e.target.checked;
   applyAiToggle();
@@ -1232,6 +1493,23 @@ for (const [btnId, kind] of [['ai-get-llama', 'llama'], ['ai-get-micro', 'micro'
 }
 refreshAiSetup();
 
+$('ai-open-browser').addEventListener('click', async () => {
+  try {
+    await invoke('open_ai_browser');
+  } catch (e) {
+    showToast(String(e), false);
+  }
+});
+
+$('ai-open-minecraft-logs').addEventListener('click', async () => {
+  try {
+    await invoke('open_latest_minecraft_logs');
+    showToast('Открыта папка логов активной сборки. Прикрепите latest.log к сообщению ИИ.', true);
+  } catch (e) {
+    showToast('Не удалось открыть папку логов: ' + String(e), false);
+  }
+});
+
 $('ai-run').addEventListener('click', async () => {
   const task = $('ai-task').value;
   const mode = $('ai-mode').value;
@@ -1282,7 +1560,7 @@ aiInstall.addEventListener('click', async () => {
   }
 });
 
-// ─────────────── ИГРАТЬ ВМЕСТЕ (P2P, эксперимент): значок справа сверху ───────────────
+// ─────────────── ИГРАТЬ ВМЕСТЕ (P2P): значок справа сверху ───────────────
 const p2pPop = $('p2p-pop');
 let p2pTimer = null;
 
@@ -1301,6 +1579,8 @@ async function openP2p() {
   const ok = await invoke('p2p_available').catch(() => false);
   $('p2p-warn').style.display = ok ? 'none' : '';
   ['p2p-host-btn', 'p2p-join-btn', 'p2p-find-port'].forEach((id) => { $(id).disabled = !ok && id !== 'p2p-find-port'; });
+  // порт открытого мира подставляем сами, если он уже есть в логе игры
+  invoke('p2p_detect_port').then((p) => { if (p) $('p2p-port').value = p; }).catch(() => {});
   p2pRefresh();
   clearInterval(p2pTimer);
   p2pTimer = setInterval(p2pRefresh, 2000); // обновляем счётчик игроков, пока панель открыта
@@ -1327,7 +1607,12 @@ $('p2p-find-port').addEventListener('click', async () => {
   if (port) $('p2p-port').value = port;
 });
 // показать все варианты адреса комнаты
+let lastCodes = null;
 function showCodes(c) {
+  lastCodes = c;
+  const warn = $('p2p-game-warn');
+  warn.style.display = c.game_ok ? 'none' : '';
+  warn.textContent = c.game_ok ? '' : `⚠ В порту ${$('p2p-port').value} сейчас никто не слушает. Откройте мир для сети (Esc → «Открыть для сети») или запустите сервер — иначе друг подключится к пустоте.`;
   $('p2p-code-all').value = c.universal;
   $('p2p-code-short').value = c.short;
   $('p2p-code-ticket').value = c.ticket;
@@ -1368,6 +1653,17 @@ $('p2p-refresh-ticket').addEventListener('click', async () => {
     $('p2p-codes-note').textContent = String(e);
   }
 });
+$('p2p-copy-invite').addEventListener('click', () => {
+  if (!lastCodes) return;
+  copyText(
+    'Заходи ко мне в Minecraft через End Launcher!\n'
+    + '1) Скачай лаунчер: https://github.com/Noyclic/End_Launcher/releases\n'
+    + '2) Нажми 🌐 вверху справа, вставь код ниже и нажми «Подключиться»\n'
+    + '3) В игре: Сетевая игра → Прямое подключение → адрес localhost:порт (его покажет лаунчер)\n\n'
+    + `Мой код:\n${lastCodes.universal}`,
+  );
+  showToast('Приглашение скопировано — отправьте его другу.');
+});
 for (const [btnId, fieldId] of [['p2p-copy-all', 'p2p-code-all'], ['p2p-copy-short', 'p2p-code-short'],
   ['p2p-copy-ticket', 'p2p-code-ticket'], ['p2p-copy-tcp', 'p2p-code-tcp']]) {
   $(btnId).addEventListener('click', () => copyText($(fieldId).value));
@@ -1401,6 +1697,21 @@ $('p2p-stop').addEventListener('click', async () => {
   p2pRefresh();
 });
 p2pRefresh();
+
+// ─────────────── ДИАГНОСТИКА ───────────────
+$('diag-copy').addEventListener('click', async () => {
+  try {
+    // -> Rust: diag.rs :: system_info() — версия, ОС, Java, пути, наличие crash.log
+    const text = await invoke('system_info');
+    await navigator.clipboard.writeText(text);
+    showToast('Сведения скопированы — вставьте их в issue на GitHub.');
+  } catch (e) {
+    showToast('Не удалось скопировать: ' + String(e), false);
+  }
+});
+$('diag-folder').addEventListener('click', () =>
+  // -> Rust: instances.rs :: open_launcher_folder()
+  invoke('open_launcher_folder').catch((e) => showToast(String(e), false)));
 
 // ─────────────── НАСТРОЙКИ: API-КЛЮЧ ───────────────
 const keyStatus = $('key-status');
@@ -1437,6 +1748,46 @@ $('adv-save').addEventListener('click', async () => {
   }
 });
 
+// ─────────────── END SHIELD: честная проверка источника/обновлений ───────────────
+const OFFICIAL_RELEASES = 'https://github.com/Noyclic/End_Launcher/releases';
+$('shield-github')?.addEventListener('click', () => invoke('open_url', { url: OFFICIAL_RELEASES }).catch((e) => {
+  $('shield-status').textContent = `Не удалось открыть GitHub: ${String(e)}`;
+}));
+$('shield-check')?.addEventListener('click', async () => {
+  const btn = $('shield-check');
+  const status = $('shield-status');
+  btn.disabled = true;
+  status.textContent = 'Проверяю доступность релизов GitHub…';
+  try {
+    const info = await invoke('check_launcher_update');
+    if (info) {
+      status.textContent = `Найден релиз ${info.version}. Это проверка обновления, а не доказательство целостности файлов. Открой релиз и скачивай только опубликованный там пакет.`;
+    } else {
+      status.textContent = 'GitHub API ответил, более новой версии не найдено. Целостность файлов не подтверждена: подписанный манифест пока не настроен.';
+    }
+  } catch (e) {
+    status.textContent = `Не удалось проверить GitHub (сеть или API): ${String(e)}. Целостность файлов не подтверждена.`;
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ─────────────── END SHIELD: ПОДПИСЬ РЕЛИЗА ───────────────
+$('shield-verify-signature')?.addEventListener('click', async () => {
+  const btn = $('shield-verify-signature');
+  const status = $('shield-signature-status');
+  btn.disabled = true;
+  status.textContent = 'Проверяю криптографическую подпись официального манифеста…';
+  try {
+    const report = await invoke('verify_release_manifest');
+    status.textContent = `✓ Подпись подтверждена для ${report.version}. ${report.message}`;
+    status.dataset.state = 'verified';
+  } catch (e) {
+    status.textContent = `⚠ Проверка не пройдена: ${String(e)} Не скачивайте файлы из этого релиза, пока причина не выяснена.`;
+    status.dataset.state = 'failed';
+  } finally { btn.disabled = false; }
+});
+
 // ─────────────── НОВАЯ ВЕРСИЯ ЛАУНЧЕРА ───────────────
 // -> Rust: update.rs :: check_launcher_update() — последний релиз на GitHub (если указан репозиторий)
 invoke('check_launcher_update').then((info) => {
@@ -1448,5 +1799,355 @@ invoke('check_launcher_update').then((info) => {
 
 // стартовая отрисовка
 loadInstances().then(refreshPlay);
-loadNews();
-loadReleases();
+idle(loadNews);
+idle(loadReleases);
+
+
+// ─────────────── ПОЛНАЯ КАСТОМИЗАЦИЯ ───────────────
+(() => {
+  const $c = (id) => document.getElementById(id);
+  const modal = $c('customizer-modal');
+  const layer = $c('custom-media-layer');
+  const list = $c('customizer-media-items');
+  const layerList = $c('customizer-layer-items');
+  const selectedTools = $c('customizer-selected-tools');
+  if (!modal || !layer) return;
+  const STORE = 'end-launcher-full-customization-v1';
+  let state = { positions: {}, elementStyles: {}, media: [], widgets: [], dim: 0, size: 180, glow: '#b47ede', particles: true, glitch: false, rainbow: false, background: '', font: 'inherit', scale: 100, radius: 16 };
+  let profiles = {};
+  let selectedWidget = null;
+  let selectedLayer = null;
+  let edit = false;
+  let dragged = null;
+  let dragStart = null;
+  try { state = { ...state, ...JSON.parse(localStorage.getItem(STORE) || '{}') }; } catch {}
+  state.elementStyles ||= {}; state.positions ||= {}; state.media ||= []; state.widgets ||= [];
+  const save = () => { try { localStorage.setItem(STORE, JSON.stringify(state)); $c('customizer-status').textContent = '✓ Изменения сохранены'; } catch { $c('customizer-status').textContent = 'Не удалось сохранить: возможно, изображения слишком большие. Удали часть файлов и попробуй снова.'; } };
+  const PROFILE_STORE = STORE + '-profiles';
+  try { profiles = JSON.parse(localStorage.getItem(PROFILE_STORE) || '{}'); } catch {}
+  const saveProfiles = () => { try { localStorage.setItem(PROFILE_STORE, JSON.stringify(profiles)); } catch { $c('customizer-status').textContent = 'Не удалось сохранить профили: слишком много данных.'; } refreshProfiles(); };
+  function refreshProfiles() { const sel = $c('customizer-profile-select'); if (!sel) return; const prev = sel.value; sel.innerHTML = '<option value=>Выбрать профиль…</option>'; Object.keys(profiles).forEach(name => { const o = document.createElement('option'); o.value = name; o.textContent = name; sel.appendChild(o); }); if (profiles[prev]) sel.value = prev; }
+  const makeCustomizable = () => {
+    document.querySelectorAll('.layout, .sidebar, .logo, .account, #page-play h1, #slot-page, #play-ui, #library, .home-extra, .launcher-banner, .library-toolbar, .playbar, #page-settings h1, #page-ai h1, .nav-btn').forEach((el, i) => {
+      if (el.closest('.customizer-modal')) return;
+      el.dataset.customizable = 'true';
+      if (!el.dataset.customId) el.dataset.customId = el.id || el.classList[0] || ('element-' + i);
+      const pos = state.positions[el.dataset.customId];
+      if (pos) { el.style.translate = `${pos.x}px ${pos.y}px`; }
+      const style = state.elementStyles?.[el.dataset.customId];
+      if (style) { if (style.scale) el.style.scale = String(style.scale); if (style.rotate != null) el.style.rotate = `${style.rotate}deg`; if (style.zIndex != null) el.style.zIndex=String(style.zIndex); if (style.opacity != null) el.style.opacity = String(style.opacity); if (style.radius != null) el.style.borderRadius = `${style.radius}px`; if (style.color) el.style.color = style.color; if (style.background) el.style.backgroundColor = style.background; if (style.hidden) el.style.visibility = 'hidden'; else el.style.visibility = ''; }
+    });
+  };
+  const apply = () => {
+    document.documentElement.style.setProperty('--custom-glow', state.glow || '#b47ede');
+    document.documentElement.style.setProperty('--custom-dim', Math.max(0, Math.min(85, Number(state.dim) || 0)) / 100);
+    document.documentElement.style.setProperty('--custom-glow', state.glow || '#b47ede');
+    document.documentElement.classList.toggle('custom-rainbow', !!state.rainbow);
+    document.documentElement.style.setProperty('--custom-ui-scale', `${Math.max(80, Math.min(125, Number(state.scale) || 100)) / 100}`);
+    document.documentElement.style.setProperty('--custom-radius', `${Math.max(0, Math.min(32, Number(state.radius) || 0))}px`);
+    document.documentElement.style.setProperty('--custom-font', state.font || 'inherit');
+    document.body.classList.toggle('custom-glitch', !!state.glitch);
+    document.documentElement.dataset.anim = state.particles ? (document.getElementById('ui-anim')?.checked === false ? 'off' : 'on') : 'off';
+    let dim = document.querySelector('.custom-dim-overlay');
+    if (!dim) { dim = document.createElement('div'); dim.className = 'custom-dim-overlay'; document.body.appendChild(dim); }
+    if (state.background) {
+      document.body.style.backgroundImage = `linear-gradient(rgba(0,0,0,${Math.max(0, Math.min(85, Number(state.dim) || 0))/100}),rgba(0,0,0,${Math.max(0, Math.min(85, Number(state.dim) || 0))/100})),url("${state.background}")`;
+      document.body.style.backgroundSize = 'cover'; document.body.style.backgroundPosition = 'center'; document.body.style.backgroundAttachment = 'fixed';
+    } else { document.body.style.backgroundImage = ''; document.body.style.backgroundSize = ''; document.body.style.backgroundPosition = ''; document.body.style.backgroundAttachment = ''; }
+    layer.querySelectorAll('.custom-media-item, .custom-widget').forEach(el => el.remove());
+    state.media.forEach((item, index) => {
+      const img = document.createElement('img'); img.className = 'custom-media-item'; img.src = item.src; img.alt = item.name || 'Пользовательское изображение'; img.draggable = false;
+      img.dataset.mediaIndex = String(index); if(item.hidden) img.style.display='none'; img.style.zIndex=String(item.zIndex||9200); img.style.width = `${item.size || state.size || 180}px`;
+      img.style.left = `${item.x ?? 50}%`; img.style.top = `${item.y ?? 40}%`; img.style.transform = 'translate(-50%,-50%)'; img.style.rotate = `${Number(item.rotate)||0}deg`; img.style.opacity = item.opacity == null ? '1' : String(item.opacity);
+      if (edit) img.style.pointerEvents = 'auto';
+      img.addEventListener('pointerdown', startDragMedia);
+      img.addEventListener('click', (e) => { if (edit) { e.stopPropagation(); selectedLayer = {type:'media', index}; renderLayers(); } });
+      img.addEventListener('click', (e) => { if (edit) { e.stopPropagation(); $c('customizer-status').textContent = `Выбрано: ${item.name}. Чтобы удалить — кнопка «Удалить» в списке.`; } });
+      layer.appendChild(img);
+    });
+    state.widgets.forEach((item, index) => {
+      const el = document.createElement(item.kind === 'button' ? 'button' : 'div');
+      el.className = 'custom-widget' + (item.kind === 'button' ? ' custom-widget-button' : '');
+      el.textContent = item.text || (item.kind === 'button' ? 'Моя кнопка' : 'Мой текст');
+      el.dataset.widgetIndex = String(index); if(item.hidden) el.style.display='none'; el.style.left = `${item.x ?? 50}%`; el.style.top = `${item.y ?? 50}%`; el.style.transform = 'translate(-50%,-50%)';
+      el.style.fontSize = `${Math.max(10, Math.min(64, Number(item.fontSize) || 22))}px`; el.style.rotate = `${Number(item.rotate)||0}deg`; el.style.opacity = item.opacity == null ? '1' : String(item.opacity); el.style.color = item.color || '#ffffff'; el.style.background = item.kind === 'button' ? (item.background || state.glow) : 'transparent'; el.style.zIndex = String(item.zIndex || (9100 + index));
+      el.addEventListener('pointerdown', startDragWidget);
+      el.addEventListener('click', (e) => {
+        if (edit) { e.preventDefault(); e.stopPropagation(); selectedLayer = {type:'widget', index}; renderLayers(); return; }
+        if (item.kind === 'button' && item.action) {
+          if (item.action === 'play') document.getElementById('play-btn')?.click();
+          else if (item.action === 'settings') document.querySelector('[data-page="settings"]')?.click();
+          else if (item.action === 'library') document.querySelector('[data-page="library"]')?.click();
+          else if (item.action === 'news') document.querySelector('[data-page="news"]')?.click();
+          else if (item.action === 'url' && /^https?:\/\//i.test(item.url || '')) window.open(item.url, '_blank', 'noopener');
+        }
+      });
+      el.addEventListener('dblclick', () => { const text = prompt('Текст элемента:', item.text || ''); if (text !== null) { item.text = text.slice(0, 180); save(); apply(); } });
+      layer.appendChild(el);
+    });
+    makeCustomizable(); renderList(); renderLayers();
+  };
+  function renderLayers() {
+    if (!layerList) return;
+    layerList.innerHTML = '';
+    const builtins = [...document.querySelectorAll('[data-customizable="true"]')].map(el => ({type:'element', id:el.dataset.customId, label:el.id ? `Элемент: #${el.id}` : `Элемент: .${String(el.classList[0]||'блок')}`, el}));
+    const layers = [
+      ...builtins,
+      ...state.media.map((item,index)=>({type:'media',index,label:`🖼 ${item.name||`Медиа ${index+1}`}`})),
+      ...state.widgets.map((item,index)=>({type:'widget',index,label:`${item.kind==='button'?'🔘 Кнопка':'T Текст'}: ${item.text||''}`})),
+    ];
+    layers.forEach((entry) => {
+      const row=document.createElement('div'); row.className='customizer-layer-row';
+      if (selectedLayer && selectedLayer.type===entry.type && (entry.type==='element'?selectedLayer.id===entry.id:selectedLayer.index===entry.index)) row.classList.add('selected');
+      const name=document.createElement('button'); name.className='ghost customizer-layer-name'; name.textContent=entry.label; name.title=entry.label;
+      name.onclick=()=>{selectedLayer=entry.type==='element'?{type:'element',id:entry.id}:{type:entry.type,index:entry.index}; renderLayers(); renderSelectedTools();};
+      const up=document.createElement('button'); up.className='ghost'; up.textContent='↑'; up.title='Переместить выше'; up.onclick=()=>moveLayer(entry,1);
+      const down=document.createElement('button'); down.className='ghost'; down.textContent='↓'; down.title='Переместить ниже'; down.onclick=()=>moveLayer(entry,-1);
+      const hide=document.createElement('button'); hide.className='ghost'; hide.textContent=entry.type==='element' && state.elementStyles?.[entry.id]?.hidden?'Показать':'Скрыть';
+      hide.onclick=()=>{ if(entry.type==='element'){state.elementStyles ||= {}; state.elementStyles[entry.id] ||= {}; state.elementStyles[entry.id].hidden=!state.elementStyles[entry.id].hidden;} else { const arr=entry.type==='media'?state.media:state.widgets; arr[entry.index].hidden=!arr[entry.index].hidden;} save(); apply(); };
+      row.append(name,up,down,hide); layerList.appendChild(row);
+    });
+    renderSelectedTools();
+    if (!layers.length) layerList.innerHTML='<p class="dim small">Элементы не найдены.</p>';
+  }
+  function moveLayer(entry, direction) {
+    if (entry.type==='element') { const el=document.querySelector(`[data-custom-id="${CSS.escape(entry.id)}"]`); if(el){ const n=Number(el.style.zIndex||'1')+direction; el.style.zIndex=String(n); state.elementStyles ||= {}; state.elementStyles[entry.id] ||= {}; state.elementStyles[entry.id].zIndex=n; } }
+    else { const arr=entry.type==='media'?state.media:state.widgets; const item=arr[entry.index]; if(!item)return; item.zIndex=Number(item.zIndex||0)+direction; }
+    save(); apply();
+  }
+  function renderSelectedTools() {
+    if (!selectedTools) return;
+    selectedTools.innerHTML='';
+    if(!selectedLayer){ selectedTools.innerHTML='<span class="dim small">Выбери элемент в списке, чтобы редактировать его свойства.</span>'; return; }
+    const title=document.createElement('strong'); title.textContent='Свойства выбранного элемента'; selectedTools.appendChild(title);
+    let item=null, el=null, style={};
+    if(selectedLayer.type==='element'){
+      el=document.querySelector(`[data-custom-id="${CSS.escape(selectedLayer.id)}"]`);
+      state.elementStyles ||= {}; style=state.elementStyles[selectedLayer.id] ||= {};
+    } else {
+      const arr=selectedLayer.type==='media'?state.media:state.widgets; item=arr[selectedLayer.index]; if(!item){selectedLayer=null;return;}
+    }
+    const field=(label,type,value,change,attrs={})=>{
+      const wrap=document.createElement('label'); wrap.className='customizer-property'; const span=document.createElement('span');span.textContent=label; const input=document.createElement('input');input.type=type;
+      if(type==='checkbox')input.checked=!!value;else input.value=value??'';
+      Object.entries(attrs).forEach(([k,v])=>input.setAttribute(k,v));
+      input.addEventListener('input',()=>change(type==='checkbox'?input.checked:(type==='range'||type==='number'?Number(input.value):input.value)));
+      wrap.append(span,input);selectedTools.appendChild(wrap);
+    };
+    if(selectedLayer.type==='element'){
+      if(!el){selectedTools.append('Элемент не найден на текущей странице.');return;}
+      const pos=state.positions[selectedLayer.id] ||= {x:0,y:0};
+      field('X (px)','number',Math.round(pos.x||0),v=>{pos.x=v;save();apply();},{min:-2000,max:2000,step:1});
+      field('Y (px)','number',Math.round(pos.y||0),v=>{pos.y=v;save();apply();},{min:-2000,max:2000,step:1});
+      field('Масштаб (%)','range',Math.round((style.scale||1)*100),v=>{style.scale=v/100;save();apply();},{min:50,max:200,step:5});
+      field('Поворот (°)','range',style.rotate||0,v=>{style.rotate=v;save();apply();},{min:-180,max:180,step:1});
+      field('Прозрачность (%)','range',style.opacity==null?100:style.opacity*100,v=>{style.opacity=v/100;save();apply();},{min:10,max:100,step:5});
+      field('Скругление (px)','range',style.radius==null?16:style.radius,v=>{style.radius=v;save();apply();},{min:0,max:60,step:2});
+      field('Цвет текста','color',style.color||'#ffffff',v=>{style.color=v;save();apply();});
+      field('Цвет фона','color',style.background||'#20202a',v=>{style.background=v;save();apply();});
+      field('Z-слой','number',style.zIndex??1,v=>{style.zIndex=v;save();apply();},{min:0,max:20000,step:1});
+      const reset=document.createElement('button');reset.className='ghost';reset.textContent='Сбросить свойства элемента';reset.onclick=()=>{delete state.elementStyles[selectedLayer.id];delete state.positions[selectedLayer.id];save();apply();};selectedTools.appendChild(reset);
+    } else {
+      field('Название / текст','text',item.text||'',v=>{item.text=v.slice(0,180);save();apply();});
+      field('X (%)','number',Math.round(item.x??50),v=>{item.x=Math.max(2,Math.min(98,v));save();apply();},{min:0,max:100,step:1});
+      field('Y (%)','number',Math.round(item.y??50),v=>{item.y=Math.max(2,Math.min(98,v));save();apply();},{min:0,max:100,step:1});
+      field('Размер шрифта','range',item.fontSize||22,v=>{item.fontSize=v;save();apply();},{min:10,max:96,step:1});
+      field('Поворот (°)','range',item.rotate||0,v=>{item.rotate=v;save();apply();},{min:-180,max:180,step:1});
+      field('Прозрачность (%)','range',item.opacity==null?100:item.opacity*100,v=>{item.opacity=v/100;save();apply();},{min:10,max:100,step:5});
+      field('Цвет текста','color',item.color||'#ffffff',v=>{item.color=v;save();apply();});
+      field('Z-слой','number',item.zIndex??9100,v=>{item.zIndex=v;save();apply();},{min:9000,max:20000,step:1});
+      if(selectedLayer.type==='media'){
+        field('Ширина картинки','range',item.size||180,v=>{item.size=v;save();apply();},{min:40,max:1000,step:10});
+      } else {
+        field('Цвет кнопки','color',item.background||state.glow,v=>{item.background=v;save();apply();});
+        const actionWrap=document.createElement('label');actionWrap.className='customizer-property';const span=document.createElement('span');span.textContent='Действие кнопки';const select=document.createElement('select');
+        [['none','Нет'],['play','Запустить игру'],['settings','Настройки'],['library','Библиотека'],['news','Новости'],['url','Открыть ссылку']].forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;select.appendChild(o);});
+        select.value=item.action||'none';select.onchange=()=>{item.action=select.value;if(item.action==='url'&&!item.url)item.url=prompt('URL (только https:// или http://):','https://')||'';save();};actionWrap.append(span,select);selectedTools.appendChild(actionWrap);
+        field('URL для действия','url',item.url||'',v=>{if(/^https?:\/\//i.test(v)||!v)item.url=v;else $c('customizer-status').textContent='Разрешены только ссылки http:// и https://';save();});
+      }
+      const del=document.createElement('button');del.className='ghost';del.textContent='Удалить элемент';del.onclick=()=>{const arr=selectedLayer.type==='media'?state.media:state.widgets;arr.splice(selectedLayer.index,1);selectedLayer=null;save();apply();};selectedTools.appendChild(del);
+    }
+  }
+  function renderList() {
+    list.innerHTML = '';
+    state.media.forEach((item, i) => {
+      const row = document.createElement('div'); row.className = 'customizer-media-chip';
+      const img = document.createElement('img'); img.src = item.src; img.alt = '';
+      const name = document.createElement('span'); name.textContent = item.name || `Медиа ${i + 1}`;
+      const size = document.createElement('button'); size.className = 'ghost'; size.textContent = 'Размер'; size.onclick = () => { const n = Number(prompt('Ширина картинки в пикселях (80–420):', item.size || state.size)); if (Number.isFinite(n) && n >= 80 && n <= 420) { item.size = n; save(); apply(); } };
+      const remove = document.createElement('button'); remove.className = 'ghost'; remove.textContent = 'Удалить'; remove.onclick = () => { state.media.splice(i, 1); save(); apply(); };
+      row.append(img, name, size, remove); list.appendChild(row);
+    });
+    state.widgets.forEach((item, i) => { const row = document.createElement('div'); row.className = 'customizer-media-chip'; const name = document.createElement('span'); name.textContent = `${item.kind === 'button' ? 'Кнопка' : 'Текст'}: ${item.text || ''}`; const editBtn = document.createElement('button'); editBtn.className = 'ghost'; editBtn.textContent = 'Изменить'; editBtn.onclick = () => { const text = prompt('Текст элемента:', item.text || ''); if (text !== null) { item.text = text.slice(0,180); save(); apply(); } }; const sizeBtn = document.createElement('button'); sizeBtn.className = 'ghost'; sizeBtn.textContent = 'Размер'; sizeBtn.onclick = () => { const n = Number(prompt('Размер шрифта (10–64):', item.fontSize || 22)); if (n >= 10 && n <= 64) { item.fontSize = n; save(); apply(); } }; const remove = document.createElement('button'); remove.className = 'ghost'; remove.textContent = 'Удалить'; remove.onclick = () => { state.widgets.splice(i,1); save(); apply(); }; row.append(name,editBtn,sizeBtn,remove); list.appendChild(row); });
+    if (!state.media.length && !state.widgets.length) list.innerHTML = '<p class="dim small">Пока пусто — добавь GIF, скриншот, мем, текст или кнопку.</p>';
+  }
+  function open() { modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); }
+  function close() { modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); setEdit(false); }
+  function setEdit(on) {
+    edit = on; document.body.classList.toggle('customizer-active', on);
+    $c('customizer-edit').textContent = `↔ Режим перемещения: ${on ? 'ВКЛ' : 'ВЫКЛ'}`;
+    layer.style.pointerEvents = on ? 'auto' : 'none';
+    document.querySelectorAll('[data-customizable="true"]').forEach(el => { el.style.pointerEvents = ''; });
+    $c('customizer-status').textContent = on ? 'Перетаскивай подсвеченные элементы. Нажми кнопку ещё раз, чтобы закончить.' : 'Режим перемещения выключен';
+  }
+  function startDrag(e) {
+    if (!edit || e.button !== 0) return;
+    const el = e.currentTarget;
+    if (el.closest('.customizer-modal')) return;
+    e.preventDefault(); dragged = el; const rect = el.getBoundingClientRect();
+    dragStart = { x: e.clientX, y: e.clientY, lastX: e.clientX, lastY: e.clientY, rect, oldX: state.positions[el.dataset.customId]?.x || 0, oldY: state.positions[el.dataset.customId]?.y || 0 };
+    window.addEventListener('pointermove', moveDrag); window.addEventListener('pointerup', endDrag, { once: true });
+  }
+  function startDragWidget(e) {
+    if (!edit || e.button !== 0) return; e.preventDefault(); e.stopPropagation(); dragged = e.currentTarget; const index = Number(dragged.dataset.widgetIndex); const item = state.widgets[index];
+    dragStart = { x:e.clientX, y:e.clientY, lastX:e.clientX, lastY:e.clientY, widget:true, index, oldX:Number(item.x ?? 50), oldY:Number(item.y ?? 50) };
+    window.addEventListener('pointermove', moveDrag); window.addEventListener('pointerup', endDrag, { once:true });
+  }
+  function startDragMedia(e) {
+    if (!edit || e.button !== 0) return;
+    e.preventDefault(); e.stopPropagation(); dragged = e.currentTarget;
+    dragStart = { x: e.clientX, y: e.clientY, lastX: e.clientX, lastY: e.clientY, media: true, index: Number(dragged.dataset.mediaIndex), oldX: Number(state.media[Number(dragged.dataset.mediaIndex)].x ?? 50), oldY: Number(state.media[Number(dragged.dataset.mediaIndex)].y ?? 40) };
+    window.addEventListener('pointermove', moveDrag); window.addEventListener('pointerup', endDrag, { once: true });
+  }
+  function moveDrag(e) {
+    if (!dragged || !dragStart) return;
+    dragStart.lastX = e.clientX; dragStart.lastY = e.clientY;
+    const dx = e.clientX - dragStart.x, dy = e.clientY - dragStart.y;
+    if (dragStart.media || dragStart.widget) {
+      const collection = dragStart.media ? state.media : state.widgets; const item = collection[dragStart.index]; item.x = Math.max(2, Math.min(98, dragStart.oldX + dx / innerWidth * 100)); item.y = Math.max(2, Math.min(98, dragStart.oldY + dy / innerHeight * 100));
+      dragged.style.left = item.x + '%'; dragged.style.top = item.y + '%';
+    } else {
+      dragged.style.translate = `${dragStart.oldX + dx}px ${dragStart.oldY + dy}px`;
+    }
+  }
+  function endDrag() {
+    if (dragged && dragStart && !dragStart.media && !dragStart.widget) state.positions[dragged.dataset.customId] = { x: dragStart.oldX + (dragStart.lastX - dragStart.x), y: dragStart.oldY + (dragStart.lastY - dragStart.y) };
+    dragged = null; dragStart = null; window.removeEventListener('pointermove', moveDrag); save();
+  }
+  document.addEventListener('pointerdown', startDrag);
+  document.addEventListener('click', (e) => {
+    if (!edit) return;
+    const el=e.target.closest('[data-customizable="true"]');
+    if(el){ selectedLayer={type:'element',id:el.dataset.customId}; renderLayers(); }
+  });
+  $c('open-customizer')?.addEventListener('click', open);
+  $c('customizer-close').addEventListener('click', close);
+  modal.addEventListener('click', e => { if (e.target === modal) close(); });
+  $c('customizer-edit').addEventListener('click', () => setEdit(!edit));
+  $c('customizer-file').addEventListener('change', async e => {
+    const files = [...e.target.files];
+    for (const file of files) {
+      if (!file.type.startsWith('image/')) continue;
+      if (file.size > 4 * 1024 * 1024) { $c('customizer-status').textContent = `${file.name}: файл больше 4 МБ, пропущен`; continue; }
+      const src = await new Promise(resolve => { const r = new FileReader(); r.onload = () => resolve(r.result); r.readAsDataURL(file); });
+      state.media.push({ name: file.name, src, x: 50, y: 40, size: Number(state.size) || 180 });
+    }
+    e.target.value = ''; save(); apply();
+  });
+  $c('customizer-bg').addEventListener('click', () => $c('customizer-bg-file').click());
+  $c('customizer-add-text').addEventListener('click', () => { const text = prompt('Какой текст добавить?', 'Мой текст ✨'); if (text !== null) { state.widgets.push({kind:'text',text:text.slice(0,180),x:50,y:50,fontSize:22,color:'#ffffff'}); save(); apply(); } });
+  $c('customizer-add-button').addEventListener('click', () => { const text = prompt('Название кнопки:', 'Моя кнопка'); if (text !== null) { state.widgets.push({kind:'button',text:text.slice(0,80),x:50,y:60,fontSize:18,color:'#ffffff',background:state.glow}); save(); apply(); } });
+  $c('customizer-profile-save').addEventListener('click', () => { const name = ($c('customizer-profile-name').value || '').trim().slice(0,32); if (!name) { $c('customizer-status').textContent = 'Введи название профиля.'; return; } profiles[name] = JSON.parse(JSON.stringify(state)); saveProfiles(); $c('customizer-profile-select').value = name; $c('customizer-status').textContent = `Профиль «${name}» сохранён`; });
+  $c('customizer-profile-load').addEventListener('click', () => { const name = $c('customizer-profile-select').value; if (!name || !profiles[name]) return; state = { ...state, ...JSON.parse(JSON.stringify(profiles[name])) }; syncControls(); save(); apply(); $c('customizer-status').textContent = `Загружен профиль «${name}»`; });
+  $c('customizer-export').addEventListener('click', () => { const blob = new Blob([JSON.stringify({version:1,state},null,2)], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'end-launcher-theme.json'; a.click(); URL.revokeObjectURL(url); });
+  $c('customizer-import').addEventListener('change', async e => { const file=e.target.files?.[0]; if(!file) return; try { const data=JSON.parse(await file.text()); if(!data.state || typeof data.state !== 'object') throw new Error('Неверный файл темы'); state={...state,...data.state}; syncControls(); save(); apply(); $c('customizer-status').textContent='Тема импортирована'; } catch(err) { $c('customizer-status').textContent='Не удалось импортировать тему: '+err.message; } e.target.value=''; });
+  function syncControls() { $c('customizer-glow').value=state.glow||'#b47ede'; $c('customizer-dim').value=state.dim||0; $c('customizer-size').value=state.size||180; $c('customizer-particles').checked=!!state.particles; $c('customizer-glitch').checked=!!state.glitch; $c('customizer-rainbow').checked=!!state.rainbow; $c('customizer-font').value=state.font||'inherit'; $c('customizer-scale').value=state.scale||100; $c('customizer-radius').value=state.radius??16; }
+  $c('customizer-font').value=state.font||'inherit'; $c('customizer-font').addEventListener('change',e=>{state.font=e.target.value;save();apply();});
+  $c('customizer-scale').value=state.scale||100; $c('customizer-scale').addEventListener('input',e=>{state.scale=Number(e.target.value);save();apply();});
+  $c('customizer-radius').value=state.radius??16; $c('customizer-radius').addEventListener('input',e=>{state.radius=Number(e.target.value);save();apply();});
+  $c('customizer-bg-file').addEventListener('change', async e => {
+    const file = e.target.files?.[0]; if (!file) return;
+    if (file.size > 4 * 1024 * 1024) { $c('customizer-status').textContent = 'Фон больше 4 МБ — выбери файл поменьше'; return; }
+    state.background = await new Promise(resolve => { const r = new FileReader(); r.onload = () => resolve(r.result); r.readAsDataURL(file); });
+    e.target.value = ''; save(); apply();
+  });
+  $c('customizer-glow').value = state.glow; $c('customizer-glow').addEventListener('input', e => { state.glow = e.target.value; save(); apply(); });
+  $c('customizer-dim').value = state.dim; $c('customizer-dim').addEventListener('input', e => { state.dim = Number(e.target.value); save(); apply(); });
+  $c('customizer-size').value = state.size; $c('customizer-size').addEventListener('input', e => { state.size = Number(e.target.value); state.media.forEach(m => { if (!m.size) m.size = state.size; }); save(); apply(); });
+  $c('customizer-particles').checked = state.particles; $c('customizer-particles').addEventListener('change', e => { state.particles = e.target.checked; save(); apply(); });
+  $c('customizer-glitch').checked = state.glitch; $c('customizer-glitch').addEventListener('change', e => { state.glitch = e.target.checked; save(); apply(); });
+  $c('customizer-rainbow').checked = state.rainbow; $c('customizer-rainbow').addEventListener('change', e => { state.rainbow = e.target.checked; save(); apply(); });
+  $c('customizer-reset').addEventListener('click', () => {
+    if (!confirm('Сбросить все пользовательские позиции, картинки, фон и эффекты?')) return;
+    selectedLayer=null; state = { positions: {}, elementStyles: {}, media: [], widgets: [], dim: 0, size: 180, glow: '#b47ede', particles: true, glitch: false, rainbow: false, background: '', font: 'inherit', scale: 100, radius: 16 };
+    localStorage.removeItem(STORE); document.querySelectorAll('[data-customizable="true"]').forEach(el => { el.style.translate = ''; }); document.body.style.backgroundImage = ''; apply();
+    syncControls();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && modal.classList.contains('open')) close();
+    if (!edit || !selectedLayer || document.activeElement !== document.body) return;
+    if ((e.key === 'Delete' || e.key === 'Backspace') && selectedLayer.type !== 'element') {
+      const arr = selectedLayer.type === 'media' ? state.media : state.widgets;
+      arr.splice(selectedLayer.index, 1); selectedLayer = null; save(); apply(); return;
+    }
+    const step = e.shiftKey ? 10 : 1;
+    if (selectedLayer.type === 'element') {
+      const pos = state.positions[selectedLayer.id] ||= {x:0,y:0};
+      if (e.key==='ArrowLeft') pos.x-=step; else if(e.key==='ArrowRight') pos.x+=step; else if(e.key==='ArrowUp') pos.y-=step; else if(e.key==='ArrowDown') pos.y+=step; else return;
+    } else {
+      const arr = selectedLayer.type === 'media' ? state.media : state.widgets, item = arr[selectedLayer.index]; if(!item)return;
+      const px = step / Math.max(1, innerWidth) * 100, py = step / Math.max(1, innerHeight) * 100;
+      if (e.key==='ArrowLeft') item.x=Math.max(2,(item.x??50)-px); else if(e.key==='ArrowRight') item.x=Math.min(98,(item.x??50)+px); else if(e.key==='ArrowUp') item.y=Math.max(2,(item.y??50)-py); else if(e.key==='ArrowDown') item.y=Math.min(98,(item.y??50)+py); else return;
+    }
+    e.preventDefault(); save(); apply(); renderSelectedTools();
+  });
+  refreshProfiles(); syncControls();
+  apply();
+})();
+
+
+// First-run setup: choose the AI edition or the clean minimal edition.
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const wizard = $('welcome-wizard');
+  if (!wizard) return;
+  const safeRead = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+  const safeWrite = (k,v) => { try { localStorage.setItem(k,v); } catch {} };
+  let step = 1, mode = safeRead('el-edition') || 'ai';
+  const choices = [...wizard.querySelectorAll('[data-welcome-mode]')];
+  const dots = [...wizard.querySelectorAll('.welcome-dots i')];
+  function setMode(next) {
+    mode = next;
+    choices.forEach(b => b.classList.toggle('selected', b.dataset.welcomeMode === mode));
+    document.documentElement.dataset.edition = mode === 'minimal' ? 'minimal' : 'ai';
+  }
+  function renderStep() {
+    $('welcome-step-label').textContent = `ШАГ ${step} ИЗ 3`;
+    $('welcome-title').textContent = step === 1 ? 'Привет! Я помогу настроить End Launcher' : step === 2 ? 'Настроим внешний вид' : 'Всё готово к старту!';
+    $('welcome-description').textContent = step === 1 ? 'Выбери стиль, который тебе ближе. Всё можно изменить позже в настройках.' : step === 2 ? 'Выбери удобную раскладку и реши, нужны ли анимации и маскот.' : 'Настройки можно поменять в любой момент. Поехали создавать или запускать сборку!';
+    $('welcome-choices').hidden = step !== 1;
+    $('welcome-options').hidden = step !== 2;
+    $('welcome-back').hidden = step === 1;
+    $('welcome-next').textContent = step === 3 ? 'Начать пользоваться →' : 'Далее →';
+    dots.forEach((d,i) => d.classList.toggle('active', i === step-1));
+  }
+  choices.forEach(b => b.addEventListener('click', () => setMode(b.dataset.welcomeMode)));
+  $('welcome-next').addEventListener('click', () => {
+    if (step < 3) { step++; renderStep(); return; }
+    safeWrite('el-first-run-complete','1'); safeWrite('el-edition',mode);
+    document.documentElement.dataset.edition = mode === 'minimal' ? 'minimal' : 'ai';
+    const layout = $('welcome-layout').value;
+    document.documentElement.dataset.ui = layout;
+    safeWrite('el-ui-style',layout);
+    safeWrite('ui-anim',$('welcome-animations').checked ? '1' : '0');
+    safeWrite('pet-on',$('welcome-mascot-enabled').checked ? '1' : '0');
+    const anim = $('ui-anim'); if (anim) anim.checked = $('welcome-animations').checked;
+    const petEnabled = $('pet-enabled'); if (petEnabled) petEnabled.checked = $('welcome-mascot-enabled').checked;
+    wizard.hidden = true;
+    if (mode === 'minimal') { const aiPage = $('page-ai'); if (aiPage) aiPage.classList.remove('active'); const play = document.querySelector('[data-page="play"]'); if (play) play.click(); }
+  });
+  $('welcome-back').addEventListener('click', () => { if (step > 1) step--; renderStep(); });
+  $('welcome-close').addEventListener('click', () => { safeWrite('el-first-run-complete','1'); safeWrite('el-edition',mode); wizard.hidden = true; document.documentElement.dataset.edition = mode === 'minimal' ? 'minimal' : 'ai'; });
+  setMode(mode); renderStep();
+  if (safeRead('el-first-run-complete') !== '1') wizard.hidden = false;
+  else { wizard.hidden = true; document.documentElement.dataset.edition = mode === 'minimal' ? 'minimal' : 'ai'; }
+  // Pupils gently follow the pointer; animation is transform-only and throttled by the browser.
+  const eyes = [...document.querySelectorAll('.mascot-eye')];
+  let scheduled = false, px = 0, py = 0;
+  window.addEventListener('pointermove', e => {
+    px = (e.clientX / Math.max(1,innerWidth) - .5) * 5;
+    py = (e.clientY / Math.max(1,innerHeight) - .5) * 4;
+    if (scheduled) return; scheduled = true;
+    requestAnimationFrame(() => { eyes.forEach((eye,i) => { eye.style.transformOrigin = 'center'; eye.style.translate = `${px}px ${py}px`; }); scheduled = false; });
+  }, {passive:true});
+})();

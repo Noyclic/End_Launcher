@@ -1895,15 +1895,51 @@ ensureNewsLoaded();
   try { profiles = JSON.parse(localStorage.getItem(PROFILE_STORE) || '{}'); } catch {}
   const saveProfiles = () => { try { localStorage.setItem(PROFILE_STORE, JSON.stringify(profiles)); } catch { $c('customizer-status').textContent = 'Не удалось сохранить профили: слишком много данных.'; } refreshProfiles(); };
   function refreshProfiles() { const sel = $c('customizer-profile-select'); if (!sel) return; const prev = sel.value; sel.innerHTML = '<option value=>Выбрать профиль…</option>'; Object.keys(profiles).forEach(name => { const o = document.createElement('option'); o.value = name; o.textContent = name; sel.appendChild(o); }); if (profiles[prev]) sel.value = prev; }
+  const CUSTOMIZABLE_SELECTOR = [
+    '.layout', '.sidebar', '.logo', '.account', '.account *',
+    '#page-play h1', '#slot-page', '#play-ui', '#play-ui *', '#library', '#library *',
+    '.home-extra', '.launcher-banner', '.library-toolbar', '.playbar',
+    '#page-settings h1', '#page-settings .settings-card, #page-settings .setting-row',
+    '#page-ai h1', '.nav-btn', '.page > h1', '.page > h2', '.page > section',
+    '.card', '.panel', '.toolbar', 'input', 'select', 'textarea', '.tab-bar', '.modal-card'
+  ].join(',');
+  const stableCustomId = (el, index) => {
+    if (el.dataset.customId) return el.dataset.customId;
+    const base = el.id || [...el.classList].find(Boolean) || 'element';
+    const siblings = [...document.querySelectorAll(CUSTOMIZABLE_SELECTOR)].filter((candidate) => {
+      if (candidate.id && el.id) return candidate.id === el.id;
+      return candidate.tagName === el.tagName && [...candidate.classList].join('.') === [...el.classList].join('.');
+    });
+    const occurrence = Math.max(0, siblings.indexOf(el));
+    const id = `${base}::${occurrence || index}`.replace(/[^a-zA-Z0-9:_-]/g, '_');
+    el.dataset.customId = id;
+    return id;
+  };
+  const applyElementStyle = (el, style) => {
+    if (!style) return;
+    if (style.scale != null) el.style.scale = String(style.scale);
+    if (style.rotate != null) el.style.rotate = `${style.rotate}deg`;
+    if (style.zIndex != null) el.style.zIndex = String(style.zIndex);
+    if (style.opacity != null) el.style.opacity = String(Math.max(0, Math.min(1, Number(style.opacity) || 0)));
+    if (style.radius != null) el.style.borderRadius = `${Math.max(0, Math.min(96, Number(style.radius) || 0))}px`;
+    if (style.borderWidth != null) el.style.borderWidth = `${Math.max(0, Math.min(24, Number(style.borderWidth) || 0))}px`;
+    if (style.padding != null) el.style.padding = `${Math.max(0, Math.min(96, Number(style.padding) || 0))}px`;
+    if (style.fontSize != null) el.style.fontSize = `${Math.max(8, Math.min(96, Number(style.fontSize) || 16))}px`;
+    if (style.letterSpacing != null) el.style.letterSpacing = `${Math.max(-4, Math.min(12, Number(style.letterSpacing) || 0))}px`;
+    if (style.color) el.style.color = style.color;
+    if (style.background) el.style.backgroundColor = style.background;
+    if (style.borderColor) el.style.borderColor = style.borderColor;
+    if (style.hidden) el.style.visibility = 'hidden'; else el.style.visibility = '';
+  };
   const makeCustomizable = () => {
-    document.querySelectorAll('.layout, .sidebar, .logo, .account, #page-play h1, #slot-page, #play-ui, #library, .home-extra, .launcher-banner, .library-toolbar, .playbar, #page-settings h1, #page-ai h1, .nav-btn').forEach((el, i) => {
-      if (el.closest('.customizer-modal')) return;
+    const elements = [...document.querySelectorAll(CUSTOMIZABLE_SELECTOR)];
+    elements.forEach((el, i) => {
+      if (el.closest('.customizer-modal') || el.classList.contains('custom-media-item') || el.classList.contains('custom-widget')) return;
       el.dataset.customizable = 'true';
-      if (!el.dataset.customId) el.dataset.customId = el.id || el.classList[0] || ('element-' + i);
-      const pos = state.positions[el.dataset.customId];
-      if (pos) { el.style.translate = `${pos.x}px ${pos.y}px`; }
-      const style = state.elementStyles?.[el.dataset.customId];
-      if (style) { if (style.scale) el.style.scale = String(style.scale); if (style.rotate != null) el.style.rotate = `${style.rotate}deg`; if (style.zIndex != null) el.style.zIndex=String(style.zIndex); if (style.opacity != null) el.style.opacity = String(style.opacity); if (style.radius != null) el.style.borderRadius = `${style.radius}px`; if (style.color) el.style.color = style.color; if (style.background) el.style.backgroundColor = style.background; if (style.hidden) el.style.visibility = 'hidden'; else el.style.visibility = ''; }
+      const id = stableCustomId(el, i);
+      const pos = state.positions[id];
+      if (pos) el.style.translate = `${Number(pos.x) || 0}px ${Number(pos.y) || 0}px`;
+      applyElementStyle(el, state.elementStyles?.[id]);
     });
   };
   const designDefaults = { bg: '#08060e', panel: '#120d20', text: '#efeaf9', muted: '#8d84a6', accent: '#b47ede', line: '#55436b' };
@@ -2040,6 +2076,11 @@ ensureNewsLoaded();
       field('Скругление (px)','range',style.radius==null?16:style.radius,v=>{style.radius=v;save();apply();},{min:0,max:60,step:2});
       field('Цвет текста','color',style.color||'#ffffff',v=>{style.color=v;save();apply();});
       field('Цвет фона','color',style.background||'#20202a',v=>{style.background=v;save();apply();});
+      field('Цвет рамки','color',style.borderColor||'#55436b',v=>{style.borderColor=v;save();apply();});
+      field('Толщина рамки (px)','range',style.borderWidth??0,v=>{style.borderWidth=v;save();apply();},{min:0,max:24,step:1});
+      field('Внутренний отступ (px)','range',style.padding??0,v=>{style.padding=v;save();apply();},{min:0,max:96,step:2});
+      field('Размер текста (px)','range',style.fontSize??16,v=>{style.fontSize=v;save();apply();},{min:8,max:96,step:1});
+      field('Межбуквенный интервал (px)','range',style.letterSpacing??0,v=>{style.letterSpacing=v;save();apply();},{min:-4,max:12,step:1});
       field('Z-слой','number',style.zIndex??1,v=>{style.zIndex=v;save();apply();},{min:0,max:20000,step:1});
       const reset=document.createElement('button');reset.className='ghost';reset.textContent='Сбросить свойства элемента';reset.onclick=()=>{delete state.elementStyles[selectedLayer.id];delete state.positions[selectedLayer.id];save();apply();};selectedTools.appendChild(reset);
     } else {

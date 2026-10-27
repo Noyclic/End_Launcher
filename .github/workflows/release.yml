@@ -49,7 +49,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
-          releaseName: 'End Launcher ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}'
+          releaseName: "End Launcher ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}"
           releaseDraft: true
           prerelease: true
           args: ${{ matrix.args }}

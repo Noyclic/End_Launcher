@@ -111,6 +111,14 @@ check(js.includes("layer.style.pointerEvents = 'none';")
     && css.includes('.customizer-active #custom-media-layer{pointer-events:none}')
     && css.includes('.customizer-active .custom-media-item{pointer-events:auto'),
   'The full-screen media overlay must stay click-through while draggable children remain interactive');
+check(js.includes("img.style.pointerEvents = edit ? 'auto' : 'none';")
+    && js.includes("layer.querySelectorAll('.custom-media-item').forEach((media) => { media.style.pointerEvents = on ? 'auto' : 'none'; });"),
+  'Existing media items must stop intercepting clicks when edit mode is disabled');
+check(js.includes('el.dataset.widgetAction = item.action')
+    && css.includes('body:not(.customizer-active) .custom-widget-button[data-widget-action]{pointer-events:auto;cursor:pointer}'),
+  'Custom action buttons should be clickable outside edit mode, but inactive widgets should stay click-through');
+check(!html.includes('id="custom-media-layer" aria-hidden="true"'),
+  'Interactive custom widgets must not be hidden from assistive technology');
 
 check(js.includes("selectedLayer = {type:'media', index}; renderLayers(); renderSelectedTools();"),
   'Selecting a custom image must reveal its properties');
@@ -127,4 +135,4 @@ check(js.includes("!isImageData(item.src)") && js.includes('safe.media.length > 
 check(html.includes('id="customizer-import"') && html.includes('id="customizer-export"'),
   'Theme backup import/export controls are missing');
 
-console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay.');
+console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets.');

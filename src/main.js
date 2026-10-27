@@ -2217,7 +2217,7 @@ ensureNewsLoaded();
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      if (file.size > 2 * 1024 * 1024) throw new Error('Файл темы больше 2 МБ');
+      if (file.size > 10 * 1024 * 1024) throw new Error('Файл темы больше 10 МБ');
       const data = JSON.parse(await file.text());
       if (!data || data.version !== 1 || !data.state || typeof data.state !== 'object' || Array.isArray(data.state)) {
         throw new Error('Неподдерживаемый формат темы');

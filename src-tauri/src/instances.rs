@@ -556,12 +556,29 @@ fn copy_game_tree(src: &Path, dst: &Path, depth: usize, total_bytes: &mut u64) -
             if depth == 0 && !allowed_import_file(&name) { continue; }
             let lower_name = name.to_ascii_lowercase();
             if [".exe", ".dll", ".so", ".bat", ".cmd", ".ps1", ".app", ".desktop"].iter().any(|ext| lower_name.ends_with(ext)) { continue; }
-            let file_size = entry.metadata().map_err(err)?.len();
-            if file_size > 512 * 1024 * 1024 { return Err(format!("Файл при импорте слишком большой: {} МБ", file_size / 1024 / 1024)); }
-            *total_bytes = total_bytes.saturating_add(file_size);
-            if *total_bytes > 4 * 1024 * 1024 * 1024u64 { return Err("Папка сборки превышает лимит импорта — 4 ГБ данных".into()); }
-            if let Some(parent) = dst.join(&name).parent() { std::fs::create_dir_all(parent).map_err(err)?; }
-            std::fs::copy(&path, dst.join(&name)).map_err(err)?;
+            let declared_size = entry.metadata().map_err(err)?.len();
+            if declared_size > 512 * 1024 * 1024 { return Err(format!("Файл при импорте слишком большой: {} МБ", declared_size / 1024 / 1024)); }
+            if total_bytes.saturating_add(declared_size) > 4 * 1024 * 1024 * 1024u64 {
+                return Err("Папка сборки превышает лимит импорта — 4 ГБ данных".into());
+            }
+            let destination = dst.join(&name);
+            if let Some(parent) = destination.parent() { std::fs::create_dir_all(parent).map_err(err)?; }
+            let mut input = std::fs::File::open(&path).map_err(err)?;
+            let mut output = std::fs::File::create(&destination).map_err(err)?;
+            let mut copied = 0u64;
+            let mut buffer = [0u8; 64 * 1024];
+            loop {
+                let count = input.read(&mut buffer).map_err(err)?;
+                if count == 0 { break; }
+                copied = copied.saturating_add(count as u64);
+                if copied > 512 * 1024 * 1024 || total_bytes.saturating_add(copied) > 4 * 1024 * 1024 * 1024u64 {
+                    drop(output);
+                    let _ = std::fs::remove_file(&destination);
+                    return Err("Копируемые данные превысили лимит (512 МБ на файл, 4 ГБ на сборку)".into());
+                }
+                std::io::Write::write_all(&mut output, &buffer[..count]).map_err(err)?;
+            }
+            *total_bytes = total_bytes.saturating_add(copied);
             files += 1;
         }
     }

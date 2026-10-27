@@ -2100,7 +2100,7 @@ ensureNewsLoaded();
       img.style.left = `${item.x ?? 50}%`; img.style.top = `${item.y ?? 40}%`; img.style.transform = 'translate(-50%,-50%)'; img.style.rotate = `${Number(item.rotate)||0}deg`; img.style.opacity = item.opacity == null ? '1' : String(item.opacity);
       if (edit) img.style.pointerEvents = 'auto';
       img.addEventListener('pointerdown', startDragMedia);
-      img.addEventListener('click', (e) => { if (edit) { e.stopPropagation(); selectedLayer = {type:'media', index}; renderLayers(); } });
+      img.addEventListener('click', (e) => { if (edit) { e.stopPropagation(); selectedLayer = {type:'media', index}; renderLayers(); renderSelectedTools(); } });
       img.addEventListener('click', (e) => { if (edit) { e.stopPropagation(); $c('customizer-status').textContent = `Выбрано: ${item.name}. Чтобы удалить — кнопка «Удалить» в списке.`; } });
       layer.appendChild(img);
     });
@@ -2112,7 +2112,7 @@ ensureNewsLoaded();
       el.style.fontSize = `${Math.max(10, Math.min(64, Number(item.fontSize) || 22))}px`; el.style.rotate = `${Number(item.rotate)||0}deg`; el.style.opacity = item.opacity == null ? '1' : String(item.opacity); el.style.color = item.color || '#ffffff'; el.style.background = item.kind === 'button' ? (item.background || state.glow) : 'transparent'; el.style.zIndex = String(item.zIndex || (9100 + index));
       el.addEventListener('pointerdown', startDragWidget);
       el.addEventListener('click', (e) => {
-        if (edit) { e.preventDefault(); e.stopPropagation(); selectedLayer = {type:'widget', index}; renderLayers(); return; }
+        if (edit) { e.preventDefault(); e.stopPropagation(); selectedLayer = {type:'widget', index}; renderLayers(); renderSelectedTools(); return; }
         if (item.kind === 'button' && item.action) {
           if (item.action === 'play') document.getElementById('play-btn')?.click();
           else if (item.action === 'settings') document.querySelector('[data-page="settings"]')?.click();
@@ -2284,11 +2284,18 @@ ensureNewsLoaded();
     dragged = null; dragStart = null; window.removeEventListener('pointermove', moveDrag); save();
   }
   document.addEventListener('pointerdown', startDrag);
+  // In edit mode, selecting a built-in control must not trigger its real action.
+  // Capture phase is intentional: it prevents launch/navigation handlers from running first.
   document.addEventListener('click', (e) => {
-    if (!edit) return;
-    const el=e.target.closest('[data-customizable="true"]');
-    if(el){ selectedLayer={type:'element',id:el.dataset.customId}; renderLayers(); }
-  });
+    if (!edit || e.target.closest('.customizer-modal')) return;
+    const el = e.target.closest('[data-customizable="true"]');
+    if (!el) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    selectedLayer = { type: 'element', id: el.dataset.customId };
+    renderLayers();
+    renderSelectedTools();
+  }, true);
   $c('open-customizer')?.addEventListener('click', open);
   $c('customizer-close').addEventListener('click', close);
   document.addEventListener('keydown', e => {

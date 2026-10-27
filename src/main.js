@@ -812,6 +812,7 @@ function closeAccountModal() {
 }
 $('account-box').addEventListener('click', openAccountModal);
 $('account-box').addEventListener('keydown', (event) => {
+  if (document.body.classList.contains('customizer-active')) return;
   if (event.key === 'Enter' || event.key === ' ') {
     event.preventDefault();
     openAccountModal();

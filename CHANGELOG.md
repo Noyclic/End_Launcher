@@ -129,3 +129,11 @@
 - ATLauncher and Lunar-inspired modes received layout-specific toolbar/navigation refinements.
 - Small-window rules now reflow the affected controls instead of forcing the desktop arrangement.
 - Runtime visual inspection is still required before treating these layouts as final.
+
+
+### UI fidelity pass 3 — mods and account screens
+
+- Added layout-specific treatment for the Modrinth-powered content search panel in Modrinth, Prism, official-launcher-inspired, and Lunar-inspired modes.
+- Reworked the search controls into a responsive grid for narrow windows without changing their IDs or search/install handlers.
+- Improved account dialog heading/provider identity hierarchy, with mode-specific dialog surfaces that remain consistent with the selected layout.
+- Existing authentication controls and backend calls are unchanged. Runtime interaction and visual checks remain necessary.

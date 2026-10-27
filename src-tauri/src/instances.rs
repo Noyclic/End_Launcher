@@ -895,3 +895,31 @@ pub fn open_instance_folder(id: String) -> Result<(), String> {
 pub fn open_launcher_folder() -> Result<(), String> {
     open_dir(&crate::config::config_dir())
 }
+
+#[cfg(test)]
+mod import_path_tests {
+    use super::{normalized_archive_path, safe_relative};
+    use std::path::PathBuf;
+
+    #[test]
+    fn safe_relative_accepts_normal_nested_paths() {
+        assert_eq!(safe_relative("mods/example.jar"), Some(PathBuf::from("mods/example.jar")));
+        assert_eq!(safe_relative("config\\\\options.txt"), Some(PathBuf::from("config/options.txt")));
+        assert_eq!(safe_relative("./saves/world/level.dat"), Some(PathBuf::from("saves/world/level.dat")));
+    }
+
+    #[test]
+    fn safe_relative_rejects_absolute_and_parent_paths() {
+        for path in ["../outside.txt", "mods/../../outside.txt", "/tmp/outside.txt", "\\\\server\\share\\file", "C:\\\\Windows\\file.txt"] {
+            assert!(safe_relative(path).is_none(), "path should be rejected: {path}");
+        }
+    }
+
+    #[test]
+    fn archive_paths_cannot_escape_the_import_root() {
+        for path in ["../../outside.txt", "overrides/../../outside.txt", "C:\\\\outside.txt", "/etc/passwd"] {
+            assert!(normalized_archive_path(path, true).is_none(), "archive path should be rejected: {path}");
+        }
+    }
+}
+

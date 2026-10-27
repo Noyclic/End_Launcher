@@ -2019,3 +2019,56 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   :root[data-ui='modrinth'] .library-toolbar-actions { display:flex; flex-wrap:wrap; }
   :root[data-ui='modrinth'] .library-toolbar-actions .library-search { flex-basis:100%; }
 }
+
+
+/* Third fidelity pass: content screens and account dialog hierarchy. */
+:root[data-ui='modrinth'] .mods-search-panel {
+  border-radius: 14px; padding: 18px; border: 1px solid #4f8d6a55;
+  background: linear-gradient(145deg, #1a2b22, #141a1a);
+}
+:root[data-ui='modrinth'] .mods-search-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+:root[data-ui='modrinth'] .mods-source-tag {
+  border:1px solid #4cc38a88; color:#8be0b0; border-radius:999px;
+  padding:5px 10px; font-size:10px; letter-spacing:.12em; white-space:nowrap;
+}
+:root[data-ui='modrinth'] .mods-search-controls {
+  display:grid; grid-template-columns:minmax(110px, .7fr) minmax(180px, 2fr) minmax(110px, .7fr) minmax(110px, .7fr) auto;
+}
+:root[data-ui='modrinth'] .mods-search-controls > * { min-width:0; width:100%; }
+:root[data-ui='prism'] #page-mods > .row:first-child { border-bottom:1px solid var(--el-line); padding-bottom:10px; }
+:root[data-ui='prism'] #page-mods > h1 { font-size:20px; }
+:root[data-ui='prism'] .mods-search-panel { border-radius:4px; padding:14px; }
+:root[data-ui='prism'] .mods-search-heading h2 { font-size:16px; }
+:root[data-ui='official'] .mods-search-panel { border-radius:8px; background:#19251e; border:1px solid #3b5b45; }
+:root[data-ui='official'] .mods-source-tag { border-radius:4px; background:#233d2c; }
+:root[data-ui='lunar'] .mods-search-panel { border-radius:16px; border-color:#7778ff44; box-shadow:0 12px 32px #0003; }
+:root[data-ui='lunar'] .mods-source-tag { border-radius:8px; color:#a9aaff; border-color:#7778ff66; }
+
+.account-dialog-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+.account-dialog-head h2 { margin-top:0; }
+.account-provider-card { min-width:0; }
+.account-provider-title { display:flex; align-items:center; gap:12px; }
+.account-provider-title h3, .account-provider-title p { margin:0; }
+.account-provider-title p { margin-top:4px; }
+.account-provider-icon {
+  width:42px; height:42px; flex:0 0 42px; display:grid; place-items:center;
+  border:1px solid var(--el-line); border-radius:10px; font-weight:800;
+  background:var(--el-accent-soft); color:var(--el-text);
+}
+:root[data-ui='prism'] .account-dialog { border-radius:5px; }
+:root[data-ui='prism'] .account-provider-icon { border-radius:4px; }
+:root[data-ui='modrinth'] .account-dialog { border-color:#4f8d6a88; }
+:root[data-ui='modrinth'] .account-provider-icon { border-color:#4f8d6a88; background:#4f8d6a22; }
+:root[data-ui='official'] .account-dialog { border-radius:8px; border-color:#41634c; }
+:root[data-ui='official'] .account-provider-icon { border-radius:4px; background:#284334; }
+:root[data-ui='lunar'] .account-dialog { border-radius:18px; border-color:#7778ff66; }
+:root[data-ui='lunar'] .account-provider-icon { border-radius:12px; border-color:#7778ff66; }
+@media (max-width:760px) {
+  :root[data-ui='modrinth'] .mods-search-controls { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  :root[data-ui='modrinth'] .mods-search-controls #mod-query { grid-column:1 / -1; }
+  :root[data-ui='modrinth'] .mods-search-controls #mod-search-btn { grid-column:1 / -1; }
+}
+@media (max-width:480px) {
+  .account-dialog-head { gap:8px; }
+  .account-provider-title { align-items:flex-start; }
+}

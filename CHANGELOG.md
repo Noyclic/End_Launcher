@@ -119,3 +119,13 @@
 - Modrinth and GDLauncher-inspired layouts now use their own icon-and-metadata grid arrangements instead of sharing the generic vertical card structure.
 - The instance library exposes the active UI mode as a data attribute, so layout rules remain scoped and the existing list/card toggle continues to work.
 - Validation: GitHub Actions should rerun the repository's existing Rust and JavaScript checks for this commit. A full visual review in the Tauri app is still required.
+
+
+### UI fidelity pass 2 — page hierarchy
+
+- Modrinth-inspired mode now prioritizes search and groups its library actions in a responsive toolbar.
+- Official-launcher-inspired mode uses a quieter library header and a clear selected-installation marker.
+- TL Legacy-inspired mode gives the version selector, offline nickname, status, and play button a deliberate footer layout.
+- ATLauncher and Lunar-inspired modes received layout-specific toolbar/navigation refinements.
+- Small-window rules now reflow the affected controls instead of forcing the desktop arrangement.
+- Runtime visual inspection is still required before treating these layouts as final.

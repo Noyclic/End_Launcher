@@ -340,3 +340,10 @@
 - Added an `onlyNew` path for dynamic customizer refreshes: occurrence maps are still calculated for all nodes, but already-customized elements are not restored or repositioned during unrelated DOM updates.
 - Prevented lazy news, mod lists, and instance cards updating in the background from resetting a built-in element that the user is currently dragging.
 - Extended regression checks to enforce this non-destructive observer path.
+
+
+### UI fidelity pass 30 — make the custom News action visible in every layout
+
+- Fixed the custom-button “News” action so it reveals the hidden home extras panel in alternate layouts before scrolling to the news section.
+- Reused the same extras-toggle state and label updates as the visible toolbar button.
+- Added a regression check so the News action cannot silently scroll to a section inside a hidden parent again.

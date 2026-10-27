@@ -2422,6 +2422,7 @@ ensureNewsLoaded();
   $c('customizer-edit').addEventListener('click', () => setEdit(!edit));
   $c('customizer-file').addEventListener('change', async e => {
     const files = [...(e.target.files || [])];
+    const previousMedia = state.media.slice();
     const allowedImageTypes = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif']);
     for (const file of files) {
       if (!allowedImageTypes.has(file.type)) {
@@ -2442,7 +2443,14 @@ ensureNewsLoaded();
       }
       state.media.push({ name: file.name.slice(0, 120), src, x: 50, y: 40, size: Number(state.size) || 180 });
     }
-    e.target.value = ''; save(); apply();
+    e.target.value = '';
+    if (!save()) {
+      state.media = previousMedia;
+      apply();
+      $c('customizer-status').textContent = 'Изображения не добавлены: не удалось сохранить их. Удали часть больших файлов и повтори попытку.';
+      return;
+    }
+    apply();
   });
   $c('customizer-bg').addEventListener('click', () => $c('customizer-bg-file').click());
   $c('customizer-add-text').addEventListener('click', () => { const text = prompt('Какой текст добавить?', 'Мой текст ✨'); if (text !== null) { state.widgets.push({kind:'text',text:text.slice(0,180),x:50,y:50,fontSize:22,color:'#ffffff'}); save(); apply(); } });
@@ -2627,6 +2635,7 @@ ensureNewsLoaded();
         });
       }
       if (JSON.stringify(safe).length > 9 * 1024 * 1024) throw new Error('Данные темы слишком большие');
+      const previousState = state;
       state = { ...state, ...safe };
       state.elementStyles ||= {};
       state.positions ||= {};
@@ -2634,9 +2643,16 @@ ensureNewsLoaded();
       state.widgets ||= [];
       state.design ||= {};
       syncControls();
-      save();
+      if (!save()) {
+        state = previousState;
+        syncControls();
+        apply();
+        $c('customizer-status').textContent = 'Тема проверена, но не применена: не удалось сохранить её в локальное хранилище. Освободи место и повтори импорт.';
+        e.target.value = '';
+        return;
+      }
       apply();
-      $c('customizer-status').textContent = '✓ Тема импортирована';
+      $c('customizer-status').textContent = '✓ Тема импортирована и сохранена';
     } catch(err) {
       $c('customizer-status').textContent = 'Не удалось импортировать тему: ' + (err?.message || 'неизвестная ошибка');
     }
@@ -2690,8 +2706,16 @@ ensureNewsLoaded();
       $c('customizer-status').textContent = 'Не удалось прочитать изображение фона';
       e.target.value = ''; return;
     }
+    const previousBackground = state.background;
     state.background = src;
-    e.target.value = ''; save(); apply();
+    e.target.value = '';
+    if (!save()) {
+      state.background = previousBackground;
+      apply();
+      $c('customizer-status').textContent = 'Фон не применён: не удалось сохранить изображение. Выбери файл меньшего размера или освободи место.';
+      return;
+    }
+    apply();
   });
   $c('customizer-glow').value = state.glow; $c('customizer-glow').addEventListener('input', e => { state.glow = e.target.value; save(); apply(); });
   $c('customizer-dim').value = state.dim; $c('customizer-dim').addEventListener('input', e => { state.dim = Number(e.target.value); save(); apply(); });

@@ -355,3 +355,10 @@
 - Profile save/load now rolls back on a failed storage write and no longer overwrites an error with a false “saved” message.
 - Theme import, image upload, and background upload now restore the prior state if local storage rejects the new data, and clearly state that the change was not applied/persisted.
 - Added regression checks for persistence results, rollback paths, and success messaging.
+
+
+### UI fidelity pass 32 — consistent reset, import, and profile semantics
+
+- Centralized the customizer's default state and reuse it for initial startup, reset, theme import, and profile loading.
+- Changed theme import/profile load to replace stale settings rather than merging absent keys from the previous state; older profiles receive known defaults for missing fields.
+- Added regression checks for shared defaults and replacement behavior.

@@ -1992,10 +1992,12 @@ ensureNewsLoaded();
     '#page-ai h1', '.nav-btn', '.page > h1', '.page > h2', '.page > section',
     '.card', '.panel', '.toolbar', 'input', 'select', 'textarea', '.tab-bar', '.modal-card'
   ].join(',');
+  let customIdStateMigrated = false;
   const stableCustomId = (el, index) => {
     if (el.dataset.customId) return el.dataset.customId;
-    const classes = [...el.classList].sort();
-    const oldBase = el.id || classes[0] || 'element';
+    const originalClasses = [...el.classList];
+    const classes = [...originalClasses].sort();
+    const oldBase = el.id || originalClasses[0] || 'element';
     const identityBase = el.id || `el-${el.tagName.toLowerCase()}-${classes.map((name) => `${name.length}_${name}`).join('_') || 'no-class'}`;
     const siblings = [...document.querySelectorAll(CUSTOMIZABLE_SELECTOR)].filter((candidate) => {
       if (candidate.id && el.id) return candidate.id === el.id;
@@ -2012,6 +2014,7 @@ ensureNewsLoaded();
         if (bucket && Object.prototype.hasOwnProperty.call(bucket, legacyId)) {
           if (!Object.prototype.hasOwnProperty.call(bucket, id)) bucket[id] = bucket[legacyId];
           delete bucket[legacyId];
+          customIdStateMigrated = true;
         }
       }
     }
@@ -2161,6 +2164,10 @@ ensureNewsLoaded();
       layer.appendChild(el);
     });
     makeCustomizable();
+    if (customIdStateMigrated) {
+      customIdStateMigrated = false;
+      save();
+    }
     // Live property edits must not replace the range/number input that currently has focus.
     if (refreshEditor) { renderList(); renderLayers(); }
   };

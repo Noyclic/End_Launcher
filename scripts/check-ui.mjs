@@ -128,6 +128,16 @@ check(js.includes("selectedLayer = {type:'widget', index}; renderLayers(); rende
 const selectedToolsStart = js.indexOf('function renderSelectedTools() {');
 const selectedToolsEnd = js.indexOf('function renderList() {', selectedToolsStart);
 const selectedToolsCode = js.slice(selectedToolsStart, selectedToolsEnd);
+check(js.includes("document.dispatchEvent(new Event('end-launcher-theme-changed'));")
+    && js.includes("document.addEventListener('end-launcher-theme-changed', () => {"),
+  'Built-in theme changes must notify the full customizer so it can re-apply its explicit global design');
+const applyDesignStart = js.indexOf('const applyDesign = () => {');
+const applyDesignEnd = js.indexOf('const apply = (refreshEditor = true) => {', applyDesignStart);
+const applyDesignCode = js.slice(applyDesignStart, applyDesignEnd);
+check(applyDesignStart >= 0 && applyDesignEnd > applyDesignStart
+    && applyDesignCode.includes("if (root.dataset.theme !== 'custom')")
+    && applyDesignCode.includes("root.style.removeProperty(name)"),
+  'Resetting full-customizer colors must preserve the independently selected Settings palette');
 check(js.includes('const apply = (refreshEditor = true) => {')
     && js.includes('if (refreshEditor) { renderList(); renderLayers(); }'),
   'Customizer must support visual updates without rebuilding editor controls');
@@ -164,4 +174,4 @@ check(!widgetActions.includes("document.querySelector('[data-page=\"library\"]')
     && !widgetActions.includes("document.querySelector('[data-page=\"news\"]')"),
   'Custom widget actions must not target nonexistent sidebar buttons');
 
-console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls.');
+console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence.');

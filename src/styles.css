@@ -1688,3 +1688,22 @@ button:disabled, input:disabled, select:disabled, textarea:disabled {
   }
 }
 
+
+
+/* Animation controls: readable, responsive and matched to the customization studio. */
+.customizer-animation-panel { display: grid; gap: 10px; }
+.customizer-animation-panel .customizer-color { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px 14px; }
+.customizer-animation-panel .customizer-color input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: var(--el-accent, #b47ede); }
+.customizer-animation-panel .customizer-color span { color: var(--el-muted, #8d84a6); }
+.customizer-animation-presets { display: flex; flex-wrap: wrap; gap: 8px; }
+.customizer-animation-presets button { flex: 1 1 110px; min-height: 36px; }
+#ender-particles { opacity: var(--custom-animation-opacity, .65); }
+html[data-anim="off"] #ender-particles { opacity: 0 !important; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-anim="off"] *, html[data-anim="off"] *::before, html[data-anim="off"] *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

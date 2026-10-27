@@ -151,7 +151,11 @@ check(nudgeStart >= 0 && nudgeEnd > nudgeStart
 const observerStart = js.indexOf('const customizerDomObserver = new MutationObserver((records) => {');
 const observerEnd = js.indexOf('customizerDomObserver.observe(observerRoot', observerStart);
 const observerCode = js.slice(observerStart, observerEnd);
-check(observerStart >= 0 && observerEnd > observerStart && observerCode.includes('makeCustomizable();')
+check(js.includes('const makeCustomizable = (options = {}) => {')
+    && js.includes('if (onlyNew && el.dataset.customId) return;'),
+  'Observer-triggered customizer refreshes must leave existing elements and in-progress pointer drags untouched');
+
+check(observerStart >= 0 && observerEnd > observerStart && observerCode.includes('makeCustomizable({ onlyNew: true });')
     && !observerCode.includes('apply(false);'),
   'Dynamic DOM refreshes should not rebuild GIF/widget DOM while the user is dragging or editing a layer');
 
@@ -216,4 +220,4 @@ check(!widgetActions.includes("document.querySelector('[data-page=\"library\"]')
     && !widgetActions.includes("document.querySelector('[data-page=\"news\"]')"),
   'Custom widget actions must not target nonexistent sidebar buttons');
 
-console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh.');
+console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags.');

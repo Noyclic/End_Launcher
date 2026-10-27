@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const [html, js, css] = await Promise.all([
+const [html, js, css, rustConfig] = await Promise.all([
   readFile(new URL('../src/index.html', import.meta.url), 'utf8'),
   readFile(new URL('../src/main.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/styles.css', import.meta.url), 'utf8'),
+  readFile(new URL('../src-tauri/src/config.rs', import.meta.url), 'utf8'),
 ]);
 
 const check = (condition, message) => assert.ok(condition, message);
@@ -40,7 +41,23 @@ const welcomeSelect = html.match(/<select id="welcome-layout">([\s\S]*?)<\/selec
 check(welcomeSelect, 'First-run layout selector was not found');
 const welcomeStyles = [...welcomeSelect[1].matchAll(/<option\s+value="([^"]+)"/g)]
   .map((match) => match[1]).sort();
+
 assert.deepEqual(welcomeStyles, expectedStyles, 'First-run options must match the supported layouts');
+
+// The frontend and Rust command must support the same eight layout IDs.
+const rustStyles = rustConfig.match(/const VALID_UI_STYLES:\s*\[&str;\s*8\]\s*=\s*\[([\s\S]*?)\];/);
+check(rustStyles, 'Rust VALID_UI_STYLES allow-list was not found');
+const rustStyleKeys = [...rustStyles[1].matchAll(/"([a-z][a-z0-9_-]*)"/g)]
+  .map((match) => match[1]).sort();
+assert.deepEqual(rustStyleKeys, expectedStyles, 'Rust must support the same eight UI styles as the frontend');
+check(rustConfig.includes('if !is_valid_ui_style(&style)'), 'Rust style setter must validate against the shared allow-list');
+check(rustConfig.includes('.filter(|style| is_valid_ui_style(style))'), 'Rust style getter must handle unsupported saved values');
+
+// First-run setup must apply through the shared code path and guard against a late config read.
+check(js.includes('await chooseUi(layout);'), 'First-run setup must use the complete UI-style apply/persist path');
+check(js.includes('if (uiChoiceRevision !== uiStartupRevision) return;'), 'A late startup preference read must not overwrite a newer UI choice');
+check(js.includes("localStorage.setItem('el-ui-style', mode)"), 'UI choices should keep the legacy preference in sync');
+
 
 // Modal accessible names and semantics are a regression-sensitive part of the UI.
 check(/class="account-dialog"[^>]*role="dialog"[^>]*aria-modal="true"[^>]*aria-labelledby="account-modal-title"/.test(html),
@@ -70,4 +87,4 @@ check(js.includes("!isImageData(item.src)") && js.includes('safe.media.length > 
 check(html.includes('id="customizer-import"') && html.includes('id="customizer-export"'),
   'Theme backup import/export controls are missing');
 
-console.log('UI regression checks passed: IDs, eight layouts, modal accessibility, hidden banner, reduced motion, compact dialogs, and theme import bounds.');
+console.log('UI regression checks passed: IDs, eight layouts across JS/HTML/Rust, first-run persistence, modal accessibility, hidden banner, reduced motion, compact dialogs, and theme import bounds.');

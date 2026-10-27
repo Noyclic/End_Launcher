@@ -253,4 +253,5 @@
 - Changed built-in element selection to capture-phase click handling so choosing a control for customization cannot activate its normal action (such as navigation or launch).
 - Selecting a built-in element now updates both the layer list and the property tools panel.
 - Selecting a custom GIF/image or user-created widget now opens its own property tools immediately.
+- Prevented the account keyboard shortcut from bypassing edit mode and opening a dialog while the user is trying to customize the layout.
 - Added regression checks for action suppression and property-panel updates in the customizer.

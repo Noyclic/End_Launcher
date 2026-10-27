@@ -860,3 +860,30 @@ pub async fn apply_mod_update(file: String, url: String, new_file: String, sha1:
     }
     Ok(name)
 }
+
+
+#[cfg(test)]
+mod safe_mod_file_tests {
+    use super::safe_mod_file;
+
+    #[test]
+    fn accepts_only_single_component_mod_files() {
+        assert!(safe_mod_file("example.jar").is_ok());
+        assert!(safe_mod_file("example.jar.disabled").is_ok());
+    }
+
+    #[test]
+    fn rejects_paths_and_non_mod_extensions() {
+        for name in [
+            "../outside.jar",
+            "mods/example.jar",
+            "/tmp/example.jar",
+            "C:\\Windows\\example.jar",
+            "example.exe",
+            "example.jar.bak",
+            "",
+        ] {
+            assert!(safe_mod_file(name).is_err(), "should reject: {name}");
+        }
+    }
+}

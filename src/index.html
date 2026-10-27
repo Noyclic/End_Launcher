@@ -567,8 +567,8 @@
     <script type="module" src="island.js"></script>
     <div id="custom-media-layer" aria-hidden="true"></div>
     <div id="customizer-modal" class="customizer-modal" aria-hidden="true">
-      <div class="customizer-window">
-        <div class="customizer-head"><div><h2>ИЗМЕНИТЕ НА СВОЙ ВКУС</h2><p class="dim small">Настраивай внешний вид как хочешь — изменения сохраняются на этом компьютере.</p></div><button id="customizer-close" class="ghost">✕</button></div>
+      <div class="customizer-window" role="dialog" aria-modal="true" aria-labelledby="customizer-title">
+        <div class="customizer-head"><div><h2 id="customizer-title">ИЗМЕНИТЕ НА СВОЙ ВКУС</h2><p class="dim small">Настраивай внешний вид как хочешь — изменения сохраняются на этом компьютере.</p></div><button id="customizer-close" class="ghost" aria-label="Закрыть настройки внешнего вида">✕</button></div>
         <div class="customizer-tools">
           <button id="customizer-edit" class="big-btn">↔ Режим перемещения: ВЫКЛ</button>
           <label class="custom-upload">＋ Добавить GIF / фото / мем<input id="customizer-file" type="file" accept="image/gif,image/png,image/jpeg,image/webp,image/avif" multiple hidden /></label>

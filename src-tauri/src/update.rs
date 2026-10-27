@@ -3,6 +3,7 @@
 //! Репозиторий задаётся константой GITHUB_REPO (формат «ник/репозиторий»).
 
 use serde::Serialize;
+use std::time::Duration;
 
 pub const GITHUB_REPO: &str = "Noyclic/End_Launcher";
 
@@ -27,6 +28,7 @@ pub async fn check_launcher_update() -> Result<Option<UpdateInfo>, String> {
     // Reuse the shared client and its connection pool for update checks.
     let list: Vec<serde_json::Value> = crate::net::client()
         .get(format!("https://api.github.com/repos/{GITHUB_REPO}/releases?per_page=5"))
+        .timeout(Duration::from_secs(20))
         .send()
         .await
         .map_err(|e| e.to_string())?

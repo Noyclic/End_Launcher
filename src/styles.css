@@ -1708,3 +1708,156 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
     scroll-behavior: auto !important;
   }
 }
+
+
+/* UI fidelity pass — tighten the visual language of each selectable layout.
+   These are original CSS rules built around each launcher's broad layout patterns;
+   no third-party logos, icons, artwork, or source code are included. */
+
+/* Prism: restrained Qt-like density, square controls, compact instance rows. */
+:root[data-ui='prism'] #page-play .library-toolbar {
+  gap: 8px;
+  padding: 10px 12px;
+  margin: 8px 0 6px;
+  border: 1px solid #454545;
+  border-radius: 4px;
+  background: #2b2b2b;
+}
+:root[data-ui='prism'] #page-play .library-toolbar-actions { gap: 5px; }
+:root[data-ui='prism'] #page-play .library-toolbar-actions > button {
+  min-height: 32px;
+  padding: 7px 9px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+:root[data-ui='prism'] #page-play .library-search { min-height: 32px; border-radius: 4px; }
+:root[data-ui='prism'] #library { gap: 7px; }
+:root[data-ui='prism'] #library .inst-card {
+  min-height: 92px;
+  padding: 10px;
+  border-radius: 4px;
+  background: #303030;
+  box-shadow: none;
+}
+:root[data-ui='prism'] #library .inst-card.active { border-color: #4f9bd8; background: #303b45; }
+:root[data-ui='prism'] #library .inst-card .inst-icon { border-radius: 3px; }
+:root[data-ui='prism'] #library .inst-card .chip { padding: 3px 6px; font-size: 10px; }
+:root[data-ui='prism'] .playbar { border-radius: 4px; box-shadow: none; }
+:root[data-ui='prism'] .play-ui #play-btn { min-height: 38px; font-weight: 600; }
+
+/* Modrinth: clean green-tinted cards and a clear search-first toolbar. */
+:root[data-ui='modrinth'] #page-play .library-toolbar {
+  padding: 14px;
+  border: 1px solid #2c3932;
+  border-radius: 12px;
+  background: #1a1e1c;
+}
+:root[data-ui='modrinth'] #page-play .library-toolbar-title { font-size: 18px; letter-spacing: -.02em; }
+:root[data-ui='modrinth'] #page-play .library-search { min-height: 38px; border-radius: 9px; }
+:root[data-ui='modrinth'] #library { gap: 12px; }
+:root[data-ui='modrinth'] #library .inst-card {
+  min-height: 126px;
+  padding: 14px;
+  border: 1px solid #303a34;
+  background: linear-gradient(145deg, #202622, #191d1b);
+  box-shadow: none;
+}
+:root[data-ui='modrinth'] #library .inst-card.active { border-color: #51d38a; background: #1d2a23; }
+:root[data-ui='modrinth'] #library .inst-card:hover { transform: translateY(-1px); }
+
+/* TL Legacy: compact purple accents and a stable, full-width launch strip. */
+:root[data-ui='tl'] #page-play .library-toolbar {
+  padding: 10px 12px;
+  border: 1px solid #30263d;
+  border-radius: 6px;
+  background: #191923;
+}
+:root[data-ui='tl'] #library { gap: 9px; }
+:root[data-ui='tl'] #library .inst-card {
+  min-height: 108px;
+  border: 1px solid #34303e;
+  border-bottom: 2px solid #66369a;
+  background: #20202a;
+}
+:root[data-ui='tl'] #library .inst-card.active { border-color: #a35be8; background: #292033; }
+:root[data-ui='tl'] .playbar { box-shadow: 0 -5px 20px #0002; }
+:root[data-ui='tl'] .play-ui #play-btn { min-height: 40px; }
+
+/* GDLauncher Carbon: larger, calmer tiles with stronger active-instance state. */
+:root[data-ui='gd'] #library { gap: 16px; }
+:root[data-ui='gd'] #library .inst-card {
+  min-height: 142px;
+  padding: 17px;
+  border: 1px solid #2c3833;
+  background: linear-gradient(145deg, #202a26, #171d1b);
+}
+:root[data-ui='gd'] #library .inst-card.active { border-color: #65d69a; box-shadow: 0 0 0 1px #65d69a22; }
+:root[data-ui='gd'] #page-play .library-toolbar { border-bottom: 1px solid #2b3731; padding-bottom: 12px; }
+
+/* Official Minecraft Launcher-inspired: simple green action, flat panels, sharp edges. */
+:root[data-ui='official'] #page-play .library-toolbar {
+  border-radius: 4px;
+  border-color: #344536;
+  background: #1a241c;
+}
+:root[data-ui='official'] #library { gap: 10px; }
+:root[data-ui='official'] #library .inst-card {
+  min-height: 118px;
+  border-radius: 4px;
+  border: 1px solid #39483b;
+  background: #202820;
+  box-shadow: none;
+}
+:root[data-ui='official'] #library .inst-card.active { border-color: #7fbd54; background: #263629; }
+:root[data-ui='official'] .play-ui #play-btn { min-height: 42px; }
+
+/* ATLauncher: information-dense utility tiles and understated borders. */
+:root[data-ui='at'] #page-play .library-toolbar {
+  padding: 9px 10px;
+  border: 1px solid #34383b;
+  border-radius: 5px;
+  background: #1d2124;
+}
+:root[data-ui='at'] #page-play .library-toolbar-actions { gap: 5px; }
+:root[data-ui='at'] #page-play .library-toolbar-actions > button { padding: 7px 8px; border-radius: 5px; }
+:root[data-ui='at'] #library { gap: 7px; }
+:root[data-ui='at'] #library .inst-card {
+  min-height: 96px;
+  border: 1px solid #363b3e;
+  background: #202427;
+  box-shadow: none;
+}
+:root[data-ui='at'] #library .inst-card.active { border-color: var(--el-accent); background: var(--el-accent-soft); }
+
+/* Lunar Client-inspired: high contrast, violet glow kept to selected/primary items. */
+:root[data-ui='lunar'] #page-play .library-toolbar {
+  padding: 14px;
+  border-color: #34334e;
+  background: #171824;
+}
+:root[data-ui='lunar'] #library { gap: 13px; }
+:root[data-ui='lunar'] #library .inst-card {
+  min-height: 136px;
+  border: 1px solid #302f47;
+  background: linear-gradient(145deg, #202131, #171824);
+  box-shadow: 0 8px 20px #0002;
+}
+:root[data-ui='lunar'] #library .inst-card.active { border-color: #8d79ff; box-shadow: inset 3px 0 #8d79ff, 0 8px 22px #0003; }
+:root[data-ui='lunar'] .play-ui #play-btn { min-height: 42px; }
+
+@media (max-width: 900px) {
+  :root[data-ui='prism'] #page-play .library-toolbar,
+  :root[data-ui='modrinth'] #page-play .library-toolbar,
+  :root[data-ui='tl'] #page-play .library-toolbar,
+  :root[data-ui='gd'] #page-play .library-toolbar,
+  :root[data-ui='official'] #page-play .library-toolbar,
+  :root[data-ui='at'] #page-play .library-toolbar,
+  :root[data-ui='lunar'] #page-play .library-toolbar { align-items: stretch; }
+  :root[data-ui='prism'] #page-play .library-toolbar-actions,
+  :root[data-ui='modrinth'] #page-play .library-toolbar-actions,
+  :root[data-ui='tl'] #page-play .library-toolbar-actions,
+  :root[data-ui='gd'] #page-play .library-toolbar-actions,
+  :root[data-ui='official'] #page-play .library-toolbar-actions,
+  :root[data-ui='at'] #page-play .library-toolbar-actions,
+  :root[data-ui='lunar'] #page-play .library-toolbar-actions { flex-wrap: wrap; }
+}

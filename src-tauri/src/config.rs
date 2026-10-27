@@ -1,13 +1,12 @@
-//! Конфиг лаунчера: тема, путь игры и ЗАШИФРОВАННЫЙ API-ключ.
+//! Конфиг лаунчера: настройки и ссылки на сохранённые секреты.
 //!
-//! Ключ хранится в config.json рядом с настройками, но не в открытом виде:
-//!   plaintext -> XOR с ключом устройства -> Base64 -> файл.
+//! На Windows и macOS секреты по возможности хранятся в системном хранилище
+//! учётных данных (Credential Manager / Keychain), а в config.json лежит
+//! только ссылка вида "kr:<имя>". Если системное хранилище недоступно
+//! (в том числе на Linux), используется совместимая XOR+Base64-обфускация.
 //!
-//! ВАЖНО: XOR — это обфускация, а не настоящая криптография. Она защищает
-//! от случайных глаз, но решительный злоумышленник её вскроет.
-//! Более безопасный путь — крейт `keyring` (хранение в Credential Manager
-//! Windows / Keychain macOS). Оставлено как следующий шаг: замени тело
-//! save_api_key/load_api_key на keyring::Entry::new("end-launcher", "groq").
+//! ВАЖНО: XOR — не криптография и защищает только от случайного просмотра.
+//! Не считайте значения в config.json безопасно зашифрованными.
 
 use base64::{engine::general_purpose::STANDARD as B64, Engine as _};
 use serde::{Deserialize, Serialize};
@@ -31,7 +30,7 @@ pub struct ElyAccount {
     pub client_token: String,
 }
 
-/// Вошедший Microsoft-аккаунт (токены зашифрованы так же, как API-ключ).
+/// Вошедший Microsoft-аккаунт (секреты сохраняются через protect/unprotect).
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Account {
     pub username: String,
@@ -65,7 +64,7 @@ pub struct AppConfig {
     pub java_path: Option<String>,
     /// true — ИИ полностью выключен (для слабых ПК): ничего не запускается и не скачивается
     pub ai_disabled: Option<bool>,
-    /// Зашифрованный API-ключ (Base64 от XOR)
+    /// Секрет API: ссылка на системное хранилище или legacy XOR+Base64-обфускация.
     pub api_key_enc: Option<String>,
 }
 
@@ -97,8 +96,8 @@ pub fn save(cfg: &AppConfig) -> Result<(), String> {
     fs::rename(&tmp, config_path()).map_err(|e| e.to_string())
 }
 
-/// «Ключ устройства» для XOR: имя пользователя + имя хоста.
-/// У каждого ПК свой — скопированный config.json на другом ПК не расшифруется.
+/// Материал ключа для совместимого XOR-формата.
+/// Это имя пользователя, а не секретный или уникальный ключ устройства.
 fn device_key() -> Vec<u8> {
     let user = whoami_username();
     format!("end-launcher::{user}").into_bytes()

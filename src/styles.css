@@ -1544,3 +1544,81 @@ body:not(.customizer-active) .custom-widget{pointer-events:none}
 @media (max-width: 700px) { .security-card { padding: 12px; } .security-actions > button { flex: 1 1 180px; } }
 
 #shield-signature-status[data-state="failed"]{color:#ff9c9c}#shield-signature-status[data-state="verified"]{color:#8ee8b0}
+
+/* V20 — sharper launcher-inspired layouts. Keep these as visual skins, not copied assets. */
+:root[data-ui='modrinth'] #page-play .library-toolbar {
+  gap: 12px;
+  border: 1px solid color-mix(in srgb, var(--el-accent) 24%, var(--el-line));
+  background: color-mix(in srgb, var(--el-panel) 94%, var(--el-accent-soft));
+}
+:root[data-ui='modrinth'] #page-play .library-toolbar-actions button,
+:root[data-ui='modrinth'] #page-play .library-toolbar-actions select {
+  min-height: 38px;
+  border-radius: 9px;
+}
+:root[data-ui='modrinth'] #page-play .inst-card {
+  border: 1px solid var(--el-line);
+  background: color-mix(in srgb, var(--el-panel) 94%, var(--el-accent-soft));
+  box-shadow: 0 2px 8px #0002;
+}
+:root[data-ui='modrinth'] #page-play .inst-card:hover {
+  border-color: color-mix(in srgb, var(--el-accent) 65%, var(--el-line));
+  box-shadow: 0 5px 16px #0003;
+}
+:root[data-ui='prism'] #page-play .library-toolbar {
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--el-bg) 72%, var(--el-panel));
+}
+:root[data-ui='prism'] #page-play .library-toolbar-actions button,
+:root[data-ui='prism'] #page-play .library-toolbar-actions select,
+:root[data-ui='prism'] #page-play .library-search {
+  border-radius: 4px;
+}
+:root[data-ui='prism'] #page-play .inst-card {
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--el-panel) 96%, transparent);
+}
+:root[data-ui='tl'] #page-play .inst-card {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--el-panel) 96%, #21172d), var(--el-panel));
+}
+:root[data-ui='tl'] #page-play .library-toolbar-actions button {
+  border-radius: 6px;
+}
+:root[data-ui='official'] #page-play .inst-card {
+  border-color: color-mix(in srgb, #6a9d78 42%, var(--el-line));
+  background: linear-gradient(145deg, #17231c, color-mix(in srgb, var(--el-panel) 94%, #17231c));
+}
+:root[data-ui='official'] #page-play .library-toolbar-actions button {
+  border-radius: 8px;
+}
+:root[data-ui='lunar'] #page-play .library-toolbar-actions button {
+  border-radius: 10px;
+  border-color: #7778ff40;
+}
+:root[data-ui='at'] #page-play .inst-card {
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--el-panel) 96%, #24202b);
+}
+
+/* Keyboard focus is visible across every skin, not only custom dialogs. */
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--el-accent);
+  outline-offset: 3px;
+}
+@media (max-width: 520px) {
+  #page-play .library-toolbar-actions { display: flex; flex-wrap: wrap; }
+  #page-play .library-toolbar-actions > * { min-width: 0; max-width: 100%; }
+  #page-play .library-toolbar-actions .library-search { flex: 1 1 100%; }
+  #page-settings > h2 { margin-top: 22px; }
+  .create-instance-heading { align-items: flex-start; }
+  .mods-search-heading { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :where(button, a, input, select, textarea, .inst-card, .library-toolbar) {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+

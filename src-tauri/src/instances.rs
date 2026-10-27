@@ -158,17 +158,37 @@ pub fn set_active_instance(id: String) -> Result<(), String> {
 
 
 
-fn copy_dir_contents(src: &Path, dst: &Path) -> Result<(), String> {
+const MAX_DUPLICATE_FILE_BYTES: u64 = 512 * 1024 * 1024;
+const MAX_DUPLICATE_TOTAL_BYTES: u64 = 4 * 1024 * 1024 * 1024;
+
+fn copy_dir_contents(src: &Path, dst: &Path, total_bytes: &mut u64) -> Result<(), String> {
     std::fs::create_dir_all(dst).map_err(err)?;
     for entry in std::fs::read_dir(src).map_err(err)? {
         let entry = entry.map_err(err)?;
         let ty = entry.file_type().map_err(err)?;
         let from = entry.path();
         let to = dst.join(entry.file_name());
-        if ty.is_dir() { copy_dir_contents(&from, &to)?; }
-        else if ty.is_file() {
+        if ty.is_dir() {
+            copy_dir_contents(&from, &to, total_bytes)?;
+        } else if ty.is_file() {
             if let Some(parent) = to.parent() { std::fs::create_dir_all(parent).map_err(err)?; }
-            std::fs::copy(&from, &to).map_err(err)?;
+            let mut input = std::fs::File::open(&from).map_err(err)?;
+            let mut output = std::fs::File::create(&to).map_err(err)?;
+            let mut buffer = [0u8; 64 * 1024];
+            let mut file_bytes = 0u64;
+            loop {
+                let count = input.read(&mut buffer).map_err(err)?;
+                if count == 0 { break; }
+                file_bytes = file_bytes.saturating_add(count as u64);
+                if file_bytes > MAX_DUPLICATE_FILE_BYTES
+                    || total_bytes.saturating_add(file_bytes) > MAX_DUPLICATE_TOTAL_BYTES {
+                    drop(output);
+                    let _ = std::fs::remove_file(&to);
+                    return Err("Копирование сборки превысило лимит (512 МБ на файл, 4 ГБ суммарно)".into());
+                }
+                std::io::Write::write_all(&mut output, &buffer[..count]).map_err(err)?;
+            }
+            *total_bytes = total_bytes.saturating_add(file_bytes);
         }
     }
     Ok(())
@@ -189,7 +209,8 @@ pub fn duplicate_instance(id: String) -> Result<Instance, String> {
     copy.id = new_id;
     copy.name = name;
     let target = instance_dir(&copy.id);
-    if let Err(error) = copy_dir_contents(&instance_dir(&id), &target) {
+    let mut copied_bytes = 0u64;
+    if let Err(error) = copy_dir_contents(&instance_dir(&id), &target, &mut copied_bytes) {
         let _ = std::fs::remove_dir_all(&target);
         return Err(error);
     }

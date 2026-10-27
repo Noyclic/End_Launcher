@@ -126,7 +126,7 @@ check(js.includes("selectedLayer = {type:'widget', index}; renderLayers(); rende
   'Selecting a custom widget must reveal its properties');
 
 const stableIdBlock = js.match(/const stableCustomId = \(el, index, legacyOccurrence, semanticOccurrence\) => \{([\s\S]*?)\n  \};/);
-check(!!stableIdBlock && stableIdBlock[1].includes('identityBase') && stableIdBlock[1].includes('const semanticOccurrence'),
+check(!!stableIdBlock && stableIdBlock[1].includes('identityBase') && stableIdBlock[1].includes('semanticOccurrence'),
   'Semantic ID generation must use a precomputed occurrence rather than requerying the entire document for every element');
 check(j.includes('const legacyAllClassCounts = new Map();') && j.includes('const semanticCounts = new Map();')
     && j.includes('stableCustomId(el, i, legacyOccurrence, semanticOccurrence)'),

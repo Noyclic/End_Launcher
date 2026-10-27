@@ -644,6 +644,7 @@ function renderLibrary() {
   const box = $('library');
   box.replaceChildren();
   box.classList.toggle('list-view', libraryListMode);
+  box.dataset.layout = currentUi;
   $('empty-hero').style.display = instances.length ? 'none' : '';
   const query = libraryQuery.trim().toLocaleLowerCase();
   let ci = 0;

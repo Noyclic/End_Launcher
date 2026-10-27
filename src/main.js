@@ -51,9 +51,10 @@ const { invoke } = window.__TAURI__.core;
     };
   };
   const FRAME = 1000 / 24;
+  const motionPreference = window.matchMedia?.('(prefers-reduced-motion: reduce)');
   let color = 'rgba(194,107,245,0.7)', colorAt = -1e9, last = 0;
   let active = parts.length, cost = 0, frames = 0, off = false, raf = 0, cleared = false;
-  const shouldRun = () => !off && !document.hidden && rootAnimOn();
+  const shouldRun = () => !off && !document.hidden && !motionPreference?.matches && rootAnimOn();
   function rootAnimOn() { return document.documentElement.dataset.anim !== 'off'; }
   function clear() {
     if (cleared) return;
@@ -96,6 +97,8 @@ const { invoke } = window.__TAURI__.core;
   }
   function start() { if (!raf && shouldRun()) raf = requestAnimationFrame(tick); else if (!shouldRun()) clear(); }
   document.addEventListener('visibilitychange', start);
+  if (motionPreference?.addEventListener) motionPreference.addEventListener('change', start);
+  else motionPreference?.addListener?.(start);
   if (typeof MutationObserver !== 'undefined') {
     new MutationObserver(start).observe(document.documentElement, { attributes: true, attributeFilter: ['data-anim'] });
   }
@@ -765,6 +768,29 @@ $('ni-create').addEventListener('click', async () => {
 $('mods-back').addEventListener('click', () => goPage('play'));
 $('empty-create').addEventListener('click', openNewInstance);
 
+// Keep keyboard focus inside an open modal and cycle at its boundaries.
+function trapModalFocus(event, dialog) {
+  if (event.key !== 'Tab' || !dialog) return;
+  const candidates = [...dialog.querySelectorAll(
+    'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  )].filter((el) => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden');
+  if (!candidates.length) {
+    event.preventDefault();
+    dialog.setAttribute('tabindex', '-1');
+    dialog.focus();
+    return;
+  }
+  const first = candidates[0];
+  const last = candidates[candidates.length - 1];
+  if (event.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
 // Кнопка пользователя открывает единое окно выбора способа входа.
 let accountReturnFocus = null;
 function openAccountModal() {
@@ -779,10 +805,17 @@ function closeAccountModal() {
   modal.classList.remove('open');
   modal.setAttribute('aria-hidden', 'true');
   if (accountReturnFocus && typeof accountReturnFocus.focus === 'function') accountReturnFocus.focus();
+  accountReturnFocus = null;
 }
 $('account-box').addEventListener('click', openAccountModal);
 document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && $('account-modal').classList.contains('open')) closeAccountModal();
+  const modal = $('account-modal');
+  if (!modal?.classList.contains('open')) return;
+  if (event.key === 'Escape') {
+    closeAccountModal();
+    return;
+  }
+  trapModalFocus(event, modal.querySelector('[role="dialog"]'));
 });
 $('account-modal-close').addEventListener('click', closeAccountModal);
 $('account-modal').addEventListener('click', (event) => {
@@ -1908,7 +1941,7 @@ ensureNewsLoaded();
   const PROFILE_STORE = STORE + '-profiles';
   try { profiles = JSON.parse(localStorage.getItem(PROFILE_STORE) || '{}'); } catch {}
   const saveProfiles = () => { try { localStorage.setItem(PROFILE_STORE, JSON.stringify(profiles)); } catch { $c('customizer-status').textContent = 'Не удалось сохранить профили: слишком много данных.'; } refreshProfiles(); };
-  function refreshProfiles() { const sel = $c('customizer-profile-select'); if (!sel) return; const prev = sel.value; sel.innerHTML = '<option value=>Выбрать профиль…</option>'; Object.keys(profiles).forEach(name => { const o = document.createElement('option'); o.value = name; o.textContent = name; sel.appendChild(o); }); if (profiles[prev]) sel.value = prev; }
+  function refreshProfiles() { const sel = $c('customizer-profile-select'); if (!sel) return; const prev = sel.value; sel.replaceChildren(new Option('Выбрать профиль…', '')); Object.keys(profiles).forEach(name => { const o = document.createElement('option'); o.value = name; o.textContent = name; sel.appendChild(o); }); if (profiles[prev]) sel.value = prev; }
   const CUSTOMIZABLE_SELECTOR = [
     '.layout', '.sidebar', '.logo', '.account', '.account *',
     '#page-play h1', '#slot-page', '#play-ui', '#play-ui *', '#library', '#library *',
@@ -2148,6 +2181,7 @@ ensureNewsLoaded();
     if (customizerReturnFocus && typeof customizerReturnFocus.focus === 'function') {
       customizerReturnFocus.focus();
     }
+    customizerReturnFocus = null;
   }
   function setEdit(on) {
     edit = on; document.body.classList.toggle('customizer-active', on);
@@ -2199,7 +2233,9 @@ ensureNewsLoaded();
   $c('open-customizer')?.addEventListener('click', open);
   $c('customizer-close').addEventListener('click', close);
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && modal.classList.contains('open')) close();
+    if (!modal.classList.contains('open')) return;
+    if (e.key === 'Escape') { close(); return; }
+    trapModalFocus(e, modal.querySelector('[role="dialog"]'));
   });
   modal.addEventListener('click', e => { if (e.target === modal) close(); });
   $c('customizer-edit').addEventListener('click', () => setEdit(!edit));
@@ -2232,7 +2268,23 @@ ensureNewsLoaded();
   $c('customizer-add-button').addEventListener('click', () => { const text = prompt('Название кнопки:', 'Моя кнопка'); if (text !== null) { state.widgets.push({kind:'button',text:text.slice(0,80),x:50,y:60,fontSize:18,color:'#ffffff',background:state.glow}); save(); apply(); } });
   $c('customizer-profile-save').addEventListener('click', () => { const name = ($c('customizer-profile-name').value || '').trim().slice(0,32); if (!name) { $c('customizer-status').textContent = 'Введи название профиля.'; return; } profiles[name] = JSON.parse(JSON.stringify(state)); saveProfiles(); $c('customizer-profile-select').value = name; $c('customizer-status').textContent = `Профиль «${name}» сохранён`; });
   $c('customizer-profile-load').addEventListener('click', () => { const name = $c('customizer-profile-select').value; if (!name || !profiles[name]) return; state = { ...state, ...JSON.parse(JSON.stringify(profiles[name])) }; syncControls(); save(); apply(); $c('customizer-status').textContent = `Загружен профиль «${name}»`; });
-  $c('customizer-export').addEventListener('click', () => { const blob = new Blob([JSON.stringify({version:1,state},null,2)], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'end-launcher-theme.json'; a.click(); URL.revokeObjectURL(url); });
+  $c('customizer-export').addEventListener('click', () => {
+    try {
+      const blob = new Blob([JSON.stringify({version:1,state},null,2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'end-launcher-theme.json';
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      $c('customizer-status').textContent = '✓ Тема экспортирована в end-launcher-theme.json';
+    } catch (error) {
+      $c('customizer-status').textContent = 'Не удалось экспортировать тему: ' + (error?.message || 'неизвестная ошибка');
+    }
+  });
   $c('customizer-import').addEventListener('change', async e => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -2243,34 +2295,141 @@ ensureNewsLoaded();
         throw new Error('Неподдерживаемый формат темы');
       }
       const imported = data.state;
-      const numberRanges = {
-        dim: [0, 85], size: [80, 400], animationQuality: [0, 100],
-        animationOpacity: [0, 100], animationSpeed: [25, 175],
-        scale: [80, 125], radius: [0, 32]
+      const own = (key) => Object.prototype.hasOwnProperty.call(imported, key);
+      const isRecord = (value) => !!value && typeof value === 'object' && !Array.isArray(value);
+      const clamp = (value, min, max, fallback, label) => {
+        const n = Number(value ?? fallback);
+        if (!Number.isFinite(n)) throw new Error('Некорректное значение: ' + label);
+        return Math.max(min, Math.min(max, n));
       };
-      for (const [key, range] of Object.entries(numberRanges)) {
-        if (imported[key] !== undefined) {
-          const value = Number(imported[key]);
-          if (!Number.isFinite(value)) throw new Error('Некорректное значение: ' + key);
-          imported[key] = Math.max(range[0], Math.min(range[1], value));
+      const isHex = (value) => typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value);
+      const MAX_IMAGE_DATA_CHARS = 6 * 1024 * 1024;
+      const isImageData = (value) => typeof value === 'string'
+        && value.length <= MAX_IMAGE_DATA_CHARS
+        && /^data:image\/(?:png|jpeg|gif|webp|avif);base64,[A-Za-z0-9+/]+={0,2}$/.test(value);
+      const numberRanges = {
+        dim: [0, 85, 0], size: [80, 420, 180], animationQuality: [0, 100, 60],
+        animationOpacity: [0, 100, 65], animationSpeed: [25, 175, 100],
+        scale: [80, 125, 100], radius: [0, 32, 16]
+      };
+      const safe = {};
+      const allowed = [
+        'positions','elementStyles','media','widgets','design','dim','size','glow','particles',
+        'animationQuality','animationOpacity','animationSpeed','glitch','rainbow','background',
+        'font','scale','radius'
+      ];
+      for (const key of allowed) if (own(key)) safe[key] = imported[key];
+      for (const [key, [min, max, fallback]] of Object.entries(numberRanges)) {
+        if (own(key)) safe[key] = clamp(safe[key], min, max, fallback, key);
+      }
+      for (const key of ['particles','glitch','rainbow']) {
+        if (own(key) && typeof safe[key] !== 'boolean') throw new Error('Некорректное значение: ' + key);
+      }
+      if (own('glow') && !isHex(safe.glow)) throw new Error('Некорректный цвет свечения');
+      if (own('font')) {
+        const fonts = ['inherit','Arial, sans-serif','Verdana, sans-serif','Georgia, serif','monospace','system-ui, sans-serif'];
+        if (!fonts.includes(safe.font)) safe.font = 'inherit';
+      }
+      if (own('background') && safe.background !== '' && !isImageData(safe.background)) {
+        throw new Error('Фон должен быть безопасным встроенным изображением (PNG, JPEG, GIF, WebP или AVIF)');
+      }
+      if (own('design')) {
+        if (!isRecord(safe.design)) throw new Error('Некорректные данные: design');
+        const design = {};
+        for (const key of ['bg','panel','text','muted','accent','line']) {
+          if (safe.design[key] !== undefined) {
+            if (!isHex(safe.design[key])) throw new Error('Некорректный цвет палитры: ' + key);
+            design[key] = safe.design[key];
+          }
         }
+        safe.design = design;
       }
-      for (const key of ['positions', 'elementStyles', 'design']) {
-        if (imported[key] !== undefined && (!imported[key] || typeof imported[key] !== 'object' || Array.isArray(imported[key]))) {
-          throw new Error('Некорректные данные: ' + key);
+      if (own('positions')) {
+        if (!isRecord(safe.positions) || Object.keys(safe.positions).length > 1500) throw new Error('Некорректные данные: positions');
+        const positions = {};
+        for (const [key, value] of Object.entries(safe.positions)) {
+          if (!isRecord(value)) throw new Error('Некорректная позиция элемента');
+          positions[String(key).slice(0, 240)] = {
+            x: clamp(value.x, -5000, 5000, 0, 'position.x'),
+            y: clamp(value.y, -5000, 5000, 0, 'position.y')
+          };
         }
+        safe.positions = positions;
       }
-      for (const key of ['media', 'widgets']) {
-        if (imported[key] !== undefined && !Array.isArray(imported[key])) throw new Error('Некорректные данные: ' + key);
+      if (own('elementStyles')) {
+        if (!isRecord(safe.elementStyles) || Object.keys(safe.elementStyles).length > 1500) throw new Error('Некорректные данные: elementStyles');
+        const styleRanges = {
+          scale: [0.1, 4, 1], rotate: [-360, 360, 0], zIndex: [-10000, 99999, 1],
+          opacity: [0, 1, 1], radius: [0, 96, 0], borderWidth: [0, 24, 0],
+          padding: [0, 96, 0], fontSize: [8, 96, 16], letterSpacing: [-4, 12, 0]
+        };
+        const styles = {};
+        for (const [key, value] of Object.entries(safe.elementStyles)) {
+          if (!isRecord(value)) throw new Error('Некорректный стиль элемента');
+          const style = {};
+          for (const [field, range] of Object.entries(styleRanges)) {
+            if (value[field] !== undefined) style[field] = clamp(value[field], range[0], range[1], range[2], field);
+          }
+          for (const field of ['color','background','borderColor']) {
+            if (value[field] !== undefined && isHex(value[field])) style[field] = value[field];
+          }
+          if (value.hidden !== undefined) style.hidden = !!value.hidden;
+          styles[String(key).slice(0, 240)] = style;
+        }
+        safe.elementStyles = styles;
       }
-      if (imported.background !== undefined && typeof imported.background !== 'string') throw new Error('Некорректный фон');
-      if (imported.glow !== undefined && typeof imported.glow !== 'string') throw new Error('Некорректный цвет свечения');
-      state = { ...state, ...imported };
-      state.elementStyles ||= {}; state.positions ||= {}; state.media ||= []; state.widgets ||= []; state.design ||= {};
-      syncControls(); save(); apply();
-      $c('customizer-status').textContent = 'Тема импортирована';
+      if (own('media')) {
+        if (!Array.isArray(safe.media) || safe.media.length > 50) throw new Error('В теме может быть не больше 50 изображений');
+        safe.media = safe.media.map((item, index) => {
+          if (!isRecord(item) || !isImageData(item.src)) throw new Error('Некорректное изображение №' + (index + 1));
+          return {
+            name: String(item.name || ('Медиа ' + (index + 1))).slice(0, 120),
+            src: item.src,
+            x: clamp(item.x, 0, 100, 50, 'media.x'),
+            y: clamp(item.y, 0, 100, 40, 'media.y'),
+            size: clamp(item.size, 80, 420, 180, 'media.size'),
+            rotate: clamp(item.rotate, -360, 360, 0, 'media.rotate'),
+            opacity: clamp(item.opacity, 0, 1, 1, 'media.opacity'),
+            zIndex: Math.round(clamp(item.zIndex, 1, 9999, 9200, 'media.zIndex')),
+            hidden: !!item.hidden
+          };
+        });
+      }
+      if (own('widgets')) {
+        if (!Array.isArray(safe.widgets) || safe.widgets.length > 100) throw new Error('В теме может быть не больше 100 текстов и кнопок');
+        safe.widgets = safe.widgets.map((item, index) => {
+          if (!isRecord(item) || !['text','button'].includes(item.kind)) throw new Error('Некорректный пользовательский элемент №' + (index + 1));
+          const widget = {
+            kind: item.kind,
+            text: String(item.text || (item.kind === 'button' ? 'Моя кнопка' : 'Мой текст')).slice(0, 180),
+            x: clamp(item.x, 0, 100, 50, 'widget.x'),
+            y: clamp(item.y, 0, 100, 50, 'widget.y'),
+            fontSize: clamp(item.fontSize, 10, 64, item.kind === 'button' ? 18 : 22, 'widget.fontSize'),
+            rotate: clamp(item.rotate, -360, 360, 0, 'widget.rotate'),
+            opacity: clamp(item.opacity, 0, 1, 1, 'widget.opacity'),
+            color: isHex(item.color) ? item.color : '#ffffff',
+            background: isHex(item.background) ? item.background : (safe.glow || state.glow || '#b47ede'),
+            zIndex: Math.round(clamp(item.zIndex, 1, 99999, 9100 + index, 'widget.zIndex')),
+            hidden: !!item.hidden
+          };
+          if (['play','settings','library','news','url'].includes(item.action)) widget.action = item.action;
+          if (widget.action === 'url' && typeof item.url === 'string' && /^https?:\/\//i.test(item.url)) widget.url = item.url.slice(0, 2048);
+          return widget;
+        });
+      }
+      if (JSON.stringify(safe).length > 9 * 1024 * 1024) throw new Error('Данные темы слишком большие');
+      state = { ...state, ...safe };
+      state.elementStyles ||= {};
+      state.positions ||= {};
+      state.media ||= [];
+      state.widgets ||= [];
+      state.design ||= {};
+      syncControls();
+      save();
+      apply();
+      $c('customizer-status').textContent = '✓ Тема импортирована';
     } catch(err) {
-      $c('customizer-status').textContent = 'Не удалось импортировать тему: ' + err.message;
+      $c('customizer-status').textContent = 'Не удалось импортировать тему: ' + (err?.message || 'неизвестная ошибка');
     }
     e.target.value = '';
   });
@@ -2359,7 +2518,6 @@ ensureNewsLoaded();
     syncControls();
   });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && modal.classList.contains('open')) close();
     if (!edit || !selectedLayer || document.activeElement !== document.body) return;
     if ((e.key === 'Delete' || e.key === 'Backspace') && selectedLayer.type !== 'element') {
       const arr = selectedLayer.type === 'media' ? state.media : state.widgets;

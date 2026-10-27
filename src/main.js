@@ -2657,20 +2657,40 @@ ensureNewsLoaded();
     $c('customizer-status').textContent = '✓ Кастомизация сброшена';
   });
   document.addEventListener('keydown', e => {
-    if (!edit || !selectedLayer || document.activeElement !== document.body) return;
+    const active = document.activeElement;
+    const activeElement = active instanceof Element ? active : null;
+    const isTyping = !!activeElement && (
+      activeElement.matches('input, textarea, select, [contenteditable="true"]') ||
+      activeElement.isContentEditable
+    );
+    const isInDialog = !!activeElement?.closest('.customizer-modal, .account-modal, .welcome-wizard');
+    if (!edit || !selectedLayer || isTyping || isInDialog) return;
+
     if ((e.key === 'Delete' || e.key === 'Backspace') && selectedLayer.type !== 'element') {
-      deleteCustomLayer(selectedLayer.type, selectedLayer.index); return;
+      // Avoid deleting a layer when the user is focused on an unrelated launcher control.
+      const canDelete = active === document.body
+        || activeElement?.id === 'open-customizer'
+        || !!activeElement?.matches('[data-customizable="true"], .custom-media-item, .custom-widget');
+      if (!canDelete) return;
+      deleteCustomLayer(selectedLayer.type, selectedLayer.index);
+      return;
     }
+
+    const isNudgeKey = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key);
+    if (!isNudgeKey) return;
     const step = e.shiftKey ? 10 : 1;
     if (selectedLayer.type === 'element') {
       const pos = state.positions[selectedLayer.id] ||= {x:0,y:0};
-      if (e.key==='ArrowLeft') pos.x-=step; else if(e.key==='ArrowRight') pos.x+=step; else if(e.key==='ArrowUp') pos.y-=step; else if(e.key==='ArrowDown') pos.y+=step; else return;
+      if (e.key==='ArrowLeft') pos.x-=step; else if(e.key==='ArrowRight') pos.x+=step; else if(e.key==='ArrowUp') pos.y-=step; else if(e.key==='ArrowDown') pos.y+=step;
     } else {
       const arr = selectedLayer.type === 'media' ? state.media : state.widgets, item = arr[selectedLayer.index]; if(!item)return;
       const px = step / Math.max(1, innerWidth) * 100, py = step / Math.max(1, innerHeight) * 100;
-      if (e.key==='ArrowLeft') item.x=Math.max(2,(item.x??50)-px); else if(e.key==='ArrowRight') item.x=Math.min(98,(item.x??50)+px); else if(e.key==='ArrowUp') item.y=Math.max(2,(item.y??50)-py); else if(e.key==='ArrowDown') item.y=Math.min(98,(item.y??50)+py); else return;
+      if (e.key==='ArrowLeft') item.x=Math.max(2,(item.x??50)-px); else if(e.key==='ArrowRight') item.x=Math.min(98,(item.x??50)+px); else if(e.key==='ArrowUp') item.y=Math.max(2,(item.y??50)-py); else if(e.key==='ArrowDown') item.y=Math.min(98,(item.y??50)+py);
     }
-    e.preventDefault(); save(); apply(); renderSelectedTools();
+    e.preventDefault();
+    save();
+    apply();
+    renderSelectedTools();
   });
   refreshProfiles(); syncControls();
   apply();

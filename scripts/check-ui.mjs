@@ -28,6 +28,10 @@ for (const id of [
 ]) {
   check(seen.has(id), 'Required UI element is missing: #' + id);
 }
+check(/id="account-box"[^>]*role="button"[^>]*tabindex="0"[^>]*aria-haspopup="dialog"/.test(html),
+  'Account picker trigger must be reachable and announced as a button');
+check(js.includes("$('account-box').addEventListener('keydown'") && js.includes("event.key === 'Enter' || event.key === ' '"),
+  'Account picker must open from the keyboard');
 
 // The style IDs and the first-run selector must remain in sync.
 const styleBlock = js.match(/const UI_STYLES\s*=\s*\{([\s\S]*?)\n\};/);
@@ -68,6 +72,8 @@ check(js.includes('function trapModalFocus(event, dialog)') && (js.match(/trapMo
   'Account dialog keyboard focus trapping is missing');
 check(js.includes("trapModalFocus(e, modal.querySelector('[role=\"dialog\"]'))"),
   'Customizer keyboard focus trapping is missing');
+check(js.includes('trapModalFocus(event, wizard);') && js.includes("$('welcome-close')?.focus();"),
+  'Welcome wizard must trap focus and move focus into the dialog on open');
 
 // Keep known UI regressions from returning.
 check(/\.launcher-banner\[hidden\]\s*\{\s*display:\s*none\s*!important;\s*\}/.test(css),
@@ -76,6 +82,12 @@ check(/@media\s*\(prefers-reduced-motion:\s*reduce\)/.test(css),
   'CSS must respect the operating system reduced-motion setting');
 check(js.includes("window.matchMedia?.('(prefers-reduced-motion: reduce)')"),
   'Canvas particles must respect the operating system reduced-motion setting');
+check(js.includes("document.documentElement.dataset.particles = state.particles ? 'on' : 'off';"),
+  'The particle toggle must have its own state instead of disabling all UI animations');
+check(js.includes("root.dataset.anim !== 'off' && root.dataset.particles !== 'off'"),
+  'Canvas particles must observe both global animation and particle settings');
+check(js.includes("attributeFilter: ['data-anim', 'data-particles']"),
+  'Canvas loop must react when the particle toggle changes');
 check(/max-height:\s*calc\(100dvh - 24px\)/.test(css),
   'Customizer must remain scrollable inside short windows');
 
@@ -87,4 +99,4 @@ check(js.includes("!isImageData(item.src)") && js.includes('safe.media.length > 
 check(html.includes('id="customizer-import"') && html.includes('id="customizer-export"'),
   'Theme backup import/export controls are missing');
 
-console.log('UI regression checks passed: IDs, eight layouts across JS/HTML/Rust, first-run persistence, modal accessibility, hidden banner, reduced motion, compact dialogs, and theme import bounds.');
+console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, and bounded theme import.');

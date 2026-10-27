@@ -808,6 +808,12 @@ function closeAccountModal() {
   accountReturnFocus = null;
 }
 $('account-box').addEventListener('click', openAccountModal);
+$('account-box').addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    openAccountModal();
+  }
+});
 document.addEventListener('keydown', (event) => {
   const modal = $('account-modal');
   if (!modal?.classList.contains('open')) return;
@@ -2605,13 +2611,36 @@ ensureNewsLoaded();
     const anim = $('ui-anim'); if (anim) anim.checked = $('welcome-animations').checked;
     const petEnabled = $('pet-enabled'); if (petEnabled) petEnabled.checked = $('welcome-mascot-enabled').checked;
     wizard.hidden = true;
+    welcomeReturnFocus = null;
+    document.querySelector('[data-page="play"]')?.focus();
     if (mode === 'minimal') { const aiPage = $('page-ai'); if (aiPage) aiPage.classList.remove('active'); const play = document.querySelector('[data-page="play"]'); if (play) play.click(); }
   });
   $('welcome-back').addEventListener('click', () => { if (step > 1) step--; renderStep(); });
-  $('welcome-close').addEventListener('click', () => { safeWrite('el-first-run-complete','1'); safeWrite('el-edition',mode); wizard.hidden = true; document.documentElement.dataset.edition = mode === 'minimal' ? 'minimal' : 'ai'; });
+  $('welcome-close').addEventListener('click', () => closeWelcomeWizard());
+  let welcomeReturnFocus = null;
+  function closeWelcomeWizard({ restoreFocus = true } = {}) {
+    safeWrite('el-first-run-complete','1');
+    safeWrite('el-edition',mode);
+    wizard.hidden = true;
+    document.documentElement.dataset.edition = mode === 'minimal' ? 'minimal' : 'ai';
+    if (restoreFocus && welcomeReturnFocus && typeof welcomeReturnFocus.focus === 'function') welcomeReturnFocus.focus();
+    welcomeReturnFocus = null;
+  }
+  document.addEventListener('keydown', (event) => {
+    if (wizard.hidden) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      $('welcome-close').click();
+      return;
+    }
+    trapModalFocus(event, wizard);
+  });
   setMode(mode); renderStep();
-  if (safeRead('el-first-run-complete') !== '1') wizard.hidden = false;
-  else { wizard.hidden = true; document.documentElement.dataset.edition = mode === 'minimal' ? 'minimal' : 'ai'; }
+  if (safeRead('el-first-run-complete') !== '1') {
+    welcomeReturnFocus = document.activeElement;
+    wizard.hidden = false;
+    $('welcome-close')?.focus();
+  } else { wizard.hidden = true; document.documentElement.dataset.edition = mode === 'minimal' ? 'minimal' : 'ai'; }
   // Pupils gently follow the pointer; animation is transform-only and throttled by the browser.
   const eyes = [...document.querySelectorAll('.mascot-eye')];
   let scheduled = false, px = 0, py = 0;

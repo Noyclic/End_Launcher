@@ -780,10 +780,9 @@ document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && $('account-modal').classList.contains('open')) closeAccountModal();
 });
 $('account-modal-close').addEventListener('click', closeAccountModal);
-$('account-modal').addEventListener('click', (event) => { if (event.target === $('account-modal')) closeAccountModal(); });
-$('account-modal-close').addEventListener('click', closeAccountModal);
-$('account-modal').addEventListener('click', (e) => { if (e.target === $('account-modal')) closeAccountModal(); });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAccountModal(); });
+$('account-modal').addEventListener('click', (event) => {
+  if (event.target === $('account-modal')) closeAccountModal();
+});
 
 // ─────────────── ГЛАВНАЯ: статистика, популярные моды, новости ───────────────
 // второстепенное (новости, популярные моды, список версий) грузим, когда браузер свободен, а не в момент запуска

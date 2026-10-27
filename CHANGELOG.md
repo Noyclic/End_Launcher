@@ -238,3 +238,11 @@
 - Separated the decorative-particle switch from global UI animation state; disabling particles no longer accidentally disables all interface animations.
 - Updated the particle animation observer to respond to both global animation and particle setting changes.
 - Extended regression checks for the keyboard-accessible account trigger, welcome-dialog focus management, and independent particle/global animation settings.
+
+
+### UI fidelity pass 17 — restore the actual base appearance on reset/import
+
+- Captured the original inline values for properties owned by the customizer and restore them before applying the active saved profile.
+- Prevented stale scale, rotation, opacity, border, spacing, typography, and position overrides from leaking between theme changes or remaining after reset.
+- Made the reset action explicitly report that the customization was cleared.
+- Extended the regression checks to verify that baseline restoration occurs before current positions and element styles are applied.

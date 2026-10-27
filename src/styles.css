@@ -1633,6 +1633,8 @@ body:not(.customizer-active) .custom-widget{pointer-events:none}
 }
 
 /* V21 — consistent interaction feedback and resilient layout across the whole launcher. */
+html { font-size: calc(16px * var(--custom-ui-scale, 1)); }
+
 :root {
   --el-focus-ring: color-mix(in srgb, var(--el-accent) 78%, white);
   --el-surface-hover: color-mix(in srgb, var(--el-panel) 84%, var(--el-accent-soft));

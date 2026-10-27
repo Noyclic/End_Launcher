@@ -130,6 +130,14 @@ check(!!stableIdBlock && stableIdBlock[1].includes('identityBase') && stableIdBl
     && stableIdBlock[1].includes('customIdStateMigrated = true') && js.includes('if (customIdStateMigrated)'),
   'Customizable elements need deterministic semantic IDs and a persisted migration for legacy saved styles');
 const deleteHelper = js.match(/function deleteCustomLayer\\(type, index\\) \\{([\\s\\S]*?)\\n  \\}/);
+check(js.includes("'.inst-card', '.mini-mod', '.mod-card', '.mod-row', '.news-card', '.stat', '.island-card',")
+    && js.includes("'.hscroll > *', '.news-grid > *', '.stats > *'"),
+  'Dynamic library, mod, news, and home-stat content must be eligible for customization');
+check(js.includes('const customizerDomObserver = new MutationObserver((records) => {')
+    && js.includes("customizerDomObserver.observe(observerRoot, { childList: true, subtree: true });")
+    && js.includes('return node.matches(CUSTOMIZABLE_SELECTOR) || !!node.querySelector(CUSTOMIZABLE_SELECTOR);'),
+  'Newly rendered app content must be wired into the customizer without observing its own overlay');
+
 check(!!deleteHelper && deleteHelper[1].includes('collection.splice(index, 1)')
     && deleteHelper[1].includes('selectedLayer.index -= 1') && deleteHelper[1].includes('apply();'),
   'Deleting a custom layer must keep the selected index valid and refresh the editor');
@@ -186,4 +194,4 @@ check(!widgetActions.includes("document.querySelector('[data-page=\"library\"]')
     && !widgetActions.includes("document.querySelector('[data-page=\"news\"]')"),
   'Custom widget actions must not target nonexistent sidebar buttons');
 
-console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, and safe layer deletion.');
+console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, and dynamic content customization.');

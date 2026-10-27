@@ -347,3 +347,11 @@
 - Fixed the custom-button “News” action so it reveals the hidden home extras panel in alternate layouts before scrolling to the news section.
 - Reused the same extras-toggle state and label updates as the visible toolbar button.
 - Added a regression check so the News action cannot silently scroll to a section inside a hidden parent again.
+
+
+### UI fidelity pass 31 — truthful persistence and rollback on quota errors
+
+- Made the customizer save helper return a real success/failure result instead of only changing status text.
+- Profile save/load now rolls back on a failed storage write and no longer overwrites an error with a false “saved” message.
+- Theme import, image upload, and background upload now restore the prior state if local storage rejects the new data, and clearly state that the change was not applied/persisted.
+- Added regression checks for persistence results, rollback paths, and success messaging.

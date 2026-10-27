@@ -2127,3 +2127,67 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   #page-settings > .row > input { flex-basis:100%; }
   #page-ai > .row > select { flex-basis:100%; }
 }
+
+
+/* Fifth fidelity pass: selected-installation banner, library toolbar and playbar. */
+#page-play .launcher-banner {
+  display:flex; align-items:center; justify-content:space-between; gap:22px;
+  padding:clamp(16px,2.2vw,26px); margin:18px 0 14px;
+  border:1px solid var(--el-line); border-radius:var(--el-radius,12px);
+  background:var(--el-panel); min-width:0;
+}
+#page-play .launcher-banner-copy { min-width:0; flex:1 1 auto; }
+#page-play .launcher-banner-kicker { font-size:10px; letter-spacing:.14em; opacity:.72; margin-bottom:8px; }
+#page-play .launcher-banner h2 { margin:0 0 6px; overflow-wrap:anywhere; }
+#page-play .launcher-banner p { margin:0; max-width:70ch; }
+#page-play .launcher-banner-play { flex:0 0 auto; min-height:42px; padding:0 18px; font-weight:750; }
+#page-play .library-toolbar { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+#page-play .library-toolbar-heading { display:flex; align-items:baseline; gap:10px; min-width:0; }
+#page-play .library-toolbar-title { overflow-wrap:anywhere; }
+#page-play .library-toolbar-actions { display:flex; align-items:center; gap:8px; min-width:0; }
+#page-play .library-search { min-width:140px; }
+#page-play .library-search input { min-width:0; width:100%; }
+#page-play .library-help { max-width:88ch; line-height:1.55; }
+#slot-bar.playbar { min-width:0; }
+#slot-bar .play-ui { min-width:0; }
+#slot-bar .play-ui > *, #slot-page .play-ui > * { min-width:0; }
+
+:root[data-ui='prism'] #page-play .launcher-banner {
+  border-radius:4px; box-shadow:none; padding:14px 16px;
+  border-left:3px solid var(--el-accent);
+}
+:root[data-ui='prism'] #page-play .launcher-banner-kicker { letter-spacing:.08em; }
+:root[data-ui='prism'] #page-play .launcher-banner-play { border-radius:3px; }
+:root[data-ui='modrinth'] #page-play .launcher-banner {
+  border-color:#4f8d6a66; border-radius:14px;
+  background:linear-gradient(120deg,#1a2b22,#171d1a);
+}
+:root[data-ui='modrinth'] #page-play .launcher-banner-play { border-radius:9px; }
+:root[data-ui='tl'] #page-play .launcher-banner { border-radius:6px; }
+:root[data-ui='official'] #page-play .launcher-banner {
+  border-color:#3c5b45; border-radius:8px; background:#19251e;
+}
+:root[data-ui='official'] #page-play .launcher-banner-play { border-radius:5px; }
+:root[data-ui='at'] #page-play .launcher-banner { border-radius:3px; box-shadow:none; }
+:root[data-ui='lunar'] #page-play .launcher-banner {
+  border-radius:16px; border-color:#7778ff55;
+  background:linear-gradient(115deg,#25243b,#191b29);
+}
+:root[data-ui='lunar'] #page-play .launcher-banner-play { border-radius:10px; }
+
+:root[data-ui='prism'] #page-play .library-toolbar { border-radius:4px; }
+:root[data-ui='modrinth'] #page-play .library-toolbar { border-radius:12px; }
+:root[data-ui='official'] #page-play .library-toolbar { border-radius:6px; }
+:root[data-ui='lunar'] #page-play .library-toolbar { border-radius:14px; }
+
+@media (max-width:900px) {
+  #page-play .library-toolbar { align-items:stretch; flex-direction:column; gap:10px; }
+  #page-play .library-toolbar-actions { flex-wrap:wrap; }
+  #page-play .library-search { flex:1 1 220px; }
+}
+@media (max-width:600px) {
+  #page-play .launcher-banner { align-items:stretch; flex-direction:column; gap:14px; }
+  #page-play .launcher-banner-play { width:100%; }
+  #page-play .library-toolbar-heading { justify-content:space-between; }
+  #page-play .library-toolbar-actions > button { flex:1 1 auto; }
+}

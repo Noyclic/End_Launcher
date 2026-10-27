@@ -2383,3 +2383,171 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   .customizer-window > .customizer-head { position: sticky; top: -10px; z-index: 2; padding: 8px 0; background: var(--el-bg); }
   .account-dialog-head { position: sticky; top: -16px; z-index: 2; padding: 8px 0; background: var(--el-panel); }
 }
+
+
+/* UI fidelity pass 35 — sharpen the three utilitarian skins without changing app behavior. */
+:root[data-ui='at'] #page-play .library-toolbar {
+  border: 1px solid var(--el-line);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--el-panel) 92%, var(--el-accent-soft));
+  padding: 10px 12px;
+}
+:root[data-ui='at'] #page-play .library-toolbar-title {
+  font: 600 13px 'JetBrains Mono', monospace;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+:root[data-ui='at'] #page-play .inst-card {
+  position: relative;
+  min-height: 100px;
+  align-content: start;
+  border: 1px solid var(--el-line);
+  border-radius: 6px;
+  background: var(--el-panel);
+  box-shadow: none;
+}
+:root[data-ui='at'] #page-play .inst-card.active {
+  border-color: color-mix(in srgb, var(--el-accent) 72%, var(--el-line));
+  background: color-mix(in srgb, var(--el-panel) 84%, var(--el-accent-soft));
+  box-shadow: inset 3px 0 var(--el-accent);
+}
+:root[data-ui='at'] #page-play .inst-card .chip {
+  border-radius: 3px;
+  font-family: 'JetBrains Mono', monospace;
+}
+:root[data-ui='at'] #page-play .inst-card .inst-play,
+:root[data-ui='at'] #page-play .inst-card .inst-more {
+  border-radius: 4px;
+}
+
+:root[data-ui='official'] #page-play .library-toolbar {
+  border: 1px solid #3b4d3e;
+  border-radius: 7px;
+  background: linear-gradient(100deg, #1c2a20, #18221b);
+  padding: 12px 14px;
+}
+:root[data-ui='official'] #page-play .library-toolbar-title {
+  font-size: 19px;
+  letter-spacing: -.02em;
+}
+:root[data-ui='official'] #page-play .inst-card {
+  border: 1px solid #354238;
+  border-radius: 7px;
+  background: linear-gradient(145deg, #202c23, #1a221c);
+  box-shadow: 0 2px 8px #0002;
+}
+:root[data-ui='official'] #page-play .inst-card.active {
+  border-color: #78b75f;
+  background: linear-gradient(145deg, #2a3d2d, #202f24);
+  box-shadow: inset 0 0 0 1px #78b75f55, 0 5px 16px #0003;
+}
+:root[data-ui='official'] #page-play .inst-card .inst-icon {
+  border-radius: 5px;
+  background: linear-gradient(145deg, #497e3d, #315c2a);
+}
+:root[data-ui='official'] #page-play .inst-card .chip {
+  border-radius: 4px;
+  background: #2b3c2e;
+  color: #b7d7a8;
+}
+
+:root[data-ui='lunar'] #page-play .library-toolbar {
+  border: 1px solid #36344f;
+  border-radius: 14px;
+  background: linear-gradient(120deg, #1d1d2c, #191a28);
+}
+:root[data-ui='lunar'] #page-play .inst-card {
+  border: 1px solid #343249;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #242338, #1b1d2b);
+  box-shadow: 0 4px 18px #0003;
+}
+:root[data-ui='lunar'] #page-play .inst-card.active {
+  border-color: #8a7dff;
+  background: linear-gradient(145deg, #302e4b, #222437);
+  box-shadow: inset 0 0 0 1px #8a7dff44, 0 7px 24px #12112699;
+}
+:root[data-ui='lunar'] #page-play .inst-card .inst-icon {
+  border: 1px solid #aaa0ff33;
+  background: linear-gradient(145deg, #7771e6, #403a9a);
+}
+:root[data-ui='lunar'] #page-play .inst-card .chip {
+  border: 1px solid #8176e544;
+  background: #38354f;
+  color: #d0caff;
+}
+
+:root[data-ui='at'] .nav-btn.active {
+  border: 1px solid color-mix(in srgb, var(--el-accent) 60%, var(--el-line));
+  background: color-mix(in srgb, var(--el-accent-soft) 68%, var(--el-panel));
+  box-shadow: inset 3px 0 var(--el-accent);
+}
+:root[data-ui='official'] .nav-btn.active {
+  border: 1px solid #3e6645;
+  background: #24392a;
+  box-shadow: inset 3px 0 #78b75f;
+}
+:root[data-ui='lunar'] .nav-btn.active {
+  border: 1px solid #7b72e966;
+  background: linear-gradient(135deg, #292744, #24243a);
+  box-shadow: inset 3px 0 #9b8cff, 0 3px 12px #15142a88;
+}
+
+:root[data-ui='at'] :where(.nav-btn, .inst-card, .library-toolbar button):focus-visible {
+  outline-color: var(--el-accent);
+  outline-offset: 1px;
+}
+:root[data-ui='official'] :where(.nav-btn, .inst-card, .library-toolbar button):focus-visible {
+  outline-color: #8acb6f;
+  outline-offset: 2px;
+}
+:root[data-ui='lunar'] :where(.nav-btn, .inst-card, .library-toolbar button):focus-visible {
+  outline-color: #a89bff;
+  outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
+  :root[data-ui='at'] .sidebar nav,
+  :root[data-ui='official'] .sidebar nav {
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  :root[data-ui='at'] .sidebar .nav-btn,
+  :root[data-ui='official'] .sidebar .nav-btn {
+    flex: 0 1 auto;
+    white-space: nowrap;
+  }
+  :root[data-ui='lunar'] .sidebar nav {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+  :root[data-ui='lunar'] .sidebar .nav-btn {
+    flex: 0 0 auto;
+    min-width: 54px;
+  }
+  :root[data-ui='official'] #page-play {
+    border-radius: 10px;
+    padding: 18px;
+  }
+}
+@media (max-width: 600px) {
+  :root[data-ui='at'] #page-play .library-toolbar,
+  :root[data-ui='official'] #page-play .library-toolbar,
+  :root[data-ui='lunar'] #page-play .library-toolbar {
+    padding: 10px;
+    gap: 8px;
+  }
+  :root[data-ui='at'] #page-play .inst-card,
+  :root[data-ui='official'] #page-play .inst-card,
+  :root[data-ui='lunar'] #page-play .inst-card {
+    min-width: 0;
+    padding: 10px;
+  }
+  :root[data-ui='official'] #page-play .inst-icon,
+  :root[data-ui='lunar'] #page-play .inst-icon {
+    width: 42px;
+    height: 42px;
+  }
+}

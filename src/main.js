@@ -2077,7 +2077,7 @@ ensureNewsLoaded();
     root.style.setProperty('--el-line', `rgba(${lr}, ${lg}, ${lb}, .55)`);
     root.style.setProperty('--el-particle', d.accent);
   };
-  const apply = () => {
+  const apply = (refreshEditor = true) => {
     applyDesign();
     document.documentElement.style.setProperty('--custom-glow', state.glow || '#b47ede');
     document.documentElement.style.setProperty('--custom-dim', Math.max(0, Math.min(85, Number(state.dim) || 0)) / 100);
@@ -2137,7 +2137,9 @@ ensureNewsLoaded();
       el.addEventListener('dblclick', () => { const text = prompt('Текст элемента:', item.text || ''); if (text !== null) { item.text = text.slice(0, 180); save(); apply(); } });
       layer.appendChild(el);
     });
-    makeCustomizable(); renderList(); renderLayers();
+    makeCustomizable();
+    // Live property edits must not replace the range/number input that currently has focus.
+    if (refreshEditor) { renderList(); renderLayers(); }
   };
   function renderLayers() {
     if (!layerList) return;
@@ -2189,40 +2191,40 @@ ensureNewsLoaded();
     if(selectedLayer.type==='element'){
       if(!el){selectedTools.append('Элемент не найден на текущей странице.');return;}
       const pos=state.positions[selectedLayer.id] ||= {x:0,y:0};
-      field('X (px)','number',Math.round(pos.x||0),v=>{pos.x=v;save();apply();},{min:-2000,max:2000,step:1});
-      field('Y (px)','number',Math.round(pos.y||0),v=>{pos.y=v;save();apply();},{min:-2000,max:2000,step:1});
-      field('Масштаб (%)','range',Math.round((style.scale||1)*100),v=>{style.scale=v/100;save();apply();},{min:50,max:200,step:5});
-      field('Поворот (°)','range',style.rotate||0,v=>{style.rotate=v;save();apply();},{min:-180,max:180,step:1});
-      field('Прозрачность (%)','range',style.opacity==null?100:style.opacity*100,v=>{style.opacity=v/100;save();apply();},{min:10,max:100,step:5});
-      field('Скругление (px)','range',style.radius==null?16:style.radius,v=>{style.radius=v;save();apply();},{min:0,max:60,step:2});
-      field('Цвет текста','color',style.color||'#ffffff',v=>{style.color=v;save();apply();});
-      field('Цвет фона','color',style.background||'#20202a',v=>{style.background=v;save();apply();});
-      field('Цвет рамки','color',style.borderColor||'#55436b',v=>{style.borderColor=v;save();apply();});
-      field('Толщина рамки (px)','range',style.borderWidth??0,v=>{style.borderWidth=v;save();apply();},{min:0,max:24,step:1});
-      field('Внутренний отступ (px)','range',style.padding??0,v=>{style.padding=v;save();apply();},{min:0,max:96,step:2});
-      field('Размер текста (px)','range',style.fontSize??16,v=>{style.fontSize=v;save();apply();},{min:8,max:96,step:1});
-      field('Межбуквенный интервал (px)','range',style.letterSpacing??0,v=>{style.letterSpacing=v;save();apply();},{min:-4,max:12,step:1});
-      field('Z-слой','number',style.zIndex??1,v=>{style.zIndex=v;save();apply();},{min:0,max:20000,step:1});
-      const reset=document.createElement('button');reset.className='ghost';reset.textContent='Сбросить свойства элемента';reset.onclick=()=>{delete state.elementStyles[selectedLayer.id];delete state.positions[selectedLayer.id];save();apply();};selectedTools.appendChild(reset);
+      field('X (px)','number',Math.round(pos.x||0),v=>{pos.x=v;save();apply(false);},{min:-2000,max:2000,step:1});
+      field('Y (px)','number',Math.round(pos.y||0),v=>{pos.y=v;save();apply(false);},{min:-2000,max:2000,step:1});
+      field('Масштаб (%)','range',Math.round((style.scale||1)*100),v=>{style.scale=v/100;save();apply(false);},{min:50,max:200,step:5});
+      field('Поворот (°)','range',style.rotate||0,v=>{style.rotate=v;save();apply(false);},{min:-180,max:180,step:1});
+      field('Прозрачность (%)','range',style.opacity==null?100:style.opacity*100,v=>{style.opacity=v/100;save();apply(false);},{min:10,max:100,step:5});
+      field('Скругление (px)','range',style.radius==null?16:style.radius,v=>{style.radius=v;save();apply(false);},{min:0,max:60,step:2});
+      field('Цвет текста','color',style.color||'#ffffff',v=>{style.color=v;save();apply(false);});
+      field('Цвет фона','color',style.background||'#20202a',v=>{style.background=v;save();apply(false);});
+      field('Цвет рамки','color',style.borderColor||'#55436b',v=>{style.borderColor=v;save();apply(false);});
+      field('Толщина рамки (px)','range',style.borderWidth??0,v=>{style.borderWidth=v;save();apply(false);},{min:0,max:24,step:1});
+      field('Внутренний отступ (px)','range',style.padding??0,v=>{style.padding=v;save();apply(false);},{min:0,max:96,step:2});
+      field('Размер текста (px)','range',style.fontSize??16,v=>{style.fontSize=v;save();apply(false);},{min:8,max:96,step:1});
+      field('Межбуквенный интервал (px)','range',style.letterSpacing??0,v=>{style.letterSpacing=v;save();apply(false);},{min:-4,max:12,step:1});
+      field('Z-слой','number',style.zIndex??1,v=>{style.zIndex=v;save();apply(false);},{min:0,max:20000,step:1});
+      const reset=document.createElement('button');reset.className='ghost';reset.textContent='Сбросить свойства элемента';reset.onclick=()=>{delete state.elementStyles[selectedLayer.id];delete state.positions[selectedLayer.id];save();apply(false);};selectedTools.appendChild(reset);
     } else {
-      field('Название / текст','text',item.text||'',v=>{item.text=v.slice(0,180);save();apply();});
-      field('X (%)','number',Math.round(item.x??50),v=>{item.x=Math.max(2,Math.min(98,v));save();apply();},{min:0,max:100,step:1});
-      field('Y (%)','number',Math.round(item.y??50),v=>{item.y=Math.max(2,Math.min(98,v));save();apply();},{min:0,max:100,step:1});
-      field('Размер шрифта','range',item.fontSize||22,v=>{item.fontSize=v;save();apply();},{min:10,max:96,step:1});
-      field('Поворот (°)','range',item.rotate||0,v=>{item.rotate=v;save();apply();},{min:-180,max:180,step:1});
-      field('Прозрачность (%)','range',item.opacity==null?100:item.opacity*100,v=>{item.opacity=v/100;save();apply();},{min:10,max:100,step:5});
-      field('Цвет текста','color',item.color||'#ffffff',v=>{item.color=v;save();apply();});
-      field('Z-слой','number',item.zIndex??9100,v=>{item.zIndex=v;save();apply();},{min:9000,max:20000,step:1});
+      field('Название / текст','text',item.text||'',v=>{item.text=v.slice(0,180);save();apply(false);});
+      field('X (%)','number',Math.round(item.x??50),v=>{item.x=Math.max(2,Math.min(98,v));save();apply(false);},{min:0,max:100,step:1});
+      field('Y (%)','number',Math.round(item.y??50),v=>{item.y=Math.max(2,Math.min(98,v));save();apply(false);},{min:0,max:100,step:1});
+      field('Размер шрифта','range',item.fontSize||22,v=>{item.fontSize=v;save();apply(false);},{min:10,max:96,step:1});
+      field('Поворот (°)','range',item.rotate||0,v=>{item.rotate=v;save();apply(false);},{min:-180,max:180,step:1});
+      field('Прозрачность (%)','range',item.opacity==null?100:item.opacity*100,v=>{item.opacity=v/100;save();apply(false);},{min:10,max:100,step:5});
+      field('Цвет текста','color',item.color||'#ffffff',v=>{item.color=v;save();apply(false);});
+      field('Z-слой','number',item.zIndex??9100,v=>{item.zIndex=v;save();apply(false);},{min:9000,max:20000,step:1});
       if(selectedLayer.type==='media'){
-        field('Ширина картинки','range',item.size||180,v=>{item.size=v;save();apply();},{min:40,max:1000,step:10});
+        field('Ширина картинки','range',item.size||180,v=>{item.size=v;save();apply(false);},{min:40,max:1000,step:10});
       } else {
-        field('Цвет кнопки','color',item.background||state.glow,v=>{item.background=v;save();apply();});
+        field('Цвет кнопки','color',item.background||state.glow,v=>{item.background=v;save();apply(false);});
         const actionWrap=document.createElement('label');actionWrap.className='customizer-property';const span=document.createElement('span');span.textContent='Действие кнопки';const select=document.createElement('select');
         [['none','Нет'],['play','Запустить игру'],['settings','Настройки'],['library','Библиотека'],['news','Новости'],['url','Открыть ссылку']].forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;select.appendChild(o);});
-        select.value=item.action||'none';select.onchange=()=>{item.action=select.value;if(item.action==='url'&&!item.url)item.url=prompt('URL (только https:// или http://):','https://')||'';save();apply();};actionWrap.append(span,select);selectedTools.appendChild(actionWrap);
+        select.value=item.action||'none';select.onchange=()=>{item.action=select.value;if(item.action==='url'&&!item.url)item.url=prompt('URL (только https:// или http://):','https://')||'';save();apply(false);};actionWrap.append(span,select);selectedTools.appendChild(actionWrap);
         field('URL для действия','url',item.url||'',v=>{if(/^https?:\/\//i.test(v)||!v)item.url=v;else $c('customizer-status').textContent='Разрешены только ссылки http:// и https://';save();});
       }
-      const del=document.createElement('button');del.className='ghost';del.textContent='Удалить элемент';del.onclick=()=>{const arr=selectedLayer.type==='media'?state.media:state.widgets;arr.splice(selectedLayer.index,1);selectedLayer=null;save();apply();};selectedTools.appendChild(del);
+      const del=document.createElement('button');del.className='ghost';del.textContent='Удалить элемент';del.onclick=()=>{const arr=selectedLayer.type==='media'?state.media:state.widgets;arr.splice(selectedLayer.index,1);selectedLayer=null;save();apply(false);};selectedTools.appendChild(del);
     }
   }
   function renderList() {

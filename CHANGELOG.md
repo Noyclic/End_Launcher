@@ -301,3 +301,11 @@
 - Built-in theme changes now notify the customizer, allowing an explicitly saved customizer palette to remain the higher-priority override.
 - When full-customizer colors are reset, the active built-in theme/palette is preserved rather than being cleared accidentally.
 - Added regression checks for the theme-change event and palette-reset precedence.
+
+
+### UI fidelity pass 25 — stable customizer layer identity and deletion
+
+- Changed customizer element IDs to use semantic tag/class identity rather than the page-wide DOM index, reducing preference drift when layouts move or rerender elements.
+- Added an automatic state migration for legacy position/style keys, and persists migrated preferences so the fix survives future launches.
+- Centralized deletion of custom GIFs and widgets so selection is cleared or its index is adjusted when nearby layers are removed; used the helper for property-panel, list, and keyboard deletion paths.
+- Added regression checks for semantic IDs, legacy migration, and selection-safe deletion.

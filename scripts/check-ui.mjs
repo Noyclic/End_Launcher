@@ -214,8 +214,13 @@ const widgetActionsEnd = js.indexOf('\n      });', widgetActionsStart);
 const widgetActions = js.slice(widgetActionsStart, widgetActionsEnd);
 check(widgetActions.includes("goPage('settings')") && widgetActions.includes("goPage('play')")
     && widgetActions.includes("scrollToContentSection('library')")
-    && widgetActions.includes('loadNews()') && widgetActions.includes("scrollToContentSection('news-section')"),
+    && widgetActions.includes('loadNews()') && widgetActions.includes("scrollToContentSection('news-section')")
+    && widgetActions.includes('revealHomeExtrasForCurrentLayout()'),
   'Custom widget navigation actions must target real pages and sections');
+check(js.includes('function revealHomeExtrasForCurrentLayout() {')
+    && js.includes("if (root.dataset.ui !== 'end') setHomeExtrasOpen(true);"),
+  'The News action must reveal hidden home extras in alternate layouts before scrolling to the section');
+
 check(!widgetActions.includes("document.querySelector('[data-page=\"library\"]')")
     && !widgetActions.includes("document.querySelector('[data-page=\"news\"]')"),
   'Custom widget actions must not target nonexistent sidebar buttons');

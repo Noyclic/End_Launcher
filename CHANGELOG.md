@@ -218,3 +218,14 @@
 - Made theme export report success/failure and defer object-URL cleanup so the download has time to start.
 - Made the customizer and account dialogs scroll reliably in short windows and improved compact-height layout.
 - Added a dependency-free frontend UI regression check for duplicate IDs, all eight layout styles, modal semantics, reduced motion, hidden banner behavior, and theme-import bounds; CI runs it after JavaScript syntax checks.
+
+
+### UI fidelity pass 15 — fix persistent layout selection
+
+- Fixed a backend/frontend mismatch where the UI offered eight styles but Rust accepted only four; all eight layout IDs are now validated by one allow-list.
+- Added Rust unit tests to verify that every frontend layout can be saved and unknown IDs remain rejected.
+- Updated the first-run wizard to apply the selected layout through the shared layout function, including playbar relocation, banner visibility, toolbar mode, and the Rust configuration save.
+- Guarded the asynchronous startup preference read so it cannot overwrite a newer choice made while the app is loading.
+- Synced the legacy local preference and added migration for styles previously saved only by the first-run wizard.
+- Extended the UI regression script to compare HTML, JavaScript, and Rust layout IDs and to assert first-run persistence behavior.
+- Added \`npm run test:ui\` for convenient local execution of the dependency-free regression checks.

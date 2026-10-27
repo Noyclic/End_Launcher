@@ -2105,12 +2105,26 @@ ensureNewsLoaded();
   modal.addEventListener('click', e => { if (e.target === modal) close(); });
   $c('customizer-edit').addEventListener('click', () => setEdit(!edit));
   $c('customizer-file').addEventListener('change', async e => {
-    const files = [...e.target.files];
+    const files = [...(e.target.files || [])];
+    const allowedImageTypes = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif']);
     for (const file of files) {
-      if (!file.type.startsWith('image/')) continue;
+      if (!allowedImageTypes.has(file.type)) {
+        $c('customizer-status').textContent = `${file.name}: поддерживаются PNG, JPEG, GIF, WebP и AVIF`;
+        continue;
+      }
       if (file.size > 4 * 1024 * 1024) { $c('customizer-status').textContent = `${file.name}: файл больше 4 МБ, пропущен`; continue; }
-      const src = await new Promise(resolve => { const r = new FileReader(); r.onload = () => resolve(r.result); r.readAsDataURL(file); });
-      state.media.push({ name: file.name, src, x: 50, y: 40, size: Number(state.size) || 180 });
+      if (state.media.length >= 50) { $c('customizer-status').textContent = 'Достигнут лимит в 50 изображений. Удали ненужные и попробуй снова.'; break; }
+      const src = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('Не удалось прочитать файл'));
+        reader.readAsDataURL(file);
+      }).catch(() => null);
+      if (typeof src !== 'string' || !src.startsWith('data:image/')) {
+        $c('customizer-status').textContent = `${file.name}: не удалось прочитать изображение`;
+        continue;
+      }
+      state.media.push({ name: file.name.slice(0, 120), src, x: 50, y: 40, size: Number(state.size) || 180 });
     }
     e.target.value = ''; save(); apply();
   });
@@ -2127,8 +2141,23 @@ ensureNewsLoaded();
   $c('customizer-radius').value=state.radius??16; $c('customizer-radius').addEventListener('input',e=>{state.radius=Number(e.target.value);save();apply();});
   $c('customizer-bg-file').addEventListener('change', async e => {
     const file = e.target.files?.[0]; if (!file) return;
-    if (file.size > 4 * 1024 * 1024) { $c('customizer-status').textContent = 'Фон больше 4 МБ — выбери файл поменьше'; return; }
-    state.background = await new Promise(resolve => { const r = new FileReader(); r.onload = () => resolve(r.result); r.readAsDataURL(file); });
+    const allowedImageTypes = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif']);
+    if (!allowedImageTypes.has(file.type)) {
+      $c('customizer-status').textContent = 'Фон должен быть PNG, JPEG, GIF, WebP или AVIF';
+      e.target.value = ''; return;
+    }
+    if (file.size > 4 * 1024 * 1024) { $c('customizer-status').textContent = 'Фон больше 4 МБ — выбери файл поменьше'; e.target.value = ''; return; }
+    const src = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error('Не удалось прочитать файл'));
+      reader.readAsDataURL(file);
+    }).catch(() => null);
+    if (typeof src !== 'string' || !src.startsWith('data:image/')) {
+      $c('customizer-status').textContent = 'Не удалось прочитать изображение фона';
+      e.target.value = ''; return;
+    }
+    state.background = src;
     e.target.value = ''; save(); apply();
   });
   $c('customizer-glow').value = state.glow; $c('customizer-glow').addEventListener('input', e => { state.glow = e.target.value; save(); apply(); });

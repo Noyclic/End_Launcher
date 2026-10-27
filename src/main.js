@@ -2054,7 +2054,8 @@ ensureNewsLoaded();
     if (style.borderColor) el.style.borderColor = style.borderColor;
     el.classList.toggle('customizer-hidden', !!style.hidden);
   };
-  const makeCustomizable = () => {
+  const makeCustomizable = (options = {}) => {
+    const onlyNew = options.onlyNew === true;
     const elements = [...document.querySelectorAll(CUSTOMIZABLE_SELECTOR)];
     const legacyIdCounts = new Map();
     const legacyNoIdClassCounts = new Map();
@@ -2073,6 +2074,8 @@ ensureNewsLoaded();
       const semanticKey = el.id ? `id:${el.id}` : `classes:${el.tagName}:${[...originalClasses].sort().join('.')}`;
       const semanticOccurrence = semanticCounts.get(semanticKey) || 0;
       semanticCounts.set(semanticKey, semanticOccurrence + 1);
+      // Existing nodes may be in the middle of a drag; observer refreshes must not reset their inline offsets.
+      if (onlyNew && el.dataset.customId) return;
       if (el.closest('.customizer-modal') || el.classList.contains('custom-media-item') || el.classList.contains('custom-widget')) return;
       el.dataset.customizable = 'true';
       const id = stableCustomId(el, i, legacyOccurrence, semanticOccurrence);
@@ -2724,7 +2727,7 @@ ensureNewsLoaded();
       refreshScheduled = true;
       requestAnimationFrame(() => {
         refreshScheduled = false;
-        makeCustomizable();
+        makeCustomizable({ onlyNew: true });
         if (customIdStateMigrated) {
           customIdStateMigrated = false;
           save();

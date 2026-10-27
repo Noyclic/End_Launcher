@@ -202,3 +202,9 @@
 
 - Opening the customization dialog moves keyboard focus to its close control.
 - Escape closes the dialog, and focus returns to the control that opened it.
+
+
+### UI fidelity pass 13 — account dialog keyboard focus
+
+- Move focus to the account dialog close control when the account picker opens.
+- Restore focus to the previous control when the dialog closes, including with Escape or backdrop click.

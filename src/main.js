@@ -1987,10 +1987,29 @@ ensureNewsLoaded();
   let dragStart = null;
   try { state = { ...state, ...JSON.parse(localStorage.getItem(STORE) || '{}') }; } catch {}
   state.elementStyles ||= {}; state.positions ||= {}; state.media ||= []; state.widgets ||= []; state.animationQuality = Math.max(0, Math.min(100, Number(state.animationQuality ?? 60))); state.animationOpacity = Math.max(0, Math.min(100, Number(state.animationOpacity ?? 65))); state.animationSpeed = Math.max(25, Math.min(175, Number(state.animationSpeed ?? 100)));
-  const save = () => { try { localStorage.setItem(STORE, JSON.stringify(state)); $c('customizer-status').textContent = '✓ Изменения сохранены'; } catch { $c('customizer-status').textContent = 'Не удалось сохранить: возможно, изображения слишком большие. Удали часть файлов и попробуй снова.'; } };
+  const save = () => {
+    try {
+      localStorage.setItem(STORE, JSON.stringify(state));
+      $c('customizer-status').textContent = '✓ Изменения сохранены';
+      return true;
+    } catch {
+      $c('customizer-status').textContent = 'Не удалось сохранить: возможно, изображения слишком большие. Удали часть файлов и попробуй снова.';
+      return false;
+    }
+  };
   const PROFILE_STORE = STORE + '-profiles';
   try { profiles = JSON.parse(localStorage.getItem(PROFILE_STORE) || '{}'); } catch {}
-  const saveProfiles = () => { try { localStorage.setItem(PROFILE_STORE, JSON.stringify(profiles)); } catch { $c('customizer-status').textContent = 'Не удалось сохранить профили: слишком много данных.'; } refreshProfiles(); };
+  const saveProfiles = () => {
+    try {
+      localStorage.setItem(PROFILE_STORE, JSON.stringify(profiles));
+      refreshProfiles();
+      return true;
+    } catch {
+      $c('customizer-status').textContent = 'Не удалось сохранить профили: слишком много данных.';
+      refreshProfiles();
+      return false;
+    }
+  };
   function refreshProfiles() { const sel = $c('customizer-profile-select'); if (!sel) return; const prev = sel.value; sel.replaceChildren(new Option('Выбрать профиль…', '')); Object.keys(profiles).forEach(name => { const o = document.createElement('option'); o.value = name; o.textContent = name; sel.appendChild(o); }); if (profiles[prev]) sel.value = prev; }
   const CUSTOMIZABLE_SELECTOR = [
     '.layout', '.sidebar', '.logo', '.account', '.account *',
@@ -2428,8 +2447,36 @@ ensureNewsLoaded();
   $c('customizer-bg').addEventListener('click', () => $c('customizer-bg-file').click());
   $c('customizer-add-text').addEventListener('click', () => { const text = prompt('Какой текст добавить?', 'Мой текст ✨'); if (text !== null) { state.widgets.push({kind:'text',text:text.slice(0,180),x:50,y:50,fontSize:22,color:'#ffffff'}); save(); apply(); } });
   $c('customizer-add-button').addEventListener('click', () => { const text = prompt('Название кнопки:', 'Моя кнопка'); if (text !== null) { state.widgets.push({kind:'button',text:text.slice(0,80),x:50,y:60,fontSize:18,color:'#ffffff',background:state.glow}); save(); apply(); } });
-  $c('customizer-profile-save').addEventListener('click', () => { const name = ($c('customizer-profile-name').value || '').trim().slice(0,32); if (!name) { $c('customizer-status').textContent = 'Введи название профиля.'; return; } profiles[name] = JSON.parse(JSON.stringify(state)); saveProfiles(); $c('customizer-profile-select').value = name; $c('customizer-status').textContent = `Профиль «${name}» сохранён`; });
-  $c('customizer-profile-load').addEventListener('click', () => { const name = $c('customizer-profile-select').value; if (!name || !profiles[name]) return; state = { ...state, ...JSON.parse(JSON.stringify(profiles[name])) }; syncControls(); save(); apply(); $c('customizer-status').textContent = `Загружен профиль «${name}»`; });
+  $c('customizer-profile-save').addEventListener('click', () => {
+    const name = ($c('customizer-profile-name').value || '').trim().slice(0,32);
+    if (!name) { $c('customizer-status').textContent = 'Введи название профиля.'; return; }
+    const hadPrevious = Object.prototype.hasOwnProperty.call(profiles, name);
+    const previousProfile = profiles[name];
+    profiles[name] = JSON.parse(JSON.stringify(state));
+    if (!saveProfiles()) {
+      if (hadPrevious) profiles[name] = previousProfile;
+      else delete profiles[name];
+      refreshProfiles();
+      return;
+    }
+    $c('customizer-profile-select').value = name;
+    $c('customizer-status').textContent = `Профиль «${name}» сохранён`;
+  });
+  $c('customizer-profile-load').addEventListener('click', () => {
+    const name = $c('customizer-profile-select').value;
+    if (!name || !profiles[name]) return;
+    const previousState = state;
+    state = { ...state, ...JSON.parse(JSON.stringify(profiles[name])) };
+    syncControls();
+    if (!save()) {
+      state = previousState;
+      syncControls();
+      apply();
+      return;
+    }
+    apply();
+    $c('customizer-status').textContent = `Загружен профиль «${name}»`;
+  });
   $c('customizer-export').addEventListener('click', () => {
     try {
       const blob = new Blob([JSON.stringify({version:1,state},null,2)], {type:'application/json'});

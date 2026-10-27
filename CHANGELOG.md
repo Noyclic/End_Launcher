@@ -317,3 +317,10 @@
 - Added a scoped MutationObserver for the launcher layout so content created after initial load (for example, after loading instances or news) receives stable customizer IDs and persisted style overrides.
 - The observer watches only the app layout, not the separate custom-media overlay, to avoid self-triggered rendering loops.
 - Added regression checks for the expanded selector and scoped observer.
+
+
+### UI fidelity pass 27 — keyboard nudging after closing the editor
+
+- Fixed keyboard movement so selected layers can still be nudged with arrow keys after closing the customizer panel, which restores focus to its opener rather than `document.body`.
+- Prevented arrow/delete shortcuts from hijacking text inputs, form controls, or other open dialogs; Delete/Backspace is guarded against accidental removal while an unrelated control is focused.
+- Added regression checks for keyboard nudging and protected input behavior.

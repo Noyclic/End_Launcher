@@ -221,6 +221,7 @@ async fn install_one(
     let name = Path::new(&file.filename)
         .file_name()
         .and_then(|n| n.to_str())
+        .filter(|name| !name.is_empty() && *name != "." && *name != "..")
         .ok_or("некорректное имя файла")?
         .to_string();
 
@@ -266,7 +267,11 @@ async fn install_one(
         let _ = tokio::fs::remove_file(&temporary).await;
         return Err(format!("{name}: загрузка не завершена: {error}"));
     }
-    output.flush().await.map_err(err)?;
+    if let Err(error) = output.flush().await {
+        drop(output);
+        let _ = tokio::fs::remove_file(&temporary).await;
+        return Err(format!("{name}: не удалось завершить запись файла: {error}"));
+    }
     drop(output);
 
     if let Some(want) = file.hashes.get("sha1") {

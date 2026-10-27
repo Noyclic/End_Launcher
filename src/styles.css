@@ -1697,6 +1697,7 @@ button:disabled, input:disabled, select:disabled, textarea:disabled {
 .customizer-animation-panel .customizer-color span { color: var(--el-muted, #8d84a6); }
 .customizer-animation-presets { display: flex; flex-wrap: wrap; gap: 8px; }
 .customizer-animation-presets button { flex: 1 1 110px; min-height: 36px; }
+.customizer-hidden { display: none !important; }
 #ender-particles { opacity: var(--custom-animation-opacity, .65); }
 html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 @media (prefers-reduced-motion: reduce) {

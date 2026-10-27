@@ -1,0 +1,42 @@
+name: customization-autopatch
+on:
+  push:
+    paths-ignore:
+      - '.github/workflows/customization-autopatch.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, '[customization-autopatch]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Expand customization model
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('src/main.js')
+          s = p.read_text(encoding='utf-8')
+          old = """  const makeCustomizable = () => {\n    document.querySelectorAll('.layout, .sidebar, .logo, .account, #page-play h1, #slot-page, #play-ui, #library, .home-extra, .launcher-banner, .library-toolbar, .playbar, #page-settings h1, #page-ai h1, .nav-btn').forEach((el, i) => {\n      if (el.closest('.customizer-modal')) return;\n      el.dataset.customizable = 'true';\n      if (!el.dataset.customId) el.dataset.customId = el.id || el.classList[0] || ('element-' + i);\n      const pos = state.positions[el.dataset.customId];\n      if (pos) { el.style.translate = `${pos.x}px ${pos.y}px`; }\n      const style = state.elementStyles?.[el.dataset.customId];\n      if (style) { if (style.scale) el.style.scale = String(style.scale); if (style.rotate != null) el.style.rotate = `${style.rotate}deg`; if (style.zIndex != null) el.style.zIndex=String(style.zIndex); if (style.opacity != null) el.style.opacity = String(style.opacity); if (style.radius != null) el.style.borderRadius = `${style.radius}px`; if (style.color) el.style.color = style.color; if (style.background) el.style.backgroundColor = style.background; if (style.hidden) el.style.visibility = 'hidden'; else el.style.visibility = ''; }\n    });\n  };"""
+          new = """  const CUSTOMIZABLE_SELECTOR = [\n    '.layout', '.sidebar', '.logo', '.account', '.account *',\n    '#page-play h1', '#slot-page', '#play-ui', '#play-ui *', '#library', '#library *',\n    '.home-extra', '.launcher-banner', '.library-toolbar', '.playbar',\n    '#page-settings h1', '#page-settings .settings-card, #page-settings .setting-row',\n    '#page-ai h1', '.nav-btn', '.page > h1', '.page > h2', '.page > section',\n    '.card', '.panel', '.toolbar', 'input', 'select', 'textarea', '.tab-bar', '.modal-card'\n  ].join(',');\n  const stableCustomId = (el, index) => {\n    if (el.dataset.customId) return el.dataset.customId;\n    const base = el.id || [...el.classList].find(Boolean) || 'element';\n    const siblings = [...document.querySelectorAll(CUSTOMIZABLE_SELECTOR)].filter((candidate) => {\n      if (candidate.id && el.id) return candidate.id === el.id;\n      return candidate.tagName === el.tagName && [...candidate.classList].join('.') === [...el.classList].join('.');\n    });\n    const occurrence = Math.max(0, siblings.indexOf(el));\n    const id = `${base}::${occurrence || index}`.replace(/[^a-zA-Z0-9:_-]/g, '_');\n    el.dataset.customId = id;\n    return id;\n  };\n  const applyElementStyle = (el, style) => {\n    if (!style) return;\n    if (style.scale != null) el.style.scale = String(style.scale);\n    if (style.rotate != null) el.style.rotate = `${style.rotate}deg`;\n    if (style.zIndex != null) el.style.zIndex = String(style.zIndex);\n    if (style.opacity != null) el.style.opacity = String(Math.max(0, Math.min(1, Number(style.opacity) || 0)));\n    if (style.radius != null) el.style.borderRadius = `${Math.max(0, Math.min(96, Number(style.radius) || 0))}px`;\n    if (style.borderWidth != null) el.style.borderWidth = `${Math.max(0, Math.min(24, Number(style.borderWidth) || 0))}px`;\n    if (style.padding != null) el.style.padding = `${Math.max(0, Math.min(96, Number(style.padding) || 0))}px`;\n    if (style.fontSize != null) el.style.fontSize = `${Math.max(8, Math.min(96, Number(style.fontSize) || 16))}px`;\n    if (style.letterSpacing != null) el.style.letterSpacing = `${Math.max(-4, Math.min(12, Number(style.letterSpacing) || 0))}px`;\n    if (style.color) el.style.color = style.color;\n    if (style.background) el.style.backgroundColor = style.background;\n    if (style.borderColor) el.style.borderColor = style.borderColor;\n    if (style.hidden) el.style.visibility = 'hidden'; else el.style.visibility = '';\n  };\n  const makeCustomizable = () => {\n    const elements = [...document.querySelectorAll(CUSTOMIZABLE_SELECTOR)];\n    elements.forEach((el, i) => {\n      if (el.closest('.customizer-modal') || el.classList.contains('custom-media-item') || el.classList.contains('custom-widget')) return;\n      el.dataset.customizable = 'true';\n      const id = stableCustomId(el, i);\n      const pos = state.positions[id];\n      if (pos) el.style.translate = `${Number(pos.x) || 0}px ${Number(pos.y) || 0}px`;\n      applyElementStyle(el, state.elementStyles?.[id]);\n    });\n  };"""
+          if old not in s:
+              raise SystemExit('customizable block not found; aborting without changes')
+          s = s.replace(old, new, 1)
+          old2 = """      field('Цвет фона','color',style.background||'#20202a',v=>{style.background=v;save();apply();});\n      field('Z-слой','number',style.zIndex??1,v=>{style.zIndex=v;save();apply();},{min:0,max:20000,step:1});"""
+          new2 = """      field('Цвет фона','color',style.background||'#20202a',v=>{style.background=v;save();apply();});\n      field('Цвет рамки','color',style.borderColor||'#55436b',v=>{style.borderColor=v;save();apply();});\n      field('Толщина рамки (px)','range',style.borderWidth??0,v=>{style.borderWidth=v;save();apply();},{min:0,max:24,step:1});\n      field('Внутренний отступ (px)','range',style.padding??0,v=>{style.padding=v;save();apply();},{min:0,max:96,step:2});\n      field('Размер текста (px)','range',style.fontSize??16,v=>{style.fontSize=v;save();apply();},{min:8,max:96,step:1});\n      field('Межбуквенный интервал (px)','range',style.letterSpacing??0,v=>{style.letterSpacing=v;save();apply();},{min:-4,max:12,step:1});\n      field('Z-слой','number',style.zIndex??1,v=>{style.zIndex=v;save();apply();},{min:0,max:20000,step:1});"""
+          if old2 not in s:
+              raise SystemExit('selected element controls not found; aborting without changes')
+          s = s.replace(old2, new2, 1)
+          p.write_text(s, encoding='utf-8')
+          print('customization expansion applied')
+      - name: Commit patch and remove temporary workflow
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/main.js
+          git commit -m 'expand full element customization [customization-autopatch]'
+          git push
+          git rm .github/workflows/customization-autopatch.yml
+          git commit -m 'remove temporary customization autopatch [customization-autopatch]'
+          git push

@@ -2128,9 +2128,12 @@ ensureNewsLoaded();
   const applyDesign = () => {
     const root = document.documentElement;
     if (!state.design || Object.keys(state.design).length === 0) {
-      // A palette selected in Settings is an intentional theme, not leftover customizer state.
-      // Preserve it while the full customizer has no explicit overrides.
-      if (root.dataset.theme !== 'custom') {
+      // The full customizer shares CSS tokens with the built-in palette. Restore the actual
+      // Settings palette when it is selected; otherwise remove customizer-only inline overrides.
+      if (root.dataset.theme === 'custom') {
+        applyPalette(palette);
+      } else {
+        clearPalette();
         ['--el-bg','--el-panel','--el-text','--el-dim','--el-accent','--el-accent-deep','--el-accent-soft','--el-line','--el-particle'].forEach(name => root.style.removeProperty(name));
       }
       return;

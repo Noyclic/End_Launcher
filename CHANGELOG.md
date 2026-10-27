@@ -375,3 +375,10 @@
 - When global customizer colors are reset, explicitly re-apply the active Settings palette if the custom palette is selected; when a built-in theme is active, clear inline customizer overrides.
 - Excluded account and welcome dialogs from draggable/customizable targets and capture-phase edit selection, so leaving edit mode on cannot intercept Microsoft/Ely.by login or first-run wizard controls.
 - Extended regression checks for palette restoration and dialog-safe edit behavior.
+
+### UI fidelity pass 35 — selection and navigation polish for AT, Official, and Lunar
+
+- Added distinct selected-instance treatments for ATLauncher-inspired, official-launcher-inspired, and Lunar-inspired layouts so the active build remains obvious without relying on the same generic card background.
+- Sharpened each style's toolbar, version/loader chips, navigation active marker, and keyboard focus ring while keeping original app controls and behavior unchanged.
+- Added compact-window refinements for horizontally stacked navigation and the cards/toolbar on these three styles.
+- Added regression checks for the style-specific selected states and responsive rules.

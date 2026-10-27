@@ -2213,7 +2213,47 @@ ensureNewsLoaded();
   $c('customizer-profile-save').addEventListener('click', () => { const name = ($c('customizer-profile-name').value || '').trim().slice(0,32); if (!name) { $c('customizer-status').textContent = 'Введи название профиля.'; return; } profiles[name] = JSON.parse(JSON.stringify(state)); saveProfiles(); $c('customizer-profile-select').value = name; $c('customizer-status').textContent = `Профиль «${name}» сохранён`; });
   $c('customizer-profile-load').addEventListener('click', () => { const name = $c('customizer-profile-select').value; if (!name || !profiles[name]) return; state = { ...state, ...JSON.parse(JSON.stringify(profiles[name])) }; syncControls(); save(); apply(); $c('customizer-status').textContent = `Загружен профиль «${name}»`; });
   $c('customizer-export').addEventListener('click', () => { const blob = new Blob([JSON.stringify({version:1,state},null,2)], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'end-launcher-theme.json'; a.click(); URL.revokeObjectURL(url); });
-  $c('customizer-import').addEventListener('change', async e => { const file=e.target.files?.[0]; if(!file) return; try { const data=JSON.parse(await file.text()); if(!data.state || typeof data.state !== 'object') throw new Error('Неверный файл темы'); state={...state,...data.state}; syncControls(); save(); apply(); $c('customizer-status').textContent='Тема импортирована'; } catch(err) { $c('customizer-status').textContent='Не удалось импортировать тему: '+err.message; } e.target.value=''; });
+  $c('customizer-import').addEventListener('change', async e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      if (file.size > 2 * 1024 * 1024) throw new Error('Файл темы больше 2 МБ');
+      const data = JSON.parse(await file.text());
+      if (!data || data.version !== 1 || !data.state || typeof data.state !== 'object' || Array.isArray(data.state)) {
+        throw new Error('Неподдерживаемый формат темы');
+      }
+      const imported = data.state;
+      const numberRanges = {
+        dim: [0, 85], size: [80, 400], animationQuality: [0, 100],
+        animationOpacity: [0, 100], animationSpeed: [25, 175],
+        scale: [80, 125], radius: [0, 32]
+      };
+      for (const [key, range] of Object.entries(numberRanges)) {
+        if (imported[key] !== undefined) {
+          const value = Number(imported[key]);
+          if (!Number.isFinite(value)) throw new Error('Некорректное значение: ' + key);
+          imported[key] = Math.max(range[0], Math.min(range[1], value));
+        }
+      }
+      for (const key of ['positions', 'elementStyles', 'design']) {
+        if (imported[key] !== undefined && (!imported[key] || typeof imported[key] !== 'object' || Array.isArray(imported[key]))) {
+          throw new Error('Некорректные данные: ' + key);
+        }
+      }
+      for (const key of ['media', 'widgets']) {
+        if (imported[key] !== undefined && !Array.isArray(imported[key])) throw new Error('Некорректные данные: ' + key);
+      }
+      if (imported.background !== undefined && typeof imported.background !== 'string') throw new Error('Некорректный фон');
+      if (imported.glow !== undefined && typeof imported.glow !== 'string') throw new Error('Некорректный цвет свечения');
+      state = { ...state, ...imported };
+      state.elementStyles ||= {}; state.positions ||= {}; state.media ||= []; state.widgets ||= []; state.design ||= {};
+      syncControls(); save(); apply();
+      $c('customizer-status').textContent = 'Тема импортирована';
+    } catch(err) {
+      $c('customizer-status').textContent = 'Не удалось импортировать тему: ' + err.message;
+    }
+    e.target.value = '';
+  });
   function syncControls() {
     $c('customizer-glow').value=state.glow||'#b47ede'; $c('customizer-dim').value=state.dim||0; $c('customizer-size').value=state.size||180;
     $c('customizer-particles').checked=!!state.particles; $c('customizer-glitch').checked=!!state.glitch; $c('customizer-rainbow').checked=!!state.rainbow;

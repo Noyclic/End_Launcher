@@ -135,4 +135,21 @@ check(js.includes("!isImageData(item.src)") && js.includes('safe.media.length > 
 check(html.includes('id="customizer-import"') && html.includes('id="customizer-export"'),
   'Theme backup import/export controls are missing');
 
-console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets.');
+// Shared navigation should handle the same page activation side effects as programmatic navigation.
+check(/document\.querySelectorAll\('\.nav-btn'\)\.forEach\(\(btn\)\s*=>\s*btn\.addEventListener\('click',\s*\(\)\s*=>\s*goPage\(btn\.dataset\.page\)\)\s*\);/.test(js),
+  'Sidebar navigation must go through the shared page activation path');
+const newsObserverBlock = js.match(/function ensureNewsLoaded\(\)\s*\{([\s\S]*?)\n\}/);
+check(!!newsObserverBlock && newsObserverBlock[1].includes('const target = section?.parentElement;') && newsObserverBlock[1].includes('observe(target)'),
+  'Lazy news loading must observe a visible container rather than the initially hidden news section');
+const widgetActionsStart = js.indexOf("if (item.kind === 'button' && item.action)");
+const widgetActionsEnd = js.indexOf('\n      });', widgetActionsStart);
+const widgetActions = js.slice(widgetActionsStart, widgetActionsEnd);
+check(widgetActions.includes("goPage('settings')") && widgetActions.includes("goPage('play')")
+    && widgetActions.includes("scrollToContentSection('library')")
+    && widgetActions.includes('loadNews()') && widgetActions.includes("scrollToContentSection('news-section')"),
+  'Custom widget navigation actions must target real pages and sections');
+check(!widgetActions.includes("document.querySelector('[data-page=\"library\"]')")
+    && !widgetActions.includes("document.querySelector('[data-page=\"news\"]')"),
+  'Custom widget actions must not target nonexistent sidebar buttons');
+
+console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, and lazy-news section visibility.');

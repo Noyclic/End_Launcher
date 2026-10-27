@@ -22,7 +22,7 @@ Drag a `.mrpack`, a recognised ZIP export, or a supported launcher instance fold
 - **Java Edition**: client, libraries and assets are downloaded and verified; versions from 1.7 to the latest release.
 - **Automatic Java**: uses a matching Java from your system or downloads Mojang's official runtime for the selected version.
 - **Loaders**: Vanilla, Fabric, Forge, NeoForge, installed with a single click on *Play*.
-- **A full home screen**: your builds, quick stats, popular mods for the selected build (loaded immediately) and Minecraft patch notes.
+- **A full home screen**: your builds and quick stats appear first; popular mods load when their section enters view, and Minecraft patch notes load on demand.
 - **Builds (instances)**: every build has its own game version, loader, mods, saves and settings; libraries and assets are shared. The ⋯ menu on a build opens its mods, folder, rename and delete.
 - **Mods, resource packs, shaders (Modrinth)**: results appear immediately (most popular first) and update as you type; one-click install, required dependencies (e.g. Fabric API) and a compatibility check by game version and loader. A built-in browser opens any site (Modrinth, CurseForge, …) and saves downloaded `.jar` files straight into the selected build's `mods` folder; files from Modrinth get the same compatibility check. Prefer your own browser? Download a mod anywhere and drag the `.jar` into the launcher window: it goes to the selected build's `mods` folder and is checked the same way.
 - **Mod manager**: enable, disable, delete and update installed mods.

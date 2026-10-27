@@ -126,6 +126,12 @@ check(js.includes("selectedLayer = {type:'widget', index}; renderLayers(); rende
   'Selecting a custom widget must reveal its properties');
 
 const stableIdBlock = js.match(/const stableCustomId = \(el, index\) => \{([\s\S]*?)\n  \};/);
+check(!!stableIdBlock && stableIdBlock[1].includes('identityBase') && stableIdBlock[1].includes('const semanticOccurrence'),
+  'Semantic ID generation must use a precomputed occurrence rather than requerying the entire document for every element');
+check(j.includes('const legacyAllClassCounts = new Map();') && j.includes('const semanticCounts = new Map();')
+    && j.includes('stableCustomId(el, i, legacyOccurrence, semanticOccurrence)'),
+  'Customizer identity grouping should be computed in a single pass for large libraries');
+
 check(!!stableIdBlock && stableIdBlock[1].includes('identityBase') && stableIdBlock[1].includes('const occurrence =')
     && stableIdBlock[1].includes('customIdStateMigrated = true') && js.includes('if (customIdStateMigrated)'),
   'Customizable elements need deterministic semantic IDs and a persisted migration for legacy saved styles');
@@ -141,6 +147,13 @@ check(nudgeStart >= 0 && nudgeEnd > nudgeStart
     && nudgeCode.includes("activeElement.matches('input, textarea, select, [contenteditable=\"true\"]')")
     && nudgeCode.includes("activeElement?.id === 'open-customizer'"),
   'Keyboard nudging should work when the customizer closes, without hijacking text fields or unrelated delete keys');
+
+const observerStart = js.indexOf('const customizerDomObserver = new MutationObserver((records) => {');
+const observerEnd = js.indexOf('customizerDomObserver.observe(observerRoot', observerStart);
+const observerCode = js.slice(observerStart, observerEnd);
+check(observerStart >= 0 && observerEnd > observerStart && observerCode.includes('makeCustomizable();')
+    && !observerCode.includes('apply(false);'),
+  'Dynamic DOM refreshes should not rebuild GIF/widget DOM while the user is dragging or editing a layer');
 
 check(js.includes('const customizerDomObserver = new MutationObserver((records) => {')
     && js.includes("customizerDomObserver.observe(observerRoot, { childList: true, subtree: true });")
@@ -203,4 +216,4 @@ check(!widgetActions.includes("document.querySelector('[data-page=\"library\"]')
     && !widgetActions.includes("document.querySelector('[data-page=\"news\"]')"),
   'Custom widget actions must not target nonexistent sidebar buttons');
 
-console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, and keyboard nudging.');
+console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh.');

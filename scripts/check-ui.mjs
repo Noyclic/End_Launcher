@@ -32,6 +32,8 @@ check(/id="account-box"[^>]*role="button"[^>]*tabindex="0"[^>]*aria-haspopup="di
   'Account picker trigger must be reachable and announced as a button');
 check(js.includes("$('account-box').addEventListener('keydown'") && js.includes("event.key === 'Enter' || event.key === ' '"),
   'Account picker must open from the keyboard');
+check(js.includes("if (document.body.classList.contains('customizer-active')) return;"),
+  'Keyboard account activation must not bypass customizer edit mode');
 
 // The style IDs and the first-run selector must remain in sync.
 const styleBlock = js.match(/const UI_STYLES\s*=\s*\{([\s\S]*?)\n\};/);

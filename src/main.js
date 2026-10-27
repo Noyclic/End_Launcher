@@ -1997,6 +1997,27 @@ ensureNewsLoaded();
     el.dataset.customId = id;
     return id;
   };
+  const CUSTOM_MANAGED_INLINE_PROPERTIES = [
+    'translate', 'scale', 'rotate', 'z-index', 'opacity', 'border-radius',
+    'border-width', 'padding', 'font-size', 'letter-spacing', 'color',
+    'background-color', 'border-color'
+  ];
+  const customizerBaseStyles = new WeakMap();
+  function restoreCustomBaseStyles(el) {
+    let base = customizerBaseStyles.get(el);
+    if (!base) {
+      base = new Map(CUSTOM_MANAGED_INLINE_PROPERTIES.map((property) => [
+        property,
+        { value: el.style.getPropertyValue(property), priority: el.style.getPropertyPriority(property) }
+      ]));
+      customizerBaseStyles.set(el, base);
+    }
+    for (const [property, original] of base) {
+      if (original.value) el.style.setProperty(property, original.value, original.priority);
+      else el.style.removeProperty(property);
+    }
+    el.classList.remove('customizer-hidden');
+  }
   const applyElementStyle = (el, style) => {
     if (!style) return;
     if (style.scale != null) el.style.scale = String(style.scale);
@@ -2019,6 +2040,7 @@ ensureNewsLoaded();
       if (el.closest('.customizer-modal') || el.classList.contains('custom-media-item') || el.classList.contains('custom-widget')) return;
       el.dataset.customizable = 'true';
       const id = stableCustomId(el, i);
+      restoreCustomBaseStyles(el);
       const pos = state.positions[id];
       if (pos) el.style.translate = `${Number(pos.x) || 0}px ${Number(pos.y) || 0}px`;
       applyElementStyle(el, state.elementStyles?.[id]);
@@ -2551,8 +2573,10 @@ ensureNewsLoaded();
   $c('customizer-reset').addEventListener('click', () => {
     if (!confirm('Сбросить все пользовательские позиции, картинки, фон и эффекты?')) return;
     selectedLayer=null; state = { positions: {}, elementStyles: {}, media: [], widgets: [], design: {}, dim: 0, size: 180, glow: '#b47ede', particles: true, animationQuality: 60, animationOpacity: 65, animationSpeed: 100, glitch: false, rainbow: false, background: '', font: 'inherit', scale: 100, radius: 16 };
-    localStorage.removeItem(STORE); document.querySelectorAll('[data-customizable="true"]').forEach(el => { el.style.translate = ''; }); document.body.style.backgroundImage = ''; apply();
+    localStorage.removeItem(STORE);
+    apply();
     syncControls();
+    $c('customizer-status').textContent = '✓ Кастомизация сброшена';
   });
   document.addEventListener('keydown', e => {
     if (!edit || !selectedLayer || document.activeElement !== document.body) return;

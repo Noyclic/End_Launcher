@@ -42,6 +42,14 @@ const { invoke } = window.__TAURI__.core;
     vy: -(0.08 + Math.random() * 0.25), vx: (Math.random() - 0.5) * 0.1,
     a: 0.15 + Math.random() * 0.5, tw: Math.random() * Math.PI * 2,
   }));
+  const readMotion = () => {
+    const root = getComputedStyle(document.documentElement);
+    return {
+      quality: Math.max(0, Math.min(1, Number(root.getPropertyValue('--custom-animation-quality')) || 0)),
+      opacity: Math.max(0, Math.min(1, Number(root.getPropertyValue('--custom-animation-opacity')) || 0)),
+      speed: Math.max(0.25, Math.min(1.75, Number(root.getPropertyValue('--custom-animation-speed')) || 1)),
+    };
+  };
   const FRAME = 1000 / 24;
   let color = 'rgba(194,107,245,0.7)', colorAt = -1e9, last = 0;
   let active = parts.length, cost = 0, frames = 0, off = false, raf = 0, cleared = false;
@@ -62,7 +70,9 @@ const { invoke } = window.__TAURI__.core;
     raf = 0;
     if (stopIfNeeded()) return;
     if (t - last < FRAME) { raf = requestAnimationFrame(tick); return; }
-    const k = Math.min((t - (last || t)) / 16.7, 4); last = t; cleared = false;
+    const motion = readMotion();
+    const k = Math.min((t - (last || t)) / 16.7, 4) * motion.speed; last = t; cleared = false;
+    active = Math.max(1, Math.min(parts.length, Math.ceil(parts.length * motion.quality)));
     if (t - colorAt > 1000) {
       color = getComputedStyle(document.documentElement).getPropertyValue('--el-particle').trim() || color;
       colorAt = t;
@@ -73,7 +83,7 @@ const { invoke } = window.__TAURI__.core;
       const p = parts[i];
       p.y += p.vy * k; p.x += (p.vx + Math.sin(t / 1600 + p.tw) * 0.06) * k;
       if (p.y < -10) { p.y = innerHeight + 10; p.x = Math.random() * innerWidth; }
-      ctx.globalAlpha = Math.max(0, p.a * (0.6 + 0.4 * Math.sin(t / 900 + p.tw)));
+      ctx.globalAlpha = Math.max(0, p.a * motion.opacity * (0.6 + 0.4 * Math.sin(t / 900 + p.tw)));
       ctx.fillRect(p.x, p.y, p.s, p.s);
     }
     ctx.globalAlpha = 1;
@@ -1881,7 +1891,7 @@ ensureNewsLoaded();
   const selectedTools = $c('customizer-selected-tools');
   if (!modal || !layer) return;
   const STORE = 'end-launcher-full-customization-v1';
-  let state = { positions: {}, elementStyles: {}, media: [], widgets: [], design: {}, dim: 0, size: 180, glow: '#b47ede', particles: true, glitch: false, rainbow: false, background: '', font: 'inherit', scale: 100, radius: 16 };
+  let state = { positions: {}, elementStyles: {}, media: [], widgets: [], design: {}, dim: 0, size: 180, glow: '#b47ede', particles: true, animationQuality: 60, animationOpacity: 65, animationSpeed: 100, glitch: false, rainbow: false, background: '', font: 'inherit', scale: 100, radius: 16 };
   let profiles = {};
   let selectedWidget = null;
   let selectedLayer = null;
@@ -1889,7 +1899,7 @@ ensureNewsLoaded();
   let dragged = null;
   let dragStart = null;
   try { state = { ...state, ...JSON.parse(localStorage.getItem(STORE) || '{}') }; } catch {}
-  state.elementStyles ||= {}; state.positions ||= {}; state.media ||= []; state.widgets ||= [];
+  state.elementStyles ||= {}; state.positions ||= {}; state.media ||= []; state.widgets ||= []; state.animationQuality = Math.max(0, Math.min(100, Number(state.animationQuality ?? 60))); state.animationOpacity = Math.max(0, Math.min(100, Number(state.animationOpacity ?? 65))); state.animationSpeed = Math.max(25, Math.min(175, Number(state.animationSpeed ?? 100)));
   const save = () => { try { localStorage.setItem(STORE, JSON.stringify(state)); $c('customizer-status').textContent = '✓ Изменения сохранены'; } catch { $c('customizer-status').textContent = 'Не удалось сохранить: возможно, изображения слишком большие. Удали часть файлов и попробуй снова.'; } };
   const PROFILE_STORE = STORE + '-profiles';
   try { profiles = JSON.parse(localStorage.getItem(PROFILE_STORE) || '{}'); } catch {}
@@ -1978,7 +1988,10 @@ ensureNewsLoaded();
     document.documentElement.style.setProperty('--custom-radius', `${Math.max(0, Math.min(32, Number(state.radius) || 0))}px`);
     document.documentElement.style.setProperty('--custom-font', state.font || 'inherit');
     document.body.classList.toggle('custom-glitch', !!state.glitch);
-    document.documentElement.dataset.anim = state.particles ? (document.getElementById('ui-anim')?.checked === false ? 'off' : 'on') : 'off';
+    document.documentElement.style.setProperty('--custom-animation-opacity', String(state.animationOpacity / 100));
+    document.documentElement.style.setProperty('--custom-animation-speed', String(state.animationSpeed / 100));
+    document.documentElement.style.setProperty('--custom-animation-quality', String(state.animationQuality / 100));
+    document.documentElement.dataset.anim = state.particles && state.animationQuality > 0 && document.getElementById('ui-anim')?.checked !== false ? (state.animationQuality < 30 ? 'low' : state.animationQuality < 70 ? 'on' : state.animationQuality < 95 ? 'high' : 'max') : 'off';
     let dim = document.querySelector('.custom-dim-overlay');
     if (!dim) { dim = document.createElement('div'); dim.className = 'custom-dim-overlay'; document.body.appendChild(dim); }
     if (state.background) {
@@ -2206,6 +2219,12 @@ ensureNewsLoaded();
   function syncControls() {
     $c('customizer-glow').value=state.glow||'#b47ede'; $c('customizer-dim').value=state.dim||0; $c('customizer-size').value=state.size||180;
     $c('customizer-particles').checked=!!state.particles; $c('customizer-glitch').checked=!!state.glitch; $c('customizer-rainbow').checked=!!state.rainbow;
+    ['quality','opacity','speed'].forEach(key => {
+      const prop = key === 'quality' ? 'animationQuality' : key === 'opacity' ? 'animationOpacity' : 'animationSpeed';
+      const input = $c('customizer-animation-' + key), output = $c('customizer-animation-' + key + '-value');
+      if (input) input.value = state[prop];
+      if (output) output.textContent = key === 'speed' ? state[prop] + '%' : state[prop] + '%';
+    });
     $c('customizer-font').value=state.font||'inherit'; $c('customizer-scale').value=state.scale||100; $c('customizer-radius').value=state.radius??16;
     state.design ||= {};
     Object.entries(designDefaults).forEach(([key,fallback]) => { const input=$c('design-'+key); if(input) input.value=state.design[key]||fallback; });
@@ -2252,11 +2271,32 @@ ensureNewsLoaded();
   $c('customizer-dim').value = state.dim; $c('customizer-dim').addEventListener('input', e => { state.dim = Number(e.target.value); save(); apply(); });
   $c('customizer-size').value = state.size; $c('customizer-size').addEventListener('input', e => { state.size = Number(e.target.value); state.media.forEach(m => { if (!m.size) m.size = state.size; }); save(); apply(); });
   $c('customizer-particles').checked = state.particles; $c('customizer-particles').addEventListener('change', e => { state.particles = e.target.checked; save(); apply(); });
+  const animationPresets = {
+    eco: { animationQuality: 15, animationOpacity: 35, animationSpeed: 75 },
+    balanced: { animationQuality: 50, animationOpacity: 60, animationSpeed: 100 },
+    pretty: { animationQuality: 80, animationOpacity: 75, animationSpeed: 110 },
+    max: { animationQuality: 100, animationOpacity: 90, animationSpeed: 125 },
+  };
+  ['quality','opacity','speed'].forEach(key => {
+    const prop = key === 'quality' ? 'animationQuality' : key === 'opacity' ? 'animationOpacity' : 'animationSpeed';
+    const input = $c('customizer-animation-' + key);
+    input?.addEventListener('input', e => {
+      state[prop] = Number(e.target.value);
+      const output = $c('customizer-animation-' + key + '-value');
+      if (output) output.textContent = state[prop] + '%';
+      save(); apply();
+    });
+  });
+  document.querySelectorAll('[data-animation-preset]').forEach(button => button.addEventListener('click', () => {
+    Object.assign(state, animationPresets[button.dataset.animationPreset] || animationPresets.balanced);
+    syncControls(); save(); apply();
+    $c('customizer-status').textContent = 'Профиль анимации применён ✨';
+  }));
   $c('customizer-glitch').checked = state.glitch; $c('customizer-glitch').addEventListener('change', e => { state.glitch = e.target.checked; save(); apply(); });
   $c('customizer-rainbow').checked = state.rainbow; $c('customizer-rainbow').addEventListener('change', e => { state.rainbow = e.target.checked; save(); apply(); });
   $c('customizer-reset').addEventListener('click', () => {
     if (!confirm('Сбросить все пользовательские позиции, картинки, фон и эффекты?')) return;
-    selectedLayer=null; state = { positions: {}, elementStyles: {}, media: [], widgets: [], design: {}, dim: 0, size: 180, glow: '#b47ede', particles: true, glitch: false, rainbow: false, background: '', font: 'inherit', scale: 100, radius: 16 };
+    selectedLayer=null; state = { positions: {}, elementStyles: {}, media: [], widgets: [], design: {}, dim: 0, size: 180, glow: '#b47ede', particles: true, animationQuality: 60, animationOpacity: 65, animationSpeed: 100, glitch: false, rainbow: false, background: '', font: 'inherit', scale: 100, radius: 16 };
     localStorage.removeItem(STORE); document.querySelectorAll('[data-customizable="true"]').forEach(el => { el.style.translate = ''; }); document.body.style.backgroundImage = ''; apply();
     syncControls();
   });

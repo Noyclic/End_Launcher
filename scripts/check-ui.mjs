@@ -132,7 +132,7 @@ check(j.includes('const legacyAllClassCounts = new Map();') && j.includes('const
     && j.includes('stableCustomId(el, i, legacyOccurrence, semanticOccurrence)'),
   'Customizer identity grouping should be computed in a single pass for large libraries');
 
-check(!!stableIdBlock && stableIdBlock[1].includes('identityBase') && stableIdBlock[1].includes('const occurrence =')
+check(!!stableIdBlock && stableIdBlock[1].includes('identityBase') && stableIdBlock[1].includes('semanticOccurrence')
     && stableIdBlock[1].includes('customIdStateMigrated = true') && js.includes('if (customIdStateMigrated)'),
   'Customizable elements need deterministic semantic IDs and a persisted migration for legacy saved styles');
 const deleteHelper = js.match(/function deleteCustomLayer\(type, index\) \{([\s\S]*?)\n  \}/);

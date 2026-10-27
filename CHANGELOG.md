@@ -229,3 +229,12 @@
 - Synced the legacy local preference and added migration for styles previously saved only by the first-run wizard.
 - Extended the UI regression script to compare HTML, JavaScript, and Rust layout IDs and to assert first-run persistence behavior.
 - Added \`npm run test:ui\` for convenient local execution of the dependency-free regression checks.
+
+
+### UI fidelity pass 16 — accessible entry points and independent effects
+
+- Made the sidebar account/profile entry keyboard accessible with button semantics, Enter/Space activation, and an explicit relationship to the account dialog.
+- Applied keyboard focus trapping to the welcome wizard, moved focus into it on first open, and supported Escape through its existing close behavior.
+- Separated the decorative-particle switch from global UI animation state; disabling particles no longer accidentally disables all interface animations.
+- Updated the particle animation observer to respond to both global animation and particle setting changes.
+- Extended regression checks for the keyboard-accessible account trigger, welcome-dialog focus management, and independent particle/global animation settings.

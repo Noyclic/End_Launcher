@@ -128,8 +128,8 @@ check(js.includes("selectedLayer = {type:'widget', index}; renderLayers(); rende
 const stableIdBlock = js.match(/const stableCustomId = \(el, index, legacyOccurrence, semanticOccurrence\) => \{([\s\S]*?)\n  \};/);
 check(!!stableIdBlock && stableIdBlock[1].includes('identityBase') && stableIdBlock[1].includes('semanticOccurrence'),
   'Semantic ID generation must use a precomputed occurrence rather than requerying the entire document for every element');
-check(j.includes('const legacyAllClassCounts = new Map();') && j.includes('const semanticCounts = new Map();')
-    && j.includes('stableCustomId(el, i, legacyOccurrence, semanticOccurrence)'),
+check(js.includes('const legacyAllClassCounts = new Map();') && js.includes('const semanticCounts = new Map();')
+    && js.includes('stableCustomId(el, i, legacyOccurrence, semanticOccurrence)'),
   'Customizer identity grouping should be computed in a single pass for large libraries');
 
 check(!!stableIdBlock && stableIdBlock[1].includes('identityBase') && stableIdBlock[1].includes('semanticOccurrence')

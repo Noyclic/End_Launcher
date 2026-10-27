@@ -309,3 +309,11 @@
 - Added an automatic state migration for legacy position/style keys, and persists migrated preferences so the fix survives future launches.
 - Centralized deletion of custom GIFs and widgets so selection is cleared or its index is adjusted when nearby layers are removed; used the helper for property-panel, list, and keyboard deletion paths.
 - Added regression checks for semantic IDs, legacy migration, and selection-safe deletion.
+
+
+### UI fidelity pass 26 — dynamic content joins the customizer
+
+- Added dynamic instance cards, mod rows/cards, home mod tiles, news cards, stats, and island panels to the customizable element selector.
+- Added a scoped MutationObserver for the launcher layout so content created after initial load (for example, after loading instances or news) receives stable customizer IDs and persisted style overrides.
+- The observer watches only the app layout, not the separate custom-media overlay, to avoid self-triggered rendering loops.
+- Added regression checks for the expanded selector and scoped observer.

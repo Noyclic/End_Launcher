@@ -1622,3 +1622,57 @@ body:not(.customizer-active) .custom-widget{pointer-events:none}
   }
 }
 
+/* V21 — consistent interaction feedback and resilient layout across the whole launcher. */
+:root {
+  --el-focus-ring: color-mix(in srgb, var(--el-accent) 78%, white);
+  --el-surface-hover: color-mix(in srgb, var(--el-panel) 84%, var(--el-accent-soft));
+}
+button, input, select, textarea { font: inherit; }
+button { -webkit-tap-highlight-color: transparent; }
+button:not(:disabled), [role="button"]:not([aria-disabled="true"]) { cursor: pointer; }
+button:disabled, input:disabled, select:disabled, textarea:disabled {
+  cursor: not-allowed;
+  opacity: .58;
+}
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--el-focus-ring);
+  outline-offset: 3px;
+}
+:where(input, select, textarea) { min-width: 0; max-width: 100%; }
+:where(img, video, canvas, svg) { max-width: 100%; }
+#page-play, #page-mods, #page-settings, #page-ai { min-width: 0; }
+#page-play .inst-card, #page-mods .mod-card, .account-provider-card,
+.create-instance-panel, .mods-search-panel, .security-card {
+  overflow-wrap: anywhere;
+}
+#page-play .inst-card, #page-mods .mod-card, .account-provider-card,
+.create-instance-panel, .mods-search-panel, .security-card {
+  transition: border-color .16s ease, background-color .16s ease;
+}
+#page-play .inst-card:focus-within, #page-mods .mod-card:focus-within,
+.account-provider-card:focus-within {
+  border-color: color-mix(in srgb, var(--el-accent) 68%, var(--el-line));
+}
+:where(button, .nav-btn, .big-btn, .inst-card) { touch-action: manipulation; }
+@media (hover: hover) and (pointer: fine) {
+  button:not(:disabled):hover { filter: brightness(1.07); }
+  button:not(:disabled):active { filter: brightness(.96); }
+}
+@media (max-width: 520px) {
+  .layout { min-width: 0; }
+  #page-play, #page-mods, #page-settings, #page-ai { padding-inline: 12px; }
+  #page-play .inst-card { min-width: 0; }
+  #page-play .inst-card :where(button, a) { max-width: 100%; }
+  #page-mods :where(input, select, button) { max-width: 100%; }
+  #page-settings .row { gap: 9px; }
+  #page-settings .row > :where(input, select, button) { flex: 1 1 140px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+

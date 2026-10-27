@@ -369,3 +369,9 @@
 - Made the full customizer reset verify that the stored theme key was actually removed before applying defaults.
 - If local storage is unavailable or removal fails, the existing in-memory appearance is left intact and the interface reports the failure instead of falsely claiming success.
 - Added a regression check for the order of storage removal, defaults application, and success reporting.
+
+### UI fidelity pass 34 — restore the real palette and protect modal controls
+
+- When global customizer colors are reset, explicitly re-apply the active Settings palette if the custom palette is selected; when a built-in theme is active, clear inline customizer overrides.
+- Excluded account and welcome dialogs from draggable/customizable targets and capture-phase edit selection, so leaving edit mode on cannot intercept Microsoft/Ely.by login or first-run wizard controls.
+- Extended regression checks for palette restoration and dialog-safe edit behavior.

@@ -1994,13 +1994,27 @@ ensureNewsLoaded();
   ].join(',');
   const stableCustomId = (el, index) => {
     if (el.dataset.customId) return el.dataset.customId;
-    const base = el.id || [...el.classList].find(Boolean) || 'element';
+    const classes = [...el.classList].sort();
+    const oldBase = el.id || classes[0] || 'element';
+    const identityBase = el.id || `el-${el.tagName.toLowerCase()}-${classes.map((name) => `${name.length}_${name}`).join('_') || 'no-class'}`;
     const siblings = [...document.querySelectorAll(CUSTOMIZABLE_SELECTOR)].filter((candidate) => {
       if (candidate.id && el.id) return candidate.id === el.id;
-      return candidate.tagName === el.tagName && [...candidate.classList].join('.') === [...el.classList].join('.');
+      return candidate.tagName === el.tagName && [...candidate.classList].sort().join('.') === classes.join('.');
     });
     const occurrence = Math.max(0, siblings.indexOf(el));
-    const id = `${base}::${occurrence || index}`.replace(/[^a-zA-Z0-9:_-]/g, '_');
+    const id = `${identityBase}::${occurrence}`.replace(/[^a-zA-Z0-9:_-]/g, '_');
+    // Migrate prior releases' IDs, which used the page-wide index for the first matching element.
+    // Preserve both positions and style overrides when a stable semantic ID is introduced.
+    const legacyId = `${oldBase}::${occurrence || index}`.replace(/[^a-zA-Z0-9:_-]/g, '_');
+    if (legacyId !== id) {
+      for (const bucketName of ['positions', 'elementStyles']) {
+        const bucket = state[bucketName];
+        if (bucket && Object.prototype.hasOwnProperty.call(bucket, legacyId)) {
+          if (!Object.prototype.hasOwnProperty.call(bucket, id)) bucket[id] = bucket[legacyId];
+          delete bucket[legacyId];
+        }
+      }
+    }
     el.dataset.customId = id;
     return id;
   };
@@ -2173,6 +2187,19 @@ ensureNewsLoaded();
     renderSelectedTools();
     if (!layers.length) layerList.innerHTML='<p class="dim small">Элементы не найдены.</p>';
   }
+  function deleteCustomLayer(type, index) {
+    if (!['media', 'widget'].includes(type)) return false;
+    const collection = type === 'media' ? state.media : state.widgets;
+    if (!Number.isInteger(index) || index < 0 || index >= collection.length) return false;
+    collection.splice(index, 1);
+    if (selectedLayer?.type === type) {
+      if (selectedLayer.index === index) selectedLayer = null;
+      else if (selectedLayer.index > index) selectedLayer.index -= 1;
+    }
+    save();
+    apply();
+    return true;
+  }
   function moveLayer(entry, direction) {
     if (entry.type==='element') { const el=document.querySelector(`[data-custom-id="${CSS.escape(entry.id)}"]`); if(el){ const n=Number(el.style.zIndex||'1')+direction; el.style.zIndex=String(n); state.elementStyles ||= {}; state.elementStyles[entry.id] ||= {}; state.elementStyles[entry.id].zIndex=n; } }
     else { const arr=entry.type==='media'?state.media:state.widgets; const item=arr[entry.index]; if(!item)return; item.zIndex=Number(item.zIndex||0)+direction; }
@@ -2233,7 +2260,7 @@ ensureNewsLoaded();
         select.value=item.action||'none';select.onchange=()=>{item.action=select.value;if(item.action==='url'&&!item.url)item.url=prompt('URL (только https:// или http://):','https://')||'';save();apply(false);};actionWrap.append(span,select);selectedTools.appendChild(actionWrap);
         field('URL для действия','url',item.url||'',v=>{if(/^https?:\/\//i.test(v)||!v)item.url=v;else $c('customizer-status').textContent='Разрешены только ссылки http:// и https://';save();});
       }
-      const del=document.createElement('button');del.className='ghost';del.textContent='Удалить элемент';del.onclick=()=>{const arr=selectedLayer.type==='media'?state.media:state.widgets;arr.splice(selectedLayer.index,1);selectedLayer=null;save();apply(false);};selectedTools.appendChild(del);
+      const del=document.createElement('button');del.className='ghost';del.textContent='Удалить элемент';del.onclick=()=>deleteCustomLayer(selectedLayer.type, selectedLayer.index);selectedTools.appendChild(del);
     }
   }
   function renderList() {
@@ -2243,10 +2270,10 @@ ensureNewsLoaded();
       const img = document.createElement('img'); img.src = item.src; img.alt = '';
       const name = document.createElement('span'); name.textContent = item.name || `Медиа ${i + 1}`;
       const size = document.createElement('button'); size.className = 'ghost'; size.textContent = 'Размер'; size.onclick = () => { const n = Number(prompt('Ширина картинки в пикселях (80–420):', item.size || state.size)); if (Number.isFinite(n) && n >= 80 && n <= 420) { item.size = n; save(); apply(); } };
-      const remove = document.createElement('button'); remove.className = 'ghost'; remove.textContent = 'Удалить'; remove.onclick = () => { state.media.splice(i, 1); save(); apply(); };
+      const remove = document.createElement('button'); remove.className = 'ghost'; remove.textContent = 'Удалить'; remove.onclick = () => deleteCustomLayer('media', i);
       row.append(img, name, size, remove); list.appendChild(row);
     });
-    state.widgets.forEach((item, i) => { const row = document.createElement('div'); row.className = 'customizer-media-chip'; const name = document.createElement('span'); name.textContent = `${item.kind === 'button' ? 'Кнопка' : 'Текст'}: ${item.text || ''}`; const editBtn = document.createElement('button'); editBtn.className = 'ghost'; editBtn.textContent = 'Изменить'; editBtn.onclick = () => { const text = prompt('Текст элемента:', item.text || ''); if (text !== null) { item.text = text.slice(0,180); save(); apply(); } }; const sizeBtn = document.createElement('button'); sizeBtn.className = 'ghost'; sizeBtn.textContent = 'Размер'; sizeBtn.onclick = () => { const n = Number(prompt('Размер шрифта (10–64):', item.fontSize || 22)); if (n >= 10 && n <= 64) { item.fontSize = n; save(); apply(); } }; const remove = document.createElement('button'); remove.className = 'ghost'; remove.textContent = 'Удалить'; remove.onclick = () => { state.widgets.splice(i,1); save(); apply(); }; row.append(name,editBtn,sizeBtn,remove); list.appendChild(row); });
+    state.widgets.forEach((item, i) => { const row = document.createElement('div'); row.className = 'customizer-media-chip'; const name = document.createElement('span'); name.textContent = `${item.kind === 'button' ? 'Кнопка' : 'Текст'}: ${item.text || ''}`; const editBtn = document.createElement('button'); editBtn.className = 'ghost'; editBtn.textContent = 'Изменить'; editBtn.onclick = () => { const text = prompt('Текст элемента:', item.text || ''); if (text !== null) { item.text = text.slice(0,180); save(); apply(); } }; const sizeBtn = document.createElement('button'); sizeBtn.className = 'ghost'; sizeBtn.textContent = 'Размер'; sizeBtn.onclick = () => { const n = Number(prompt('Размер шрифта (10–64):', item.fontSize || 22)); if (n >= 10 && n <= 64) { item.fontSize = n; save(); apply(); } }; const remove = document.createElement('button'); remove.className = 'ghost'; remove.textContent = 'Удалить'; remove.onclick = () => deleteCustomLayer('widget', i); row.append(name,editBtn,sizeBtn,remove); list.appendChild(row); });
     if (!state.media.length && !state.widgets.length) list.innerHTML = '<p class="dim small">Пока пусто — добавь GIF, скриншот, мем, текст или кнопку.</p>';
   }
   let customizerReturnFocus = null;
@@ -2623,8 +2650,7 @@ ensureNewsLoaded();
   document.addEventListener('keydown', e => {
     if (!edit || !selectedLayer || document.activeElement !== document.body) return;
     if ((e.key === 'Delete' || e.key === 'Backspace') && selectedLayer.type !== 'element') {
-      const arr = selectedLayer.type === 'media' ? state.media : state.widgets;
-      arr.splice(selectedLayer.index, 1); selectedLayer = null; save(); apply(); return;
+      deleteCustomLayer(selectedLayer.type, selectedLayer.index); return;
     }
     const step = e.shiftKey ? 10 : 1;
     if (selectedLayer.type === 'element') {

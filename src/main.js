@@ -110,12 +110,7 @@ const { invoke } = window.__TAURI__.core;
 
 // ─────────────── НАВИГАЦИЯ ───────────────
 document.querySelectorAll('.nav-btn').forEach((btn) =>
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.nav-btn').forEach((b) => b.classList.remove('active'));
-    document.querySelectorAll('.page').forEach((p) => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('page-' + btn.dataset.page).classList.add('active');
-  })
+  btn.addEventListener('click', () => goPage(btn.dataset.page))
 );
 
 // ─────────────── ТЕМЫ + СВОЯ ПАЛИТРА ───────────────
@@ -446,6 +441,13 @@ function goPage(name) {
     ensureNewsLoaded(); // новости загружаются, только когда открыта главная
     ensureHomeModsLoaded(); // витрина модов — только когда её видно
   }
+}
+
+function scrollToContentSection(id) {
+  const target = document.getElementById(id);
+  if (!target) return;
+  const behavior = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+  target.scrollIntoView({ behavior, block: 'start' });
 }
 
 // страница модов работает с выбранной сборкой: подставляем её версию и загрузчик
@@ -955,7 +957,9 @@ async function loadNews() {
 
 function ensureNewsLoaded() {
   const section = $('news-section');
-  if (!section || newsLoaded || newsLoading) return;
+  // The news wrapper starts display:none until data loads; observe its visible home container instead.
+  const target = section?.parentElement;
+  if (!target || newsLoaded || newsLoading) return;
   // Если секция ниже экрана, не загружаем новости и картинки заранее.
   if ('IntersectionObserver' in window) {
     if (!ensureNewsLoaded.observer) {
@@ -966,10 +970,10 @@ function ensureNewsLoaded() {
           loadNews();
         }
       }, { root: null, rootMargin: '0px', threshold: 0.01 });
-      ensureNewsLoaded.observer.observe(section);
+      ensureNewsLoaded.observer.observe(target);
     }
   } else {
-    const rect = section.getBoundingClientRect();
+    const rect = target.getBoundingClientRect();
     if (rect.top < window.innerHeight && rect.bottom > 0) loadNews();
   }
 }
@@ -2118,10 +2122,16 @@ ensureNewsLoaded();
         if (edit) { e.preventDefault(); e.stopPropagation(); selectedLayer = {type:'widget', index}; renderLayers(); renderSelectedTools(); return; }
         if (item.kind === 'button' && item.action) {
           if (item.action === 'play') document.getElementById('play-btn')?.click();
-          else if (item.action === 'settings') document.querySelector('[data-page="settings"]')?.click();
-          else if (item.action === 'library') document.querySelector('[data-page="library"]')?.click();
-          else if (item.action === 'news') document.querySelector('[data-page="news"]')?.click();
-          else if (item.action === 'url' && /^https?:\/\//i.test(item.url || '')) window.open(item.url, '_blank', 'noopener');
+          else if (item.action === 'settings') goPage('settings');
+          else if (item.action === 'library') {
+            goPage('play');
+            requestAnimationFrame(() => scrollToContentSection('library'));
+          } else if (item.action === 'news') {
+            goPage('play');
+            loadNews().finally(() => requestAnimationFrame(() => scrollToContentSection('news-section')));
+          } else if (item.action === 'url' && /^https?:\/\//i.test(item.url || '')) {
+            window.open(item.url, '_blank', 'noopener');
+          }
         }
       });
       el.addEventListener('dblclick', () => { const text = prompt('Текст элемента:', item.text || ''); if (text !== null) { item.text = text.slice(0, 180); save(); apply(); } });

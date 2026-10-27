@@ -766,15 +766,19 @@ $('mods-back').addEventListener('click', () => goPage('play'));
 $('empty-create').addEventListener('click', openNewInstance);
 
 // Кнопка пользователя открывает единое окно выбора способа входа.
+let accountReturnFocus = null;
 function openAccountModal() {
   const modal = $('account-modal');
+  accountReturnFocus = document.activeElement;
   modal.classList.add('open');
   modal.setAttribute('aria-hidden', 'false');
+  $('account-modal-close')?.focus();
 }
 function closeAccountModal() {
   const modal = $('account-modal');
   modal.classList.remove('open');
   modal.setAttribute('aria-hidden', 'true');
+  if (accountReturnFocus && typeof accountReturnFocus.focus === 'function') accountReturnFocus.focus();
 }
 $('account-box').addEventListener('click', openAccountModal);
 document.addEventListener('keydown', (event) => {

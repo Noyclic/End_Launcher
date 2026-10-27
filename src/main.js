@@ -1981,7 +1981,6 @@ ensureNewsLoaded();
     applyDesign();
     document.documentElement.style.setProperty('--custom-glow', state.glow || '#b47ede');
     document.documentElement.style.setProperty('--custom-dim', Math.max(0, Math.min(85, Number(state.dim) || 0)) / 100);
-    document.documentElement.style.setProperty('--custom-glow', state.glow || '#b47ede');
     document.documentElement.classList.toggle('custom-rainbow', !!state.rainbow);
     document.documentElement.style.setProperty('--custom-ui-scale', `${Math.max(80, Math.min(125, Number(state.scale) || 100)) / 100}`);
     document.documentElement.style.setProperty('--custom-radius', `${Math.max(0, Math.min(32, Number(state.radius) || 0))}px`);

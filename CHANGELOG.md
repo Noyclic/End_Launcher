@@ -111,3 +111,11 @@
 - Added layout-specific library treatments for Prism-inspired, TL Legacy-inspired, Modrinth-inspired, GDLauncher Carbon-inspired, official-launcher-inspired, ATLauncher-inspired and Lunar-inspired modes.
 - Kept the changes CSS-only to avoid adding runtime work; End Lite remains compatible.
 - Validation: frontend JavaScript syntax, JSON parsing, HTML ID uniqueness, CSS brace balance and ZIP integrity checked; native Tauri build and live visual QA still require a local build.
+
+
+### UI fidelity follow-up — library structure
+
+- The Prism layout now uses a compact, single-column instance list with aligned icon, name, version/loader chip, and row actions.
+- Modrinth and GDLauncher-inspired layouts now use their own icon-and-metadata grid arrangements instead of sharing the generic vertical card structure.
+- The instance library exposes the active UI mode as a data attribute, so layout rules remain scoped and the existing list/card toggle continues to work.
+- Validation: GitHub Actions should rerun the repository's existing Rust and JavaScript checks for this commit. A full visual review in the Tauri app is still required.

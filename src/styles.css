@@ -1861,3 +1861,114 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   :root[data-ui='at'] #page-play .library-toolbar-actions,
   :root[data-ui='lunar'] #page-play .library-toolbar-actions { flex-wrap: wrap; }
 }
+
+
+/* UI fidelity follow-up: give the library different information architecture per layout,
+   rather than only changing colors and corner radii. */
+:root[data-ui='prism'] #library:not(.list-view) {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 5px;
+}
+:root[data-ui='prism'] #library:not(.list-view) .inst-card:not(.add) {
+  display: grid;
+  grid-template-columns: 38px minmax(120px, 1fr) minmax(100px, auto);
+  grid-template-rows: auto;
+  align-items: center;
+  column-gap: 11px;
+  min-height: 58px;
+  padding: 8px 94px 8px 9px;
+}
+:root[data-ui='prism'] #library:not(.list-view) .inst-card .inst-icon {
+  grid-column: 1;
+  grid-row: 1;
+  width: 36px;
+  height: 36px;
+  font-size: 15px;
+}
+:root[data-ui='prism'] #library:not(.list-view) .inst-card .inst-name {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+}
+:root[data-ui='prism'] #library:not(.list-view) .inst-card .chip {
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: end;
+  margin: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:root[data-ui='prism'] #library:not(.list-view) .inst-card .inst-play {
+  right: 49px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+:root[data-ui='prism'] #library:not(.list-view) .inst-card .inst-more {
+  right: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+:root[data-ui='modrinth'] #library:not(.list-view) {
+  grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr));
+}
+:root[data-ui='modrinth'] #library:not(.list-view) .inst-card:not(.add) {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-content: start;
+  column-gap: 12px;
+  row-gap: 8px;
+}
+:root[data-ui='modrinth'] #library:not(.list-view) .inst-card .inst-icon {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+:root[data-ui='modrinth'] #library:not(.list-view) .inst-card .inst-name {
+  grid-column: 2;
+  grid-row: 1;
+  padding-right: 65px;
+}
+:root[data-ui='modrinth'] #library:not(.list-view) .inst-card .chip {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: start;
+  max-width: 100%;
+  white-space: normal;
+  line-height: 1.45;
+}
+:root[data-ui='gd'] #library:not(.list-view) .inst-card:not(.add) {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-content: center;
+  column-gap: 13px;
+  row-gap: 8px;
+}
+:root[data-ui='gd'] #library:not(.list-view) .inst-card .inst-icon {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  width: 52px;
+  height: 52px;
+}
+:root[data-ui='gd'] #library:not(.list-view) .inst-card .inst-name {
+  grid-column: 2;
+  grid-row: 1;
+  padding-right: 68px;
+  align-self: end;
+}
+:root[data-ui='gd'] #library:not(.list-view) .inst-card .chip {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: start;
+}
+@media (max-width: 600px) {
+  :root[data-ui='prism'] #library:not(.list-view) .inst-card:not(.add) {
+    grid-template-columns: 34px minmax(0, 1fr);
+    padding-right: 88px;
+  }
+  :root[data-ui='prism'] #library:not(.list-view) .inst-card .chip {
+    display: none;
+  }
+}

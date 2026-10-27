@@ -117,6 +117,18 @@ check(js.includes("img.style.pointerEvents = edit ? 'auto' : 'none';")
 check(js.includes('el.dataset.widgetAction = item.action')
     && css.includes('body:not(.customizer-active) .custom-widget-button[data-widget-action]{pointer-events:auto;cursor:pointer}'),
   'Custom action buttons should be clickable outside edit mode, but inactive widgets should stay click-through');
+check(css.includes(":root[data-ui='at'] #page-play .inst-card.active")
+    && css.includes(":root[data-ui='official'] #page-play .inst-card.active")
+    && css.includes(":root[data-ui='lunar'] #page-play .inst-card.active"),
+  'AT, official, and Lunar-inspired layouts must have distinct selected-instance states');
+check(css.includes(":root[data-ui='at'] .nav-btn.active")
+    && css.includes(":root[data-ui='official'] .nav-btn.active")
+    && css.includes(":root[data-ui='lunar'] .nav-btn.active"),
+  'The three utilitarian layout variants must keep clear active navigation markers');
+check(css.includes('@media (max-width: 900px)') && css.includes(":root[data-ui='lunar'] .sidebar nav {")
+    && css.includes('@media (max-width: 600px)'),
+  'AT, official, and Lunar-inspired layout tweaks must retain compact-window rules');
+
 check(!html.includes('id="custom-media-layer" aria-hidden="true"'),
   'Interactive custom widgets must not be hidden from assistive technology');
 

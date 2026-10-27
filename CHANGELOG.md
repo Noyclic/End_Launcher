@@ -333,3 +333,10 @@
 - Changed the dynamic-content observer to decorate new app nodes without rebuilding the separate GIF/widget overlay, preventing unrelated library/news updates from interrupting an in-progress drag.
 - Refreshes the layer list when the customizer opens so content loaded after launch is visible in the editor.
 - Added checks for single-pass identity grouping and non-destructive dynamic refresh.
+
+
+### UI fidelity pass 29 — preserve active drag state during background updates
+
+- Added an `onlyNew` path for dynamic customizer refreshes: occurrence maps are still calculated for all nodes, but already-customized elements are not restored or repositioned during unrelated DOM updates.
+- Prevented lazy news, mod lists, and instance cards updating in the background from resetting a built-in element that the user is currently dragging.
+- Extended regression checks to enforce this non-destructive observer path.

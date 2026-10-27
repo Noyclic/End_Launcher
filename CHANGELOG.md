@@ -196,3 +196,9 @@
 
 - Marked the full customization window as a modal dialog with an explicit accessible title.
 - Added a descriptive accessible name to its close button for screen-reader users.
+
+
+### UI fidelity pass 12 — keyboard handling for the customizer
+
+- Opening the customization dialog moves keyboard focus to its close control.
+- Escape closes the dialog, and focus returns to the control that opened it.

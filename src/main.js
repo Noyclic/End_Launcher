@@ -1995,21 +1995,15 @@ ensureNewsLoaded();
     '.hscroll > *', '.news-grid > *', '.stats > *'
   ].join(',');
   let customIdStateMigrated = false;
-  const stableCustomId = (el, index) => {
+  const stableCustomId = (el, index, legacyOccurrence, semanticOccurrence) => {
     if (el.dataset.customId) return el.dataset.customId;
     const originalClasses = [...el.classList];
     const classes = [...originalClasses].sort();
     const oldBase = el.id || originalClasses[0] || 'element';
     const identityBase = el.id || `el-${el.tagName.toLowerCase()}-${classes.map((name) => `${name.length}_${name}`).join('_') || 'no-class'}`;
-    const siblings = [...document.querySelectorAll(CUSTOMIZABLE_SELECTOR)].filter((candidate) => {
-      if (candidate.id && el.id) return candidate.id === el.id;
-      return candidate.tagName === el.tagName && [...candidate.classList].sort().join('.') === classes.join('.');
-    });
-    const occurrence = Math.max(0, siblings.indexOf(el));
-    const id = `${identityBase}::${occurrence}`.replace(/[^a-zA-Z0-9:_-]/g, '_');
-    // Migrate prior releases' IDs, which used the page-wide index for the first matching element.
-    // Preserve both positions and style overrides when a stable semantic ID is introduced.
-    const legacyId = `${oldBase}::${occurrence || index}`.replace(/[^a-zA-Z0-9:_-]/g, '_');
+    const id = `${identityBase}::${semanticOccurrence}`.replace(/[^a-zA-Z0-9:_-]/g, '_');
+    // Migrate prior releases' page-index IDs while keeping the new pass linear in DOM size.
+    const legacyId = `${oldBase}::${legacyOccurrence || index}`.replace(/[^a-zA-Z0-9:_-]/g, '_');
     if (legacyId !== id) {
       for (const bucketName of ['positions', 'elementStyles']) {
         const bucket = state[bucketName];
@@ -2050,11 +2044,11 @@ ensureNewsLoaded();
     if (style.rotate != null) el.style.rotate = `${style.rotate}deg`;
     if (style.zIndex != null) el.style.zIndex = String(style.zIndex);
     if (style.opacity != null) el.style.opacity = String(Math.max(0, Math.min(1, Number(style.opacity) || 0)));
-    if (style.radius != null) el.style.borderRadius = `${Math.max(0, Math.min(96, Number(style.radius) || 0))}px`;
-    if (style.borderWidth != null) el.style.borderWidth = `${Math.max(0, Math.min(24, Number(style.borderWidth) || 0))}px`;
-    if (style.padding != null) el.style.padding = `${Math.max(0, Math.min(96, Number(style.padding) || 0))}px`;
-    if (style.fontSize != null) el.style.fontSize = `${Math.max(8, Math.min(96, Number(style.fontSize) || 16))}px`;
-    if (style.letterSpacing != null) el.style.letterSpacing = `${Math.max(-4, Math.min(12, Number(style.letterSpacing) || 0))}px`;
+    if (style.radius != null) el.style.borderRadius = `${Math.max(0, Math.min(96, Number(style.radius) || 0)}px`;
+    if (style.borderWidth != null) el.style.borderWidth = `${Math.max(0, Math.min(24, Number(style.borderWidth) || 0)}px`;
+    if (style.padding != null) el.style.padding = `${Math.max(0, Math.min(96, Number(style.padding) || 0)}px`;
+    if (style.fontSize != null) el.style.fontSize = `${Math.max(8, Math.min(96, Number(style.fontSize) || 16)}px`;
+    if (style.letterSpacing != null) el.style.letterSpacing = `${Math.max(-4, Math.min(12, Number(style.letterSpacing) || 0)}px`;
     if (style.color) el.style.color = style.color;
     if (style.background) el.style.backgroundColor = style.background;
     if (style.borderColor) el.style.borderColor = style.borderColor;
@@ -2062,10 +2056,26 @@ ensureNewsLoaded();
   };
   const makeCustomizable = () => {
     const elements = [...document.querySelectorAll(CUSTOMIZABLE_SELECTOR)];
+    const legacyIdCounts = new Map();
+    const legacyNoIdClassCounts = new Map();
+    const legacyAllClassCounts = new Map();
+    const semanticCounts = new Map();
     elements.forEach((el, i) => {
+      const originalClasses = [...el.classList];
+      const classKey = originalClasses.join('.');
+      const tagClassKey = `${el.tagName}:${classKey}`;
+      const legacyOccurrence = el.id
+        ? (legacyIdCounts.get(el.id) || 0) + (legacyNoIdClassCounts.get(tagClassKey) || 0)
+        : (legacyAllClassCounts.get(tagClassKey) || 0);
+      if (el.id) legacyIdCounts.set(el.id, (legacyIdCounts.get(el.id) || 0) + 1);
+      else legacyNoIdClassCounts.set(tagClassKey, (legacyNoIdClassCounts.get(tagClassKey) || 0) + 1);
+      legacyAllClassCounts.set(tagClassKey, (legacyAllClassCounts.get(tagClassKey) || 0) + 1);
+      const semanticKey = el.id ? `id:${el.id}` : `classes:${el.tagName}:${[...originalClasses].sort().join('.')}`;
+      const semanticOccurrence = semanticCounts.get(semanticKey) || 0;
+      semanticCounts.set(semanticKey, semanticOccurrence + 1);
       if (el.closest('.customizer-modal') || el.classList.contains('custom-media-item') || el.classList.contains('custom-widget')) return;
       el.dataset.customizable = 'true';
-      const id = stableCustomId(el, i);
+      const id = stableCustomId(el, i, legacyOccurrence, semanticOccurrence);
       restoreCustomBaseStyles(el);
       const pos = state.positions[id];
       if (pos) el.style.translate = `${Number(pos.x) || 0}px ${Number(pos.y) || 0}px`;

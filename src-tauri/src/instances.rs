@@ -604,14 +604,30 @@ fn write_zip_payload(archive: &mut zip::ZipArchive<std::fs::File>, target: &Path
         let Some(relative) = relative else { continue; };
         let ext = relative.extension().and_then(|v| v.to_str()).unwrap_or("").to_ascii_lowercase();
         if ["exe", "dll", "so", "bat", "cmd", "ps1", "app", "desktop"].contains(&ext.as_str()) { continue; }
-        let size = entry.size();
-        if size > 512 * 1024 * 1024 { return Err(format!("Файл в архиве слишком большой: {} МБ", size / 1024 / 1024)); }
-        total_size = total_size.saturating_add(size);
-        if total_size > 4 * 1024 * 1024 * 1024u64 { return Err("Архив слишком большой: лимит импорта — 4 ГБ распакованных файлов".into()); }
+        let declared_size = entry.size();
+        if declared_size > 512 * 1024 * 1024 { return Err(format!("Файл в архиве слишком большой: {} МБ", declared_size / 1024 / 1024)); }
+        if total_size.saturating_add(declared_size) > 4 * 1024 * 1024 * 1024u64 {
+            return Err("Архив слишком большой: лимит импорта — 4 ГБ распакованных файлов".into());
+        }
         let path = target.join(&relative);
         if let Some(parent) = path.parent() { std::fs::create_dir_all(parent).map_err(err)?; }
         let mut output = std::fs::File::create(&path).map_err(err)?;
-        std::io::copy(&mut entry, &mut output).map_err(err)?;
+        // Enforce limits against bytes actually decompressed, not only ZIP metadata.
+        let mut file_size = 0u64;
+        let mut buffer = [0u8; 64 * 1024];
+        loop {
+            let count = entry.read(&mut buffer).map_err(err)?;
+            if count == 0 { break; }
+            file_size = file_size.saturating_add(count as u64);
+            let next_total = total_size.saturating_add(file_size);
+            if file_size > 512 * 1024 * 1024 || next_total > 4 * 1024 * 1024 * 1024u64 {
+                drop(output);
+                let _ = std::fs::remove_file(&path);
+                return Err("Распакованные данные превысили лимит (512 МБ на файл, 4 ГБ на архив)".into());
+            }
+            std::io::Write::write_all(&mut output, &buffer[..count]).map_err(err)?;
+        }
+        total_size = total_size.saturating_add(file_size);
         written += 1;
     }
     Ok(written)

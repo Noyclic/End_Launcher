@@ -184,3 +184,9 @@
 - Made account and welcome dialogs scroll safely inside short or narrow windows.
 - Improved wrapping for authentication fields, mod search controls, and library actions on compact layouts.
 - Respects the operating system's reduced-motion preference.
+
+
+### UI fidelity pass 10 — keyboard-accessible custom scrollbars
+
+- Kept the hover-reveal scrollbar behavior and also reveals the thumb when a scrollable region contains keyboard focus.
+- This helps keyboard navigation without making scrollbars permanently visible.

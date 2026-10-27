@@ -1972,3 +1972,50 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
     display: none;
   }
 }
+
+
+/* Second fidelity pass: page hierarchy, not just color changes. */
+:root[data-ui='modrinth'] .library-toolbar {
+  display:grid; grid-template-columns:minmax(0,1fr); gap:12px;
+}
+:root[data-ui='modrinth'] .library-toolbar-actions {
+  display:grid; grid-template-columns:minmax(180px,1fr) auto auto auto auto; gap:8px; align-items:center;
+}
+:root[data-ui='modrinth'] .library-toolbar-actions .library-search { min-width:0; }
+:root[data-ui='official'] .library-toolbar {
+  border:0; border-bottom:1px solid #45624d; border-radius:0;
+  padding:0 0 12px; background:transparent;
+}
+:root[data-ui='official'] .library-toolbar-title { font-size:20px; font-weight:700; }
+:root[data-ui='official'] #library .inst-card.active { box-shadow:inset 4px 0 #7dbb58; }
+:root[data-ui='at'] .library-toolbar { border-radius:6px; padding:10px; }
+:root[data-ui='at'] .library-toolbar-actions { gap:6px; }
+:root[data-ui='lunar'] .content main { padding:clamp(18px,3vw,38px); }
+:root[data-ui='lunar'] .launcher-banner { border:1px solid #7778ff44; box-shadow:0 16px 40px #0004; }
+:root[data-ui='lunar'] .library-toolbar { border-radius:14px; }
+:root[data-ui='tl'] .play-ui {
+  display:grid; grid-template-columns:minmax(140px,210px) minmax(130px,1fr) minmax(180px,260px);
+  align-items:center; gap:12px;
+}
+:root[data-ui='tl'] .play-ui .pb-selects { grid-column:1; margin:0; }
+:root[data-ui='tl'] .play-ui #tl-nick { grid-column:2; width:100%; min-width:0; }
+:root[data-ui='tl'] .play-ui .pb-info { grid-column:2; grid-row:2; min-width:0; }
+:root[data-ui='tl'] .play-ui #play-btn { grid-column:3; grid-row:1 / span 2; width:100%; min-width:0; }
+@media (max-width:760px) {
+  :root[data-ui='modrinth'] .library-toolbar-actions { grid-template-columns:minmax(0,1fr) repeat(2,auto); }
+  :root[data-ui='modrinth'] .library-toolbar-actions .library-search { grid-column:1 / -1; }
+  :root[data-ui='tl'] .play-ui { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+  :root[data-ui='tl'] .play-ui .pb-selects { grid-column:1; grid-row:1; }
+  :root[data-ui='tl'] .play-ui #tl-nick { grid-column:2; grid-row:1; }
+  :root[data-ui='tl'] .play-ui .pb-info { grid-column:1 / -1; grid-row:2; }
+  :root[data-ui='tl'] .play-ui #play-btn { grid-column:1 / -1; grid-row:3; }
+  :root[data-ui='official'] .content main { padding:16px; }
+  :root[data-ui='lunar'] .sidebar { width:100%; flex-direction:row; padding:8px; }
+  :root[data-ui='lunar'] nav { flex-direction:row; overflow-x:auto; }
+  :root[data-ui='lunar'] .nav-btn { min-width:64px; }
+  :root[data-ui='lunar'] .account { width:auto; flex-direction:row; margin-left:auto; }
+}
+@media (max-width:480px) {
+  :root[data-ui='modrinth'] .library-toolbar-actions { display:flex; flex-wrap:wrap; }
+  :root[data-ui='modrinth'] .library-toolbar-actions .library-search { flex-basis:100%; }
+}

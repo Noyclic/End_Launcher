@@ -262,3 +262,10 @@
 - Fixed the document-level pointer handler to resolve the nearest customizable DOM element from the event target instead of treating `document` as the dragged element.
 - Ensured the drag path ignores targets outside editable elements and still excludes the customizer dialog itself.
 - Added a regression assertion to prevent the broken `currentTarget` pattern from returning.
+
+
+### UI fidelity pass 20 — unblocking customizer pointer events
+
+- Fixed the full-window media overlay so it no longer intercepts mouse events intended for underlying launcher controls during editing.
+- Kept pointer events enabled on draggable media and widget children, while the parent overlay remains click-through.
+- Added regression checks for the overlay's pointer-event behavior and the draggable media children.

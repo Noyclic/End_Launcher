@@ -125,6 +125,18 @@ check(js.includes("selectedLayer = {type:'media', index}; renderLayers(); render
 check(js.includes("selectedLayer = {type:'widget', index}; renderLayers(); renderSelectedTools();"),
   'Selecting a custom widget must reveal its properties');
 
+const stableIdBlock = js.match(/const stableCustomId = \\(el, index\\) => \\{([\\s\\S]*?)\\n  \\};/);
+check(!!stableIdBlock && stableIdBlock[1].includes('identityBase') && stableIdBlock[1].includes('const occurrence =')
+    && stableIdBlock[1].includes('customIdStateMigrated = true') && js.includes('if (customIdStateMigrated)'),
+  'Customizable elements need deterministic semantic IDs and a persisted migration for legacy saved styles');
+const deleteHelper = js.match(/function deleteCustomLayer\\(type, index\\) \\{([\\s\\S]*?)\\n  \\}/);
+check(!!deleteHelper && deleteHelper[1].includes('collection.splice(index, 1)')
+    && deleteHelper[1].includes('selectedLayer.index -= 1') && deleteHelper[1].includes('apply();'),
+  'Deleting a custom layer must keep the selected index valid and refresh the editor');
+check(js.includes("deleteCustomLayer('media', i)") && js.includes("deleteCustomLayer('widget', i)")
+    && js.includes('deleteCustomLayer(selectedLayer.type, selectedLayer.index)'),
+  'All custom layer deletion entry points must use the shared selection-aware helper');
+
 const selectedToolsStart = js.indexOf('function renderSelectedTools() {');
 const selectedToolsEnd = js.indexOf('function renderList() {', selectedToolsStart);
 const selectedToolsCode = js.slice(selectedToolsStart, selectedToolsEnd);
@@ -174,4 +186,4 @@ check(!widgetActions.includes("document.querySelector('[data-page=\"library\"]')
     && !widgetActions.includes("document.querySelector('[data-page=\"news\"]')"),
   'Custom widget actions must not target nonexistent sidebar buttons');
 
-console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence.');
+console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, and safe layer deletion.');

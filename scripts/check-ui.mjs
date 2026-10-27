@@ -92,7 +92,7 @@ check(js.includes("attributeFilter: ['data-anim', 'data-particles']"),
   'Canvas loop must react when the particle toggle changes');
 check(js.includes('const customizerBaseStyles = new WeakMap();') && js.includes('restoreCustomBaseStyles(el);'),
   'Customizer must restore each element\'s original inline styles before applying a theme');
-const customizeStart = js.indexOf('const makeCustomizable = () => {');
+const customizeStart = js.indexOf('const makeCustomizable = (options = {}) => {');
 const restoreIndex = js.indexOf('restoreCustomBaseStyles(el);', customizeStart);
 const positionIndex = js.indexOf('const pos = state.positions[id];', customizeStart);
 check(customizeStart >= 0 && restoreIndex > customizeStart && restoreIndex < positionIndex,

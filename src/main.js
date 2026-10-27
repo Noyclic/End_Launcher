@@ -2099,7 +2099,7 @@ ensureNewsLoaded();
       const img = document.createElement('img'); img.className = 'custom-media-item'; img.src = item.src; img.alt = item.name || 'Пользовательское изображение'; img.draggable = false;
       img.dataset.mediaIndex = String(index); if(item.hidden) img.style.display='none'; img.style.zIndex=String(item.zIndex||9200); img.style.width = `${item.size || state.size || 180}px`;
       img.style.left = `${item.x ?? 50}%`; img.style.top = `${item.y ?? 40}%`; img.style.transform = 'translate(-50%,-50%)'; img.style.rotate = `${Number(item.rotate)||0}deg`; img.style.opacity = item.opacity == null ? '1' : String(item.opacity);
-      if (edit) img.style.pointerEvents = 'auto';
+      img.style.pointerEvents = edit ? 'auto' : 'none';
       img.addEventListener('pointerdown', startDragMedia);
       img.addEventListener('click', (e) => { if (edit) { e.stopPropagation(); selectedLayer = {type:'media', index}; renderLayers(); renderSelectedTools(); } });
       img.addEventListener('click', (e) => { if (edit) { e.stopPropagation(); $c('customizer-status').textContent = `Выбрано: ${item.name}. Чтобы удалить — кнопка «Удалить» в списке.`; } });
@@ -2109,7 +2109,9 @@ ensureNewsLoaded();
       const el = document.createElement(item.kind === 'button' ? 'button' : 'div');
       el.className = 'custom-widget' + (item.kind === 'button' ? ' custom-widget-button' : '');
       el.textContent = item.text || (item.kind === 'button' ? 'Моя кнопка' : 'Мой текст');
-      el.dataset.widgetIndex = String(index); if(item.hidden) el.style.display='none'; el.style.left = `${item.x ?? 50}%`; el.style.top = `${item.y ?? 50}%`; el.style.transform = 'translate(-50%,-50%)';
+      el.dataset.widgetIndex = String(index);
+      if (item.kind === 'button' && ['play','settings','library','news','url'].includes(item.action)) el.dataset.widgetAction = item.action;
+      if(item.hidden) el.style.display='none'; el.style.left = `${item.x ?? 50}%`; el.style.top = `${item.y ?? 50}%`; el.style.transform = 'translate(-50%,-50%)';
       el.style.fontSize = `${Math.max(10, Math.min(64, Number(item.fontSize) || 22))}px`; el.style.rotate = `${Number(item.rotate)||0}deg`; el.style.opacity = item.opacity == null ? '1' : String(item.opacity); el.style.color = item.color || '#ffffff'; el.style.background = item.kind === 'button' ? (item.background || state.glow) : 'transparent'; el.style.zIndex = String(item.zIndex || (9100 + index));
       el.addEventListener('pointerdown', startDragWidget);
       el.addEventListener('click', (e) => {
@@ -2207,7 +2209,7 @@ ensureNewsLoaded();
         field('Цвет кнопки','color',item.background||state.glow,v=>{item.background=v;save();apply();});
         const actionWrap=document.createElement('label');actionWrap.className='customizer-property';const span=document.createElement('span');span.textContent='Действие кнопки';const select=document.createElement('select');
         [['none','Нет'],['play','Запустить игру'],['settings','Настройки'],['library','Библиотека'],['news','Новости'],['url','Открыть ссылку']].forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;select.appendChild(o);});
-        select.value=item.action||'none';select.onchange=()=>{item.action=select.value;if(item.action==='url'&&!item.url)item.url=prompt('URL (только https:// или http://):','https://')||'';save();};actionWrap.append(span,select);selectedTools.appendChild(actionWrap);
+        select.value=item.action||'none';select.onchange=()=>{item.action=select.value;if(item.action==='url'&&!item.url)item.url=prompt('URL (только https:// или http://):','https://')||'';save();apply();};actionWrap.append(span,select);selectedTools.appendChild(actionWrap);
         field('URL для действия','url',item.url||'',v=>{if(/^https?:\/\//i.test(v)||!v)item.url=v;else $c('customizer-status').textContent='Разрешены только ссылки http:// и https://';save();});
       }
       const del=document.createElement('button');del.className='ghost';del.textContent='Удалить элемент';del.onclick=()=>{const arr=selectedLayer.type==='media'?state.media:state.widgets;arr.splice(selectedLayer.index,1);selectedLayer=null;save();apply();};selectedTools.appendChild(del);
@@ -2248,6 +2250,7 @@ ensureNewsLoaded();
     $c('customizer-edit').textContent = `↔ Режим перемещения: ${on ? 'ВКЛ' : 'ВЫКЛ'}`;
     // The full-screen media layer must never block the app; only its media/widgets opt into pointer events.
     layer.style.pointerEvents = 'none';
+    layer.querySelectorAll('.custom-media-item').forEach((media) => { media.style.pointerEvents = on ? 'auto' : 'none'; });
     document.querySelectorAll('[data-customizable="true"]').forEach(el => { el.style.pointerEvents = ''; });
     $c('customizer-status').textContent = on ? 'Перетаскивай подсвеченные элементы. Нажми кнопку ещё раз, чтобы закончить.' : 'Режим перемещения выключен';
   }

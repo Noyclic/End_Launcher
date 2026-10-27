@@ -160,3 +160,12 @@
 
 - Ensured the selected-installation banner respects its native `hidden` state even though the responsive layout gives it an explicit flex display when visible.
 - This keeps the banner limited to layouts where the existing UI logic enables it, instead of accidentally displaying it in every layout.
+
+
+### UI fidelity pass 7 — full customizer workspace
+
+- Improved customizer window sizing and prevented horizontal overflow on narrow windows.
+- Reorganized profile save/load/import/export controls into a responsive grid.
+- Improved the layer and media management panels with adaptive item grids and safer long-text wrapping.
+- Made animation presets, global color controls, and media controls wrap more predictably on small screens.
+- Added subtle mode-specific panel treatments without changing customization storage or event handlers.

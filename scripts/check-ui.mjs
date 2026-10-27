@@ -125,11 +125,11 @@ check(js.includes("selectedLayer = {type:'media', index}; renderLayers(); render
 check(js.includes("selectedLayer = {type:'widget', index}; renderLayers(); renderSelectedTools();"),
   'Selecting a custom widget must reveal its properties');
 
-const stableIdBlock = js.match(/const stableCustomId = \\(el, index\\) => \\{([\\s\\S]*?)\\n  \\};/);
+const stableIdBlock = js.match(/const stableCustomId = \(el, index\) => \{([\s\S]*?)\n  \};/);
 check(!!stableIdBlock && stableIdBlock[1].includes('identityBase') && stableIdBlock[1].includes('const occurrence =')
     && stableIdBlock[1].includes('customIdStateMigrated = true') && js.includes('if (customIdStateMigrated)'),
   'Customizable elements need deterministic semantic IDs and a persisted migration for legacy saved styles');
-const deleteHelper = js.match(/function deleteCustomLayer\\(type, index\\) \\{([\\s\\S]*?)\\n  \\}/);
+const deleteHelper = js.match(/function deleteCustomLayer\(type, index\) \{([\s\S]*?)\n  \}/);
 check(js.includes("'.inst-card', '.mini-mod', '.mod-card', '.mod-row', '.news-card', '.stat', '.island-card',")
     && js.includes("'.hscroll > *', '.news-grid > *', '.stats > *'"),
   'Dynamic library, mod, news, and home-stat content must be eligible for customization');

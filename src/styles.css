@@ -632,6 +632,15 @@ body.browser-start { display: block; height: auto; min-height: 100vh; overflow: 
   background-clip: padding-box;
 }
 
+/* Keyboard users can reveal the scrollbar of the region they are navigating. */
+*:focus-within {
+  scrollbar-color: color-mix(in srgb, var(--el-accent) 78%, var(--el-panel)) transparent;
+}
+*:focus-within::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--el-accent) 78%, var(--el-panel));
+  background-clip: padding-box;
+}
+
 *:hover::-webkit-scrollbar-thumb:active {
   background: var(--el-accent);
   background-clip: padding-box;

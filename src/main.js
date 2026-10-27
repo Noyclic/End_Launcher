@@ -2129,10 +2129,22 @@ ensureNewsLoaded();
     state.widgets.forEach((item, i) => { const row = document.createElement('div'); row.className = 'customizer-media-chip'; const name = document.createElement('span'); name.textContent = `${item.kind === 'button' ? 'Кнопка' : 'Текст'}: ${item.text || ''}`; const editBtn = document.createElement('button'); editBtn.className = 'ghost'; editBtn.textContent = 'Изменить'; editBtn.onclick = () => { const text = prompt('Текст элемента:', item.text || ''); if (text !== null) { item.text = text.slice(0,180); save(); apply(); } }; const sizeBtn = document.createElement('button'); sizeBtn.className = 'ghost'; sizeBtn.textContent = 'Размер'; sizeBtn.onclick = () => { const n = Number(prompt('Размер шрифта (10–64):', item.fontSize || 22)); if (n >= 10 && n <= 64) { item.fontSize = n; save(); apply(); } }; const remove = document.createElement('button'); remove.className = 'ghost'; remove.textContent = 'Удалить'; remove.onclick = () => { state.widgets.splice(i,1); save(); apply(); }; row.append(name,editBtn,sizeBtn,remove); list.appendChild(row); });
     if (!state.media.length && !state.widgets.length) list.innerHTML = '<p class="dim small">Пока пусто — добавь GIF, скриншот, мем, текст или кнопку.</p>';
   }
-  function open() { modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); }
+  let customizerReturnFocus = null;
+  function open() {
+    customizerReturnFocus = document.activeElement;
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+    $c('customizer-close')?.focus();
+  }
   // Закрытие панели не должно отключать режим перемещения: можно закрыть настройки и двигать элементы на самой странице.
   // Режим выключается только повторным нажатием на кнопку «Режим перемещения».
-  function close() { modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }
+  function close() {
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+    if (customizerReturnFocus && typeof customizerReturnFocus.focus === 'function') {
+      customizerReturnFocus.focus();
+    }
+  }
   function setEdit(on) {
     edit = on; document.body.classList.toggle('customizer-active', on);
     $c('customizer-edit').textContent = `↔ Режим перемещения: ${on ? 'ВКЛ' : 'ВЫКЛ'}`;
@@ -2182,6 +2194,9 @@ ensureNewsLoaded();
   });
   $c('open-customizer')?.addEventListener('click', open);
   $c('customizer-close').addEventListener('click', close);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && modal.classList.contains('open')) close();
+  });
   modal.addEventListener('click', e => { if (e.target === modal) close(); });
   $c('customizer-edit').addEventListener('click', () => setEdit(!edit));
   $c('customizer-file').addEventListener('change', async e => {

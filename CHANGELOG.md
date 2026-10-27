@@ -176,3 +176,11 @@
 - Fixed the welcome wizard's GDLauncher option to use the actual `gd` style identifier.
 - Exposed all eight existing interface styles in the first-run selector, so users can choose Prism, TL Legacy, Modrinth, GDLauncher Carbon, ATLauncher, Lunar, official Minecraft, or classic End before opening Settings.
 - Reused existing style IDs and labels; no authentication or launcher behavior changed.
+
+
+### UI fidelity pass 9 — accessibility and compact windows
+
+- Added consistent visible keyboard focus rings with theme-aware accent color.
+- Made account and welcome dialogs scroll safely inside short or narrow windows.
+- Improved wrapping for authentication fields, mod search controls, and library actions on compact layouts.
+- Respects the operating system's reduced-motion preference.

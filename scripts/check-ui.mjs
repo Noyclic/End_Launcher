@@ -133,6 +133,15 @@ const deleteHelper = js.match(/function deleteCustomLayer\(type, index\) \{([\s\
 check(js.includes("'.inst-card', '.mini-mod', '.mod-card', '.mod-row', '.news-card', '.stat', '.island-card',")
     && js.includes("'.hscroll > *', '.news-grid > *', '.stats > *'"),
   'Dynamic library, mod, news, and home-stat content must be eligible for customization');
+const nudgeStart = js.lastIndexOf("document.addEventListener('keydown', e => {");
+const nudgeEnd = js.indexOf('refreshProfiles(); syncControls();', nudgeStart);
+const nudgeCode = js.slice(nudgeStart, nudgeEnd);
+check(nudgeStart >= 0 && nudgeEnd > nudgeStart
+    && !nudgeCode.includes('document.activeElement !== document.body')
+    && nudgeCode.includes("activeElement.matches('input, textarea, select, [contenteditable=\"true\"]')")
+    && nudgeCode.includes("activeElement?.id === 'open-customizer'"),
+  'Keyboard nudging should work when the customizer closes, without hijacking text fields or unrelated delete keys');
+
 check(js.includes('const customizerDomObserver = new MutationObserver((records) => {')
     && js.includes("customizerDomObserver.observe(observerRoot, { childList: true, subtree: true });")
     && js.includes('return node.matches(CUSTOMIZABLE_SELECTOR) || !!node.querySelector(CUSTOMIZABLE_SELECTOR);'),
@@ -194,4 +203,4 @@ check(!widgetActions.includes("document.querySelector('[data-page=\"library\"]')
     && !widgetActions.includes("document.querySelector('[data-page=\"news\"]')"),
   'Custom widget actions must not target nonexistent sidebar buttons');
 
-console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, and dynamic content customization.');
+console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, and keyboard nudging.');

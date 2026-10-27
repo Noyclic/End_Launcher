@@ -362,3 +362,10 @@
 - Centralized the customizer's default state and reuse it for initial startup, reset, theme import, and profile loading.
 - Changed theme import/profile load to replace stale settings rather than merging absent keys from the previous state; older profiles receive known defaults for missing fields.
 - Added regression checks for shared defaults and replacement behavior.
+
+
+### UI fidelity pass 33 — verify persisted state removal before reset success
+
+- Made the full customizer reset verify that the stored theme key was actually removed before applying defaults.
+- If local storage is unavailable or removal fails, the existing in-memory appearance is left intact and the interface reports the failure instead of falsely claiming success.
+- Added a regression check for the order of storage removal, defaults application, and success reporting.

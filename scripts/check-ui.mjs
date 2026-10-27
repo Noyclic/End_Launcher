@@ -207,6 +207,12 @@ check(js.includes("'✓ Тема импортирована и сохранен�
 check(js.includes('const previousState = state;') && js.includes('state = previousState;')
     && js.includes('state.media = previousMedia;') && js.includes('state.background = previousBackground;'),
   'Failed theme/media/background writes must roll back to the previously saved appearance');
+check(js.includes('const createDefaultState = () => ({')
+    && js.includes('state = createDefaultState();')
+    && js.includes('state = { ...createDefaultState(), ...safe };')
+    && js.includes('state = { ...createDefaultState(), ...JSON.parse(JSON.stringify(profiles[name])) };'),
+  'Reset, import, and profile-load paths must use the same defaults and replace stale media/widgets rather than merging them');
+
 check(js.includes('const previousProfile = profiles[name];') && js.includes('if (!saveProfiles())')
     && js.includes('Не удалось сохранить профили: слишком много данных.'),
   'Failed profile writes must preserve the previous profile instead of reporting a false success');

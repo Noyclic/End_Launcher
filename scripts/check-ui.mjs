@@ -207,6 +207,13 @@ check(js.includes("'✓ Тема импортирована и сохранен�
 check(js.includes('const previousState = state;') && js.includes('state = previousState;')
     && js.includes('state.media = previousMedia;') && js.includes('state.background = previousBackground;'),
   'Failed theme/media/background writes must roll back to the previously saved appearance');
+const resetBlock = js.match(/\$c\('customizer-reset'\)\.addEventListener\('click', \(\) => \{([\s\S]*?)\n  \}\);/);
+check(!!resetBlock && resetBlock[1].includes('localStorage.removeItem(STORE);')
+    && resetBlock[1].includes('if (localStorage.getItem(STORE) !== null) throw new Error')
+    && resetBlock[1].includes('Не удалось сбросить кастомизацию')
+    && resetBlock[1].indexOf('localStorage.removeItem(STORE);') < resetBlock[1].indexOf("state = createDefaultState();"),
+  'Customizer reset must verify persisted-state deletion before applying defaults or reporting success');
+
 check(js.includes('const createDefaultState = () => ({')
     && js.includes('state = createDefaultState();')
     && js.includes('state = { ...createDefaultState(), ...safe };')

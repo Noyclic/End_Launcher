@@ -293,3 +293,11 @@
 - Separated visual application from rebuilding the customizer editor panel with an `apply(refreshEditor)` option.
 - Changed property-field handlers to apply updated visuals without recreating the selected-tools subtree, so range sliders and number inputs don't lose focus while the user edits values.
 - Added a regression check that guards against property-panel redraws during live edits.
+
+
+### UI fidelity pass 24 — consistent theme and customizer precedence
+
+- Resolved the conflict between the existing Settings palette and the full-customizer global design.
+- Built-in theme changes now notify the customizer, allowing an explicitly saved customizer palette to remain the higher-priority override.
+- When full-customizer colors are reset, the active built-in theme/palette is preserved rather than being cleared accidentally.
+- Added regression checks for the theme-change event and palette-reset precedence.

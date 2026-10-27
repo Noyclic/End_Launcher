@@ -1087,13 +1087,21 @@ $('library-view')?.addEventListener('click', () => {
   try { localStorage.setItem('el-library-list', libraryListMode ? '1' : '0'); } catch {}
   renderLibrary();
 });
+function setHomeExtrasOpen(open) {
+  const extras = document.querySelector('.home-extra');
+  if (!extras) return;
+  extras.classList.toggle('layout-extras-open', !!open);
+  const toggle = $('layout-extras-toggle');
+  toggle?.setAttribute('aria-expanded', String(!!open));
+  if (toggle) toggle.textContent = open ? '× Скрыть дополнения' : '⋯ Дополнительно';
+}
+function revealHomeExtrasForCurrentLayout() {
+  if (root.dataset.ui !== 'end') setHomeExtrasOpen(true);
+}
 $('layout-extras-toggle')?.addEventListener('click', () => {
   const extras = document.querySelector('.home-extra');
   if (!extras) return;
-  const open = !extras.classList.contains('layout-extras-open');
-  extras.classList.toggle('layout-extras-open', open);
-  $('layout-extras-toggle').setAttribute('aria-expanded', String(open));
-  $('layout-extras-toggle').textContent = open ? '× Скрыть дополнения' : '⋯ Дополнительно';
+  setHomeExtrasOpen(!extras.classList.contains('layout-extras-open'));
 });
 $('launcher-banner-play')?.addEventListener('click', () => {
   if (instances.some((item) => item.id === activeId)) playBtn.click();
@@ -2169,6 +2177,7 @@ ensureNewsLoaded();
             requestAnimationFrame(() => scrollToContentSection('library'));
           } else if (item.action === 'news') {
             goPage('play');
+            revealHomeExtrasForCurrentLayout();
             loadNews().finally(() => requestAnimationFrame(() => scrollToContentSection('news-section')));
           } else if (item.action === 'url' && /^https?:\/\//i.test(item.url || '')) {
             window.open(item.url, '_blank', 'noopener');

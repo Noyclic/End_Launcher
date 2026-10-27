@@ -428,6 +428,7 @@ function goPage(name) {
   if (name === 'play') {
     renderHomeStats();
     ensureNewsLoaded(); // новости загружаются, только когда открыта главная
+    ensureHomeModsLoaded(); // витрина модов — только когда её видно
   }
 }
 
@@ -473,7 +474,7 @@ async function loadInstances() {
   updatePlayBtn();
   showJavaStatus();
   renderHomeStats();
-  idle(loadHomeMods);
+  ensureHomeModsLoaded();
 }
 
 async function setActive(id) {
@@ -487,7 +488,7 @@ async function setActive(id) {
   updatePlayBtn();
   showJavaStatus();
   renderHomeStats();
-  idle(loadHomeMods);
+  ensureHomeModsLoaded();
 }
 $('instance-select').addEventListener('change', (e) => setActive(e.target.value));
 
@@ -797,6 +798,27 @@ async function renderHomeStats() {
 }
 
 let homeModsKey = '';
+// Не загружаем витрину модов, пока пользователь до неё не прокрутил.
+function ensureHomeModsLoaded() {
+  const section = $('home-mods')?.closest('section, .home-mods-section') || $('home-mods');
+  if (!section || ensureHomeModsLoaded.loading || homeModsKey) return;
+  if (!document.getElementById('page-play')?.classList.contains('active')) return;
+  if ('IntersectionObserver' in window) {
+    if (ensureHomeModsLoaded.observer) return;
+    ensureHomeModsLoaded.observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        ensureHomeModsLoaded.observer.disconnect();
+        ensureHomeModsLoaded.observer = null;
+        ensureHomeModsLoaded.loading = true;
+        loadHomeMods().finally(() => { ensureHomeModsLoaded.loading = false; });
+      }
+    }, { root: null, rootMargin: '80px 0px', threshold: 0.01 });
+    ensureHomeModsLoaded.observer.observe(section);
+  } else {
+    const rect = section.getBoundingClientRect();
+    if (rect.top < innerHeight && rect.bottom > 0) loadHomeMods();
+  }
+}
 async function loadHomeMods() {
   const inst = currentInstance();
   const gameVersion = inst ? inst.version : '';
@@ -1848,6 +1870,13 @@ ensureNewsLoaded();
   const modal = $c('customizer-modal');
   const layer = $c('custom-media-layer');
   const list = $c('customizer-media-items');
+  // Скрываем пользовательские GIF, когда окно приложения свёрнуто/не видно.
+  // Это уменьшает лишнюю отрисовку, не удаляя сохранённую кастомизацию.
+  const syncMediaVisibility = () => {
+    if (layer) layer.style.visibility = document.hidden ? 'hidden' : '';
+  };
+  document.addEventListener('visibilitychange', syncMediaVisibility, { passive: true });
+  syncMediaVisibility();
   const layerList = $c('customizer-layer-items');
   const selectedTools = $c('customizer-selected-tools');
   if (!modal || !layer) return;

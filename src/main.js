@@ -205,6 +205,8 @@ function showTheme(id) {
     root.dataset.theme = id;
   }
   markActiveTheme(id);
+  // Let the full customizer re-apply an explicit global design after the built-in palette changes.
+  document.dispatchEvent(new Event('end-launcher-theme-changed'));
 }
 async function selectTheme(id) {
   showTheme(id);
@@ -2060,7 +2062,11 @@ ensureNewsLoaded();
   const applyDesign = () => {
     const root = document.documentElement;
     if (!state.design || Object.keys(state.design).length === 0) {
-      ['--el-bg','--el-panel','--el-text','--el-dim','--el-accent','--el-accent-deep','--el-accent-soft','--el-line','--el-particle'].forEach(name => root.style.removeProperty(name));
+      // A palette selected in Settings is an intentional theme, not leftover customizer state.
+      // Preserve it while the full customizer has no explicit overrides.
+      if (root.dataset.theme !== 'custom') {
+        ['--el-bg','--el-panel','--el-text','--el-dim','--el-accent','--el-accent-deep','--el-accent-soft','--el-line','--el-particle'].forEach(name => root.style.removeProperty(name));
+      }
       return;
     }
     const d = { ...designDefaults, ...state.design };
@@ -2077,6 +2083,9 @@ ensureNewsLoaded();
     root.style.setProperty('--el-line', `rgba(${lr}, ${lg}, ${lb}, .55)`);
     root.style.setProperty('--el-particle', d.accent);
   };
+  document.addEventListener('end-launcher-theme-changed', () => {
+    applyDesign();
+  });
   const apply = (refreshEditor = true) => {
     applyDesign();
     document.documentElement.style.setProperty('--custom-glow', state.glow || '#b47ede');

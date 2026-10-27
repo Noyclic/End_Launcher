@@ -101,6 +101,13 @@ check(js.includes("customizer-status').textContent = '✓ Кастомизаци
   'Customizer reset should clearly report completion');
 check(/document\.addEventListener\('click',[\s\S]*?e\.stopImmediatePropagation\(\);[\s\S]*?renderSelectedTools\(\);[\s\S]*?\}, true\);/.test(js),
   'Customizer must intercept built-in control clicks during edit mode and open the selected element tools');
+const dragHandler = js.match(/function startDrag\(e\) \{([\s\S]*?)\n  \}/);
+check(!!dragHandler
+    && dragHandler[1].includes('e.target instanceof Element')
+    && dragHandler[1].includes("closest('[data-customizable=\"true\"]')")
+    && !dragHandler[1].includes('e.currentTarget'),
+  'Document-level dragging must resolve the element under the pointer, not the document');
+
 check(js.includes("selectedLayer = {type:'media', index}; renderLayers(); renderSelectedTools();"),
   'Selecting a custom image must reveal its properties');
 check(js.includes("selectedLayer = {type:'widget', index}; renderLayers(); renderSelectedTools();"),
@@ -116,4 +123,4 @@ check(js.includes("!isImageData(item.src)") && js.includes('safe.media.length > 
 check(html.includes('id="customizer-import"') && html.includes('id="customizer-export"'),
   'Theme backup import/export controls are missing');
 
-console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection.');
+console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution.');

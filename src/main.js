@@ -421,8 +421,14 @@ function goPage(name) {
   document.querySelectorAll('.page').forEach((p) => p.classList.toggle('active', p.id === 'page-' + name));
   const navName = name === 'mods' ? 'play' : name;
   document.querySelectorAll('.nav-btn').forEach((b) => b.classList.toggle('active', b.dataset.page === navName));
-  if (name === 'mods') ensureModsLoaded(); // моды видны сразу, без нажатия «Найти»
-  if (name === 'play') renderHomeStats();
+  if (name === 'mods') {
+    loadReleases(); // список версий нужен только на странице модов/создания сборки
+    ensureModsLoaded(); // моды видны сразу, без нажатия «Найти»
+  }
+  if (name === 'play') {
+    renderHomeStats();
+    ensureNewsLoaded(); // новости загружаются, только когда открыта главная
+  }
 }
 
 // страница модов работает с выбранной сборкой: подставляем её версию и загрузчик
@@ -831,11 +837,16 @@ async function loadHomeMods() {
   }
 }
 
+let newsLoaded = false;
+let newsLoading = false;
 async function loadNews() {
+  if (newsLoaded || newsLoading) return;
+  newsLoading = true;
   // -> Rust: news.rs :: mc_news() — патчноуты Java Edition из ленты Mojang
-  const items = await invoke('mc_news').catch(() => []);
-  const box = $('home-news');
-  box.replaceChildren();
+  try {
+    const items = await invoke('mc_news');
+    const box = $('home-news');
+    box.replaceChildren();
   for (const n of items) {
     const card = mk('div', 'news-card');
     if (n.image.startsWith('https://launchercontent.mojang.com/')) {
@@ -853,7 +864,35 @@ async function loadNews() {
     card.appendChild(t);
     box.appendChild(card);
   }
-  $('news-section').style.display = items.length ? '' : 'none';
+    $('news-section').style.display = items.length ? '' : 'none';
+    newsLoaded = true;
+  } catch {
+    // Ошибка не должна ломать запуск; повторим при следующем открытии главной.
+    $('news-section').style.display = 'none';
+  } finally {
+    newsLoading = false;
+  }
+}
+
+function ensureNewsLoaded() {
+  const section = $('news-section');
+  if (!section || newsLoaded || newsLoading) return;
+  // Если секция ниже экрана, не загружаем новости и картинки заранее.
+  if ('IntersectionObserver' in window) {
+    if (!ensureNewsLoaded.observer) {
+      ensureNewsLoaded.observer = new IntersectionObserver((entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          ensureNewsLoaded.observer.disconnect();
+          ensureNewsLoaded.observer = null;
+          loadNews();
+        }
+      }, { root: null, rootMargin: '0px', threshold: 0.01 });
+      ensureNewsLoaded.observer.observe(section);
+    }
+  } else {
+    const rect = section.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) loadNews();
+  }
 }
 
 // ─────────────── ИНТЕРФЕЙС: End / Modrinth / Prism / TL ───────────────
@@ -1798,10 +1837,9 @@ invoke('check_launcher_update').then((info) => {
   $('update-open').addEventListener('click', () => invoke('open_url', { url: info.url }).catch(() => {}));
 }).catch(() => {}); // нет сети или нет релизов — молча
 
-// стартовая отрисовка
+// стартовая отрисовка: не загружаем новости и список версий заранее.
 loadInstances().then(refreshPlay);
-idle(loadNews);
-idle(loadReleases);
+ensureNewsLoaded();
 
 
 // ─────────────── ПОЛНАЯ КАСТОМИЗАЦИЯ ───────────────

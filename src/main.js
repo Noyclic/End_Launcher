@@ -1881,7 +1881,7 @@ ensureNewsLoaded();
   const selectedTools = $c('customizer-selected-tools');
   if (!modal || !layer) return;
   const STORE = 'end-launcher-full-customization-v1';
-  let state = { positions: {}, elementStyles: {}, media: [], widgets: [], dim: 0, size: 180, glow: '#b47ede', particles: true, glitch: false, rainbow: false, background: '', font: 'inherit', scale: 100, radius: 16 };
+  let state = { positions: {}, elementStyles: {}, media: [], widgets: [], design: {}, dim: 0, size: 180, glow: '#b47ede', particles: true, glitch: false, rainbow: false, background: '', font: 'inherit', scale: 100, radius: 16 };
   let profiles = {};
   let selectedWidget = null;
   let selectedLayer = null;
@@ -1906,7 +1906,30 @@ ensureNewsLoaded();
       if (style) { if (style.scale) el.style.scale = String(style.scale); if (style.rotate != null) el.style.rotate = `${style.rotate}deg`; if (style.zIndex != null) el.style.zIndex=String(style.zIndex); if (style.opacity != null) el.style.opacity = String(style.opacity); if (style.radius != null) el.style.borderRadius = `${style.radius}px`; if (style.color) el.style.color = style.color; if (style.background) el.style.backgroundColor = style.background; if (style.hidden) el.style.visibility = 'hidden'; else el.style.visibility = ''; }
     });
   };
+  const designDefaults = { bg: '#08060e', panel: '#120d20', text: '#efeaf9', muted: '#8d84a6', accent: '#b47ede', line: '#55436b' };
+  state.design ||= {};
+  const hexRgb = (value) => {
+    const hex = /^#[0-9a-f]{6}$/i.test(value || '') ? value : '#000000';
+    return [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)];
+  };
+  const applyDesign = () => {
+    const root = document.documentElement;
+    const d = { ...designDefaults, ...state.design };
+    Object.entries(d).forEach(([key,value]) => { if (!/^#[0-9a-f]{6}$/i.test(value)) d[key] = designDefaults[key]; });
+    root.style.setProperty('--el-bg', d.bg);
+    const [pr,pg,pb] = hexRgb(d.panel);
+    root.style.setProperty('--el-panel', `rgba(${pr}, ${pg}, ${pb}, .88)`);
+    root.style.setProperty('--el-text', d.text);
+    root.style.setProperty('--el-dim', d.muted);
+    root.style.setProperty('--el-accent', d.accent);
+    root.style.setProperty('--el-accent-deep', `color-mix(in srgb, ${d.accent} 65%, #000)`);
+    root.style.setProperty('--el-accent-soft', `color-mix(in srgb, ${d.accent} 14%, transparent)`);
+    const [lr,lg,lb] = hexRgb(d.line);
+    root.style.setProperty('--el-line', `rgba(${lr}, ${lg}, ${lb}, .55)`);
+    root.style.setProperty('--el-particle', d.accent);
+  };
   const apply = () => {
+    applyDesign();
     document.documentElement.style.setProperty('--custom-glow', state.glow || '#b47ede');
     document.documentElement.style.setProperty('--custom-dim', Math.max(0, Math.min(85, Number(state.dim) || 0)) / 100);
     document.documentElement.style.setProperty('--custom-glow', state.glow || '#b47ede');
@@ -2135,7 +2158,27 @@ ensureNewsLoaded();
   $c('customizer-profile-load').addEventListener('click', () => { const name = $c('customizer-profile-select').value; if (!name || !profiles[name]) return; state = { ...state, ...JSON.parse(JSON.stringify(profiles[name])) }; syncControls(); save(); apply(); $c('customizer-status').textContent = `Загружен профиль «${name}»`; });
   $c('customizer-export').addEventListener('click', () => { const blob = new Blob([JSON.stringify({version:1,state},null,2)], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'end-launcher-theme.json'; a.click(); URL.revokeObjectURL(url); });
   $c('customizer-import').addEventListener('change', async e => { const file=e.target.files?.[0]; if(!file) return; try { const data=JSON.parse(await file.text()); if(!data.state || typeof data.state !== 'object') throw new Error('Неверный файл темы'); state={...state,...data.state}; syncControls(); save(); apply(); $c('customizer-status').textContent='Тема импортирована'; } catch(err) { $c('customizer-status').textContent='Не удалось импортировать тему: '+err.message; } e.target.value=''; });
-  function syncControls() { $c('customizer-glow').value=state.glow||'#b47ede'; $c('customizer-dim').value=state.dim||0; $c('customizer-size').value=state.size||180; $c('customizer-particles').checked=!!state.particles; $c('customizer-glitch').checked=!!state.glitch; $c('customizer-rainbow').checked=!!state.rainbow; $c('customizer-font').value=state.font||'inherit'; $c('customizer-scale').value=state.scale||100; $c('customizer-radius').value=state.radius??16; }
+  function syncControls() {
+    $c('customizer-glow').value=state.glow||'#b47ede'; $c('customizer-dim').value=state.dim||0; $c('customizer-size').value=state.size||180;
+    $c('customizer-particles').checked=!!state.particles; $c('customizer-glitch').checked=!!state.glitch; $c('customizer-rainbow').checked=!!state.rainbow;
+    $c('customizer-font').value=state.font||'inherit'; $c('customizer-scale').value=state.scale||100; $c('customizer-radius').value=state.radius??16;
+    state.design ||= {};
+    Object.entries(designDefaults).forEach(([key,fallback]) => { const input=$c('design-'+key); if(input) input.value=state.design[key]||fallback; });
+  }
+  Object.keys(designDefaults).forEach(key => {
+    const input = $c('design-' + key);
+    if (!input) return;
+    input.addEventListener('input', () => {
+      state.design ||= {};
+      state.design[key] = input.value;
+      save(); apply();
+    });
+  });
+  $c('design-reset')?.addEventListener('click', () => {
+    state.design = {};
+    syncControls(); save(); apply();
+    $c('customizer-status').textContent = 'Цвета исходной темы восстановлены';
+  });
   $c('customizer-font').value=state.font||'inherit'; $c('customizer-font').addEventListener('change',e=>{state.font=e.target.value;save();apply();});
   $c('customizer-scale').value=state.scale||100; $c('customizer-scale').addEventListener('input',e=>{state.scale=Number(e.target.value);save();apply();});
   $c('customizer-radius').value=state.radius??16; $c('customizer-radius').addEventListener('input',e=>{state.radius=Number(e.target.value);save();apply();});
@@ -2168,7 +2211,7 @@ ensureNewsLoaded();
   $c('customizer-rainbow').checked = state.rainbow; $c('customizer-rainbow').addEventListener('change', e => { state.rainbow = e.target.checked; save(); apply(); });
   $c('customizer-reset').addEventListener('click', () => {
     if (!confirm('Сбросить все пользовательские позиции, картинки, фон и эффекты?')) return;
-    selectedLayer=null; state = { positions: {}, elementStyles: {}, media: [], widgets: [], dim: 0, size: 180, glow: '#b47ede', particles: true, glitch: false, rainbow: false, background: '', font: 'inherit', scale: 100, radius: 16 };
+    selectedLayer=null; state = { positions: {}, elementStyles: {}, media: [], widgets: [], design: {}, dim: 0, size: 180, glow: '#b47ede', particles: true, glitch: false, rainbow: false, background: '', font: 'inherit', scale: 100, radius: 16 };
     localStorage.removeItem(STORE); document.querySelectorAll('[data-customizable="true"]').forEach(el => { el.style.translate = ''; }); document.body.style.backgroundImage = ''; apply();
     syncControls();
   });

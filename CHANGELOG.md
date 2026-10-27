@@ -324,3 +324,12 @@
 - Fixed keyboard movement so selected layers can still be nudged with arrow keys after closing the customizer panel, which restores focus to its opener rather than `document.body`.
 - Prevented arrow/delete shortcuts from hijacking text inputs, form controls, or other open dialogs; Delete/Backspace is guarded against accidental removal while an unrelated control is focused.
 - Added regression checks for keyboard nudging and protected input behavior.
+
+
+### UI fidelity pass 28 — efficient dynamic refresh without interrupting drag
+
+- Reworked stable customizer identity generation to use precomputed occurrence maps instead of querying every matching element for each new node, keeping the pass linear for large libraries.
+- Preserved legacy-ID migration while using semantic IDs for current positions and styles.
+- Changed the dynamic-content observer to decorate new app nodes without rebuilding the separate GIF/widget overlay, preventing unrelated library/news updates from interrupting an in-progress drag.
+- Refreshes the layer list when the customizer opens so content loaded after launch is visible in the editor.
+- Added checks for single-pass identity grouping and non-destructive dynamic refresh.

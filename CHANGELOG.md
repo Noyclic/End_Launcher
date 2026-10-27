@@ -190,3 +190,9 @@
 
 - Kept the hover-reveal scrollbar behavior and also reveals the thumb when a scrollable region contains keyboard focus.
 - This helps keyboard navigation without making scrollbars permanently visible.
+
+
+### UI fidelity pass 11 — customizer dialog semantics
+
+- Marked the full customization window as a modal dialog with an explicit accessible title.
+- Added a descriptive accessible name to its close button for screen-reader users.

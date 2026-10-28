@@ -373,7 +373,7 @@ check(js.includes("$('launcher-banner-play')?.addEventListener('click', () => {"
   'Featured launch buttons must invoke the actual native Play action');
 check(css.includes(":root[data-ui='gd'] .sidebar nav {")
     && css.includes(":root[data-ui='gd'] .content {")
-    && css.includes(":root[data-ui='gd'] .playbar { order:2;"),
+    && /:root\[data-ui='gd'\] \.playbar \{\s*order:2;/.test(css),
   'GDLauncher-inspired layout must use its horizontal app navigation, scrollable center and footer play strip');
 check(css.includes(":root[data-ui='modrinth'] #page-play .launcher-banner {")
     && css.includes("border-bottom:1px solid #2e3432;"),

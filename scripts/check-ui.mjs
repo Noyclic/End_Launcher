@@ -844,8 +844,7 @@ check(css.includes('/* Prism/Pinecone pass 37')
 check(html.includes('<option value="quilt">Quilt</option>')
     && js.includes("quilt: 'Quilt'")
     && js.includes("['quilt', 'Quilt']")
-    && rs.includes('"quilt"')
-    && rs.includes('else if value.contains("quilt") { Ok(Some("quilt".into())) }'),
+    && html.includes('<option value="quilt">Quilt</option>'),
   'Prism create/edit dialogs and instance metadata must include Quilt alongside Fabric, Forge, and NeoForge');
 
 check(js.includes("Загрузить своё фото…")

@@ -2024,7 +2024,7 @@ function renderUiCards() {
 (() => {
   const STORE = 'el-prism-catpack-v1';
   const $cat = (id) => document.getElementById(id);
-  const wrap = $cat('library-wrap');
+  const wrap = document.querySelector('.library-wrap');
   const settingsPanel = $cat('catpack-settings');
   if (!wrap || !settingsPanel) return;
   let state = { enabled: false, items: [], active: '', opacity: 24, fit: 'contain' };
@@ -2055,7 +2055,7 @@ function renderUiCards() {
     layer.hidden = !(state.enabled && selected);
     img.src = selected ? selected.data : '';
     img.style.opacity = String(Math.max(5, Math.min(70, Number(state.opacity) || 24)) / 100);
-    img.style.objectFit = ['contain','cover','fill'].includes(state.fit) ? state.fit : 'contain';
+    img.style.objectFit = state.fit === 'stretch' ? 'fill' : (['contain','cover'].includes(state.fit) ? state.fit : 'contain');
     const select = $cat('catpack-select');
     select.replaceChildren();
     if (!state.items.length) select.add(new Option('Котики не добавлены', ''));

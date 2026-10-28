@@ -7217,7 +7217,7 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 /* Prism/Pinecone pass 39 — background CatPack behind instance tiles, never over controls. */
 :root[data-ui='prism'] #prism-cat-toggle { display: inline-flex; }
 :root:not([data-ui='prism']) #prism-cat-toggle { display: none; }
-#library-wrap { position: relative; isolation: isolate; }
+.library-wrap { position: relative; isolation: isolate; }
 #prism-cat-background {
   position: absolute;
   inset: 0;
@@ -7233,7 +7233,13 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   object-position: center center;
   transition: opacity .15s ease;
 }
-#library-wrap > :not(#prism-cat-background) { position: relative; z-index: 1; }
+:root[data-ui='prism'] .library-toolbar,
+:root[data-ui='prism'] #library,
+:root[data-ui='prism'] #empty-hero,
+:root[data-ui='prism'] #prism-library-tools,
+:root[data-ui='prism'] #official-library-tools,
+:root[data-ui='prism'] #modrinth-library-tools,
+:root[data-ui='prism'] .library-help { position: relative; z-index: 1; }
 #page-settings .catpack-settings {
   margin: 18px 0;
   padding: 16px;

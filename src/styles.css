@@ -7140,3 +7140,40 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
     margin-left: auto;
   }
 }
+
+
+/* Prism/Pinecone pass 37 — remove the extra brand tile from the command row and compact the account picker. */
+:root[data-ui='prism'] .sidebar .logo {
+  display: none !important;
+}
+:root[data-ui='prism'] .sidebar #account-box {
+  order: 10;
+  flex: 0 0 42px;
+  width: 42px;
+  min-width: 42px;
+  max-width: 42px;
+  margin-left: 0;
+  padding: 2px 4px;
+  justify-content: center;
+  gap: 0;
+  overflow: hidden;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+:root[data-ui='prism'] .sidebar #account-box .acc-text {
+  display: none !important;
+}
+:root[data-ui='prism'] .sidebar #account-box::after {
+  content: '▾';
+  flex: 0 0 auto;
+  margin-left: 3px;
+  color: #bdbdbd;
+  font-size: 8px;
+  line-height: 1;
+}
+:root[data-ui='prism'] .sidebar #account-box:hover,
+:root[data-ui='prism'] .sidebar #account-box:focus-visible {
+  border-color: #4b4b4b;
+  background: #303030;
+}

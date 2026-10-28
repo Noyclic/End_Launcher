@@ -307,4 +307,43 @@ check(!!historyResetBlock && historyResetBlock[1].includes('localStorage.removeI
 check(/\.customizer-history button:disabled\{[^}]*opacity:\.38;[^}]*cursor:not-allowed/.test(css),
   'History buttons need a visible disabled state');
 
+
+const fidelityModes = ['prism', 'modrinth', 'tl', 'gd', 'official', 'at', 'lunar'];
+for (const mode of fidelityModes) {
+  check(css.includes(`:root[data-ui='${mode}'] #library`),
+    `The ${mode} layout must define its own library structure`);
+  check(css.includes(`:root[data-ui='${mode}'] .sidebar`),
+    `The ${mode} layout must define its own navigation geometry`);
+}
+check(css.includes(":root[data-ui='prism'] .layout {")
+    && css.includes("grid-template-columns:minmax(0,1fr) 272px")
+    && css.includes(":root[data-ui='prism'] #library .inst-card"),
+  'Prism layout must have a compact desktop toolbar, dense tiles, and a dedicated launch rail');
+check(css.includes(":root[data-ui='modrinth'] #library .inst-card")
+    && css.includes("grid-template-columns:44px minmax(0,1fr) auto")
+    && css.includes(":root[data-ui='modrinth'] .play-ui #play-btn"),
+  'Modrinth layout must use compact library rows, green actions, and a persistent play strip');
+check(css.includes(":root[data-ui='tl'] .layout { display:flex; flex-direction:column")
+    && css.includes(":root[data-ui='tl'] .playbar {"),
+  'TL layout must have top navigation and a bottom launch bar');
+check(css.includes(":root[data-ui='gd'] #page-play .launcher-banner")
+    && css.includes(":root[data-ui='gd'] #library {"),
+  'GD layout must use a wide featured-library hierarchy and spacious cards');
+check(css.includes(":root[data-ui='official'] #library .inst-card")
+    && css.includes(":root[data-ui='official'] #page-play .launcher-banner-play"),
+  'Official-inspired layout must use installation rows, a featured hero and rectangular green launch actions');
+check(css.includes(":root[data-ui='at'] #library .inst-card")
+    && css.includes("grid-template-columns:76px minmax(0,1fr) auto"),
+  'AT layout must use dense instance-manager rows');
+check(css.includes(":root[data-ui='lunar'] #library .inst-card::before")
+    && css.includes(":root[data-ui='lunar'] #library .inst-card:nth-child(4n+2)::before"),
+  'Lunar layout must use a distinct version gallery with original abstract artwork');
+check(css.includes("@media (max-width:620px)")
+    && css.includes(":root[data-ui='official'] .nav-btn .lbl { display:none; }")
+    && css.includes(":root[data-ui='lunar'] #library {"),
+  'Reference-inspired layouts must retain dedicated compact-window behavior');
+check(css.includes(":root:not([data-ui='end']) #page-play .library-help {")
+    && css.includes("display: none;"),
+  'Reference-inspired layouts should prioritize interface hierarchy over prototype help copy');
+
 console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags.');

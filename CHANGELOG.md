@@ -376,6 +376,19 @@
 - Excluded account and welcome dialogs from draggable/customizable targets and capture-phase edit selection, so leaving edit mode on cannot intercept Microsoft/Ely.by login or first-run wizard controls.
 - Extended regression checks for palette restoration and dialog-safe edit behavior.
 
+
+### UI fidelity pass 37 — structural launcher layout pass
+
+- Rebuilt the Prism-inspired desktop workspace around a compact top toolbar, dense instance tiles and a dedicated launch rail.
+- Reworked the Modrinth-inspired workspace into a graphite icon rail, green-accented library rows and a persistent bottom launch strip.
+- Gave TL Legacy-inspired mode a full-width top navigation bar and a flatter blue-gray workbench with a fixed launch footer.
+- Expanded the GDLauncher Carbon-inspired featured-library hierarchy and card density, while keeping existing launch and library actions.
+- Reworked the official-launcher-inspired layout into a product rail, featured installation area, compact installation rows and rectangular green play actions.
+- Made ATLauncher-inspired mode denser and more utility-focused, with low-radius instance-manager rows and a clearer selected instance.
+- Turned Lunar-inspired mode into a wide version gallery with distinct, original CSS-gradient artwork rather than copied launcher images or icons.
+- Added regression coverage for each layout's navigation geometry, library structure, unique visual hierarchy and compact-window behavior.
+- The layouts reuse End Launcher controls and behavior; live Tauri screenshots and manual visual comparison against current reference builds are still required.
+
 ### UI fidelity pass 36 — undo/redo for full customization
 
 - Added Undo and Redo controls to the full customizer, with Ctrl/Cmd+Z, Ctrl/Cmd+Y, and Ctrl/Cmd+Shift+Z shortcuts.

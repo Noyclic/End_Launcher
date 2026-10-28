@@ -753,4 +753,16 @@ check(css.includes("/* Prism/Pinecone pass 29")
     && css.includes("box-shadow: 5px 3px #91d47b, 2px 6px #91d47b;"),
   'Prism Parameters command must use a compact project-owned settings/list glyph while retaining its navigation handler');
 
+
+check(html.includes('id="prism-play-selects"')
+    && html.includes('aria-label="Издание и экземпляр Minecraft"')
+    && js.includes("'prism-play-selects'")
+    && js.includes("const prismOverflowIds = ['library-search-control', 'library-view', 'library-import', 'layout-extras-toggle', 'prism-play-selects', 'prism-library-tools', 'nav-ai-button']")
+    && css.includes("/* Prism/Pinecone pass 30")
+    && css.includes(":root[data-ui='prism'] .sidebar .prism-toolbar-overflow > #prism-play-selects")
+    && css.includes("grid-template-columns: minmax(0, .85fr) minmax(0, 1.35fr);")
+    && css.includes("grid-template-columns: repeat(2, minmax(0, 1fr));")
+    && css.includes("@media (max-width: 520px)"),
+  'Prism right rail must stay focused on instance actions while Java/Bedrock and instance selectors remain available in the responsive overflow menu');
+
 console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags.');

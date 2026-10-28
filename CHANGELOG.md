@@ -1,5 +1,12 @@
 # Changelog
 
+## Prism/Pinecone — compact right rail and accessible launch selectors
+
+- Moved the existing Java/Bedrock and instance selectors as a single DOM-preserved control group into the toolbar overflow menu in Prism mode, and restores the group to its original slot when switching styles.
+- This removes the generic selectors from the action rail while preserving the real change handlers, custom-select wrappers, active-instance model, and Bedrock access.
+- Added narrow-window stacking and a regression assertion for the responsive overflow placement.
+
+
 ## Prism/Pinecone — toolbar glyph and context-menu polish
 
 - Replaced the generic Settings gear in Prism mode with a compact CSS-drawn list/parameters glyph, keeping the same Settings navigation handler and restoring the regular gear in all other layouts.

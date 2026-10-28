@@ -6422,3 +6422,44 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   background: #91d47b;
   box-shadow: 5px 3px #91d47b, 2px 6px #91d47b;
 }
+
+
+/* Prism/Pinecone pass 30 — move edition/instance selection into overflow so the right rail matches Prism's action-only stack. */
+:root[data-ui='prism'] .sidebar .prism-toolbar-overflow > #prism-play-selects {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, .85fr) minmax(0, 1.35fr);
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  min-width: 0;
+  margin: 5px 0 0;
+  padding: 7px 0 0;
+  border-top: 1px solid #414141;
+  background: transparent;
+  box-shadow: none;
+}
+:root[data-ui='prism'] .sidebar .prism-toolbar-overflow #prism-play-selects > .seg,
+:root[data-ui='prism'] .sidebar .prism-toolbar-overflow #prism-play-selects > .cselect {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+}
+:root[data-ui='prism'] .sidebar .prism-toolbar-overflow #prism-play-selects .seg-group {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3px;
+  width: 100%;
+}
+:root[data-ui='prism'] .sidebar .prism-toolbar-overflow #prism-play-selects .seg-btn {
+  min-width: 0;
+  padding: 6px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+@media (max-width: 520px) {
+  :root[data-ui='prism'] .sidebar .prism-toolbar-overflow > #prism-play-selects {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

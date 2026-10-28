@@ -2903,13 +2903,19 @@ invoke('check_launcher_update').then((info) => {
 
 // стартовая отрисовка: не загружаем новости и список версий заранее.
 loadInstances().then(async () => {
-  await refreshPlay();
   const shortcutInstanceId = await invoke('get_startup_instance').catch(() => null);
-  if (!shortcutInstanceId) return;
+  if (!shortcutInstanceId) {
+    await refreshPlay();
+    return;
+  }
   if (!instances.some((item) => String(item.id) === String(shortcutInstanceId))) {
+    await refreshPlay();
     showToast('Ярлык ссылается на отсутствующую сборку.', false);
     return;
   }
+  // A profile shortcut always launches Java, even if Bedrock was selected in the previous session.
+  editionSel.value = 'java';
+  await refreshPlay();
   await setActive(String(shortcutInstanceId));
   playBtn.click();
 }).catch((error) => console.error('Не удалось загрузить сборки:', error));

@@ -2045,6 +2045,7 @@ const playStatus = $('play-status');
 const progress = $('progress');
 const progressBar = $('progress-bar');
 const analyzeBtn = $('analyze-crash');
+const stopBtn = $('stop-btn');
 let gameRunning = false;
 let lastCrashLog = '';
 
@@ -2066,7 +2067,10 @@ window.__TAURI__.event.listen('install-progress', ({ payload }) => {
 // Rust шлёт, когда игра закрылась: game-exit {code, log_tail}
 window.__TAURI__.event.listen('game-exit', ({ payload }) => {
   gameRunning = false;
-  if (payload.code === 0) {
+  if (payload.stopped === true) {
+    playStatus.textContent = 'Игра остановлена';
+    analyzeBtn.style.display = 'none';
+  } else if (payload.code === 0) {
     playStatus.textContent = 'Игра закрыта';
     analyzeBtn.style.display = 'none';
   } else {
@@ -2100,6 +2104,10 @@ async function showJavaStatus() {
 
 function updatePlayBtn() {
   const prismMode = currentUi === 'prism';
+  if (stopBtn) {
+    stopBtn.disabled = !gameRunning || editionSel.value !== 'java';
+    stopBtn.title = gameRunning ? `Остановить ${currentInstance()?.name || 'игру'}` : 'Игра не запущена';
+  }
   if (gameRunning) {
     playBtn.disabled = true;
     playBtn.textContent = prismMode ? 'Игра запущена' : 'ИГРА ЗАПУЩЕНА';
@@ -2139,6 +2147,20 @@ async function refreshPlay() {
 }
 
 editionSel.addEventListener('change', refreshPlay);
+
+stopBtn?.addEventListener('click', async () => {
+  const inst = currentInstance();
+  if (!inst || !gameRunning || stopBtn.disabled) return;
+  stopBtn.disabled = true;
+  playStatus.textContent = 'Останавливаю игру…';
+  try {
+    await invoke('stop_instance', { id: String(inst.id) });
+  } catch (error) {
+    stopBtn.disabled = false;
+    playStatus.textContent = 'Игра запущена…';
+    showToast(`Не удалось остановить игру: ${error}`, false);
+  }
+});
 
 playBtn.addEventListener('click', async () => {
   let error = null;

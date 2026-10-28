@@ -6018,3 +6018,40 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 :root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='mods'] { order: 8; }
 :root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='icon'] { order: 9; }
 :root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='reset-icon'] { order: 10; }
+
+
+/* Prism/Pinecone pass 19 — classic right-click context menu, positioned at the pointer. */
+:root[data-ui='prism'] .inst-menu[data-context-menu='true'] {
+  position: fixed;
+  top: auto;
+  right: auto;
+  left: 8px;
+  z-index: 1200;
+  width: max-content;
+  min-width: 220px;
+  max-width: min(260px, calc(100vw - 16px));
+  max-height: calc(100vh - 16px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 4px;
+  gap: 1px;
+  border-radius: 3px;
+  background: #292929;
+  border: 1px solid #515151;
+  box-shadow: 0 4px 12px #0008;
+  overscroll-behavior: contain;
+}
+:root[data-ui='prism'] .inst-menu[data-context-menu='true'] button {
+  min-height: 25px;
+  padding: 4px 8px;
+  font-size: 11px;
+  line-height: 1.25;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+:root[data-ui='prism'] .inst-menu[data-context-menu='true'] button:hover,
+:root[data-ui='prism'] .inst-menu[data-context-menu='true'] button:focus-visible {
+  background: #3b3b3b;
+  outline: 1px solid #585858;
+  outline-offset: -1px;
+}

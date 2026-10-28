@@ -1176,10 +1176,37 @@ $('tl-nick').addEventListener('change', async (e) => {
 });
 
 // показать раскладку (без сохранения): переключаем data-ui и переносим блок «Играть»
+// Prism uses a classic desktop toolbar. Move the existing action buttons instead of
+// cloning them, so their current handlers and IDs remain intact across layout changes.
+const prismToolbarHome = {};
+for (const id of ['library-add', 'prism-open-folder']) {
+  const element = $(id);
+  if (element && element.parentNode && !prismToolbarHome[id]) {
+    const marker = document.createComment(`${id}-original-position`);
+    element.parentNode.insertBefore(marker, element);
+    prismToolbarHome[id] = marker;
+  }
+}
+function syncPrismToolbar(mode) {
+  const sidebar = document.querySelector('.sidebar');
+  const account = $('account-box');
+  for (const id of ['library-add', 'prism-open-folder']) {
+    const element = $(id);
+    if (!element) continue;
+    if (mode === 'prism' && sidebar && account) {
+      sidebar.insertBefore(element, account);
+    } else {
+      const marker = prismToolbarHome[id];
+      if (marker?.parentNode) marker.parentNode.insertBefore(element, marker.nextSibling);
+    }
+  }
+}
+
 function applyUi(mode) {
   if (!UI_STYLES[mode]) mode = 'end';
   currentUi = mode;
   root.dataset.ui = mode;
+  syncPrismToolbar(mode);
   const target = ['end', 'tl'].includes(mode) ? $('slot-page') : $('slot-bar');
   if ($('play-ui').parentElement !== target) target.appendChild($('play-ui'));
   const banner = $('launcher-banner');

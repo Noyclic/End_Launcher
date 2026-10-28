@@ -205,6 +205,9 @@ jobs:
               tileColumn: activeCard ? getComputedStyle(activeCard).flexDirection : 'missing',
               labelBelowIcon: !!iconRect && !!labelRect && labelRect.top >= iconRect.bottom - 1,
               playbarContained: !!playbar && playbar.scrollWidth <= playbar.clientWidth + 2,
+              playbarVerticalFit: !!playbar && playbar.scrollHeight <= playbar.clientHeight + 2,
+              playbarScrollHeight: playbar?.scrollHeight ?? 0,
+              playbarClientHeight: playbar?.clientHeight ?? 0,
               layoutContained: !!layout && layout.scrollWidth <= layout.clientWidth + 2,
             };
           });
@@ -215,6 +218,7 @@ jobs:
               || prismMobileGeometry.tileColumn !== 'column'
               || !prismMobileGeometry.labelBelowIcon
               || !prismMobileGeometry.playbarContained
+              || !prismMobileGeometry.playbarVerticalFit
               || !prismMobileGeometry.layoutContained
               || !mobilePlaybar || !mobileStatus
               || mobilePlaybar.right > 392

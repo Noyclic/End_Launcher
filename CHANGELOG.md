@@ -1,5 +1,11 @@
 # Changelog
 
+## Prism/Pinecone reference pass 20
+
+- Preserved the AI assistant page in Prism mode by moving its existing navigation button into the overflow menu with search, sort, import, and extra controls instead of hiding it.
+- Added a regression assertion that the AI control is present, registered with the overflow list, and styled inside the overflow panel.
+
+
 ## Prism/Pinecone reference pass 19
 
 - Added a true right-click instance context menu in Prism mode, positioned near the pointer and constrained to the viewport.

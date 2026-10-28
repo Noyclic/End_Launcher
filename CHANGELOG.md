@@ -1,5 +1,12 @@
 # Changelog
 
+## Prism/Pinecone reference pass 6
+
+- Corrected the Folders menu to match Prism's global-folder pattern: launcher root, central instances directory, and shared mods directory. The selected-instance folder remains on the right rail and in the instance context menu.
+- Added a native Tauri command for opening the central instances folder, creating the directory if it does not yet exist.
+- Added UI regression coverage for command registration and the corresponding Rust function.
+
+
 ## Prism/Pinecone reference pass 5
 
 - Made the Folders menu and the general toolbar overflow menu mutually exclusive so they cannot obscure one another.

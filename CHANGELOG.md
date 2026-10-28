@@ -3,7 +3,7 @@
 ## Prism/Pinecone reference pass 10
 
 - Made instance group headings collapsible with keyboard support (Enter/Space), aria-expanded state and a visible focus outline.
-- Collapse state is persisted locally. Typing into the library search temporarily shows matching results even when their group is collapsed.
+- Collapse state is persisted locally and remains respected while filtering, so a group never claims to be collapsed while its tiles are visible.
 - Added UI regression coverage for persistence/ARIA/keyboard handling, plus an explicit hidden-card rule so the grid layout does not override the collapsed state.
 - The latest automated runs and a fresh Windows build must still confirm this pass; visual comparison stays scheduled for the 10-request checkpoint.
 

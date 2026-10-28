@@ -1994,10 +1994,164 @@ ensureNewsLoaded();
   let dragStart = null;
   try { state = { ...state, ...JSON.parse(localStorage.getItem(STORE) || '{}') }; } catch {}
   state.elementStyles ||= {}; state.positions ||= {}; state.media ||= []; state.widgets ||= []; state.animationQuality = Math.max(0, Math.min(100, Number(state.animationQuality ?? 60))); state.animationOpacity = Math.max(0, Math.min(100, Number(state.animationOpacity ?? 65))); state.animationSpeed = Math.max(25, Math.min(175, Number(state.animationSpeed ?? 100)));
+
+  // Undo/redo stores bounded snapshots. Input edits are grouped into one history step.
+  const HISTORY_LIMIT = 30;
+  const HISTORY_MEMORY_LIMIT = 12 * 1024 * 1024;
+  const HISTORY_DEBOUNCE_MS = 450;
+  const historyUndo = [];
+  const historyRedo = [];
+  let historyBytes = 0;
+  let historyBaseline = JSON.stringify(state);
+  let historyBaselinePersisted = (() => { try { return localStorage.getItem(STORE) !== null; } catch { return false; } })();
+  let historyPendingSnapshot = null;
+  let historyTimer = null;
+  let historyRestoring = false;
+  const cloneSnapshot = (value) => JSON.parse(JSON.stringify(value));
+  const persistedStateExists = () => { try { return localStorage.getItem(STORE) !== null; } catch { return false; } };
+  const makeHistoryFrame = () => ({ state: cloneSnapshot(state), persisted: persistedStateExists() });
+  const historyFrameCost = (frame) => {
+    try { return JSON.stringify(frame).length; } catch { return HISTORY_MEMORY_LIMIT + 1; }
+  };
+  function updateHistoryControls() {
+    const undo = $c('customizer-undo');
+    const redo = $c('customizer-redo');
+    if (undo) {
+      undo.disabled = historyUndo.length === 0 && !historyPendingSnapshot;
+      undo.title = historyPendingSnapshot ? 'Отменить последнее изменение (Ctrl+Z)' : `Отменить изменение — в истории: ${historyUndo.length} (Ctrl+Z)`;
+    }
+    if (redo) {
+      redo.disabled = historyRedo.length === 0;
+      redo.title = `Повторить отменённое изменение — в истории: ${historyRedo.length} (Ctrl+Y)`;
+    }
+  }
+  function clearRedoHistory() {
+    while (historyRedo.length) historyBytes -= historyRedo.pop().cost;
+    historyBytes = Math.max(0, historyBytes);
+  }
+  function trimHistory() {
+    while (historyUndo.length + historyRedo.length > HISTORY_LIMIT || historyBytes > HISTORY_MEMORY_LIMIT) {
+      const target = historyUndo.length ? historyUndo : historyRedo;
+      if (!target.length) break;
+      const removed = target.shift();
+      historyBytes = Math.max(0, historyBytes - removed.cost);
+    }
+    updateHistoryControls();
+  }
+  function addHistoryEntry(target, frame) {
+    const cost = historyFrameCost(frame);
+    if (cost > HISTORY_MEMORY_LIMIT) {
+      $c('customizer-status').textContent = 'Это изменение слишком большое для истории отмены. Уменьши размер пользовательских изображений.';
+      return false;
+    }
+    target.push({ frame, cost });
+    historyBytes += cost;
+    trimHistory();
+    return true;
+  }
+  function flushHistoryCheckpoint() {
+    if (historyTimer !== null) window.clearTimeout(historyTimer);
+    historyTimer = null;
+    if (historyPendingSnapshot) {
+      const current = JSON.stringify(state);
+      const persisted = persistedStateExists();
+      if (current !== historyBaseline || persisted !== historyBaselinePersisted) {
+        clearRedoHistory();
+        addHistoryEntry(historyUndo, historyPendingSnapshot);
+        historyBaseline = current;
+        historyBaselinePersisted = persisted;
+      }
+      historyPendingSnapshot = null;
+    }
+    updateHistoryControls();
+  }
+  function queueHistoryCheckpoint() {
+    if (historyRestoring) return;
+    const current = JSON.stringify(state);
+    const persisted = persistedStateExists();
+    if (current === historyBaseline && persisted === historyBaselinePersisted) {
+      if (historyTimer !== null) window.clearTimeout(historyTimer);
+      historyTimer = null;
+      historyPendingSnapshot = null;
+      updateHistoryControls();
+      return;
+    }
+    if (!historyPendingSnapshot) {
+      historyPendingSnapshot = { state: JSON.parse(historyBaseline), persisted: historyBaselinePersisted };
+    }
+    if (historyTimer !== null) window.clearTimeout(historyTimer);
+    historyTimer = window.setTimeout(flushHistoryCheckpoint, HISTORY_DEBOUNCE_MS);
+    updateHistoryControls();
+  }
+  function restoreHistoryFrame(frame) {
+    const nextState = { ...createDefaultState(), ...cloneSnapshot(frame.state) };
+    try {
+      if (frame.persisted) localStorage.setItem(STORE, JSON.stringify(nextState));
+      else {
+        localStorage.removeItem(STORE);
+        if (localStorage.getItem(STORE) !== null) throw new Error('Не удалось удалить сохранённую тему');
+      }
+    } catch {
+      $c('customizer-status').textContent = 'Не удалось изменить историю: хранилище недоступно. Текущая тема сохранена.';
+      return false;
+    }
+    if (historyTimer !== null) window.clearTimeout(historyTimer);
+    historyTimer = null;
+    historyPendingSnapshot = null;
+    historyRestoring = true;
+    state = nextState;
+    historyBaseline = JSON.stringify(state);
+    historyBaselinePersisted = frame.persisted;
+    try {
+      syncControls();
+      apply();
+      // Applying a restored layout can migrate legacy element IDs; treat that as part of this restore.
+      historyBaseline = JSON.stringify(state);
+      historyBaselinePersisted = persistedStateExists();
+    } finally {
+      historyRestoring = false;
+    }
+    updateHistoryControls();
+    return true;
+  }
+  function undoCustomization() {
+    flushHistoryCheckpoint();
+    const entry = historyUndo.pop();
+    if (!entry) { updateHistoryControls(); return; }
+    historyBytes = Math.max(0, historyBytes - entry.cost);
+    const current = makeHistoryFrame();
+    if (!restoreHistoryFrame(entry.frame)) {
+      historyUndo.push(entry);
+      historyBytes += entry.cost;
+      updateHistoryControls();
+      return;
+    }
+    addHistoryEntry(historyRedo, current);
+    $c('customizer-status').textContent = '↶ Изменение отменено';
+    updateHistoryControls();
+  }
+  function redoCustomization() {
+    flushHistoryCheckpoint();
+    const entry = historyRedo.pop();
+    if (!entry) { updateHistoryControls(); return; }
+    historyBytes = Math.max(0, historyBytes - entry.cost);
+    const current = makeHistoryFrame();
+    if (!restoreHistoryFrame(entry.frame)) {
+      historyRedo.push(entry);
+      historyBytes += entry.cost;
+      updateHistoryControls();
+      return;
+    }
+    addHistoryEntry(historyUndo, current);
+    $c('customizer-status').textContent = '↷ Изменение повторено';
+    updateHistoryControls();
+  }
+
   const save = () => {
     try {
       localStorage.setItem(STORE, JSON.stringify(state));
       $c('customizer-status').textContent = '✓ Изменения сохранены';
+      queueHistoryCheckpoint();
       return true;
     } catch {
       $c('customizer-status').textContent = 'Не удалось сохранить: возможно, изображения слишком большие. Удали часть файлов и попробуй снова.';
@@ -2424,11 +2578,31 @@ ensureNewsLoaded();
   $c('open-customizer')?.addEventListener('click', open);
   $c('customizer-close').addEventListener('click', close);
   document.addEventListener('keydown', e => {
+    const target = e.target instanceof Element ? e.target : null;
+    const typing = !!target && (target.matches('input, textarea, select, [contenteditable="true"]') || target.isContentEditable);
+    const outsideCustomizerModal = !!target?.closest('.account-modal, .welcome-wizard');
+    const shortcut = (e.ctrlKey || e.metaKey) && !e.altKey;
+    const key = String(e.key || '').toLowerCase();
+    const historyContext = modal.classList.contains('open') || edit;
+    if (shortcut && historyContext && !typing && !outsideCustomizerModal) {
+      if (key === 'z' && e.shiftKey && historyRedo.length) {
+        e.preventDefault(); redoCustomization(); return;
+      }
+      if (key === 'z' && !e.shiftKey && (historyUndo.length || historyPendingSnapshot)) {
+        e.preventDefault(); undoCustomization(); return;
+      }
+      if (key === 'y' && historyRedo.length) {
+        e.preventDefault(); redoCustomization(); return;
+      }
+    }
     if (!modal.classList.contains('open')) return;
     if (e.key === 'Escape') { close(); return; }
     trapModalFocus(e, modal.querySelector('[role="dialog"]'));
   });
   modal.addEventListener('click', e => { if (e.target === modal) close(); });
+  $c('customizer-undo').addEventListener('click', undoCustomization);
+  $c('customizer-redo').addEventListener('click', redoCustomization);
+  updateHistoryControls();
   $c('customizer-edit').addEventListener('click', () => setEdit(!edit));
   $c('customizer-file').addEventListener('change', async e => {
     const files = [...(e.target.files || [])];
@@ -2766,6 +2940,7 @@ ensureNewsLoaded();
     }
     selectedLayer = null;
     state = createDefaultState();
+    queueHistoryCheckpoint();
     apply();
     syncControls();
     $c('customizer-status').textContent = '✓ Кастомизация сброшена';

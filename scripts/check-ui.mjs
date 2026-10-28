@@ -269,4 +269,42 @@ check(!widgetActions.includes("document.querySelector('[data-page=\"library\"]')
     && !widgetActions.includes("document.querySelector('[data-page=\"news\"]')"),
   'Custom widget actions must not target nonexistent sidebar buttons');
 
+// Undo/redo is bounded, storage-aware, debounced, and does not steal native text-field shortcuts.
+for (const id of ['customizer-undo', 'customizer-redo']) {
+  check(seen.has(id), 'Customizer history control is missing: #' + id);
+}
+check(html.includes('aria-keyshortcuts="Control+Z Meta+Z"')
+    && html.includes('aria-keyshortcuts="Control+Y Control+Shift+Z Meta+Shift+Z"'),
+  'Undo/redo controls must advertise keyboard shortcuts accessibly');
+check(js.includes('const HISTORY_LIMIT = 30;')
+    && js.includes('const HISTORY_MEMORY_LIMIT = 12 * 1024 * 1024')
+    && js.includes('const HISTORY_DEBOUNCE_MS = 450'),
+  'Customizer history must have explicit count, memory, and debounce bounds');
+check(js.includes('function queueHistoryCheckpoint()')
+    && js.includes('window.setTimeout(flushHistoryCheckpoint, HISTORY_DEBOUNCE_MS)')
+    && js.includes('queueHistoryCheckpoint();'),
+  'Customizer changes must create debounced undo checkpoints');
+check(js.includes('function restoreHistoryFrame(frame)')
+    && js.includes('if (frame.persisted) localStorage.setItem(STORE, JSON.stringify(nextState))')
+    && js.includes("localStorage.removeItem(STORE);")
+    && js.includes('Не удалось изменить историю'),
+  'History restore must preserve the difference between a stored theme and a reset/default theme, and fail safely');
+check(js.includes('function undoCustomization()')
+    && js.includes('function redoCustomization()')
+    && js.includes('addHistoryEntry(historyRedo, current)')
+    && js.includes('addHistoryEntry(historyUndo, current)'),
+  'Undo/redo must move current frames between stacks correctly');
+check(js.includes("key === 'z' && e.shiftKey && historyRedo.length")
+    && js.includes("key === 'z' && !e.shiftKey && (historyUndo.length || historyPendingSnapshot)")
+    && js.includes("key === 'y' && historyRedo.length")
+    && js.includes('!typing && !outsideCustomizerModal'),
+  'Undo/redo shortcuts must support Ctrl/Cmd+Z, Ctrl/Cmd+Y and Shift+Z without hijacking form editing or other modals');
+const historyResetBlock = js.match(/\$c\('customizer-reset'\)\.addEventListener\('click', \(\) => \{([\s\S]*?)\n  \}\);/);
+check(!!historyResetBlock && historyResetBlock[1].includes('localStorage.removeItem(STORE);')
+    && historyResetBlock[1].includes('queueHistoryCheckpoint();')
+    && historyResetBlock[1].indexOf('state = createDefaultState();') < historyResetBlock[1].indexOf('queueHistoryCheckpoint();'),
+  'Resetting the customization must itself be undoable without storing default values unnecessarily');
+check(css.includes('.customizer-history button:disabled{opacity:.38;cursor:not-allowed}'),
+  'History buttons need a visible disabled state');
+
 console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags.');

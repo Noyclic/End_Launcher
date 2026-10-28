@@ -963,3 +963,18 @@ check(js.includes('async function exportInstanceWithDialog(inst)')
     && rustInstances.includes('New-Object System.Windows.Forms.SaveFileDialog')
     && rustInstances.includes('--confirm-overwrite'),
   'Prism instance export must use a native Save As dialog and persist the archive to the selected ZIP path');
+
+
+// Prism/Pinecone pass 43: duplicated instances inherit their launcher presentation metadata.
+check(js.includes('async function duplicatePrismInstance(inst)')
+    && js.includes('savePrismInstanceGroup(created, group)')
+    && js.includes('nextIcons[targetId] = prismInstanceIcons[sourceId]')
+    && js.includes("localStorage.setItem(FAVORITES_STORE, JSON.stringify([...favoriteInstanceIds]))")
+    && (js.match(/await duplicatePrismInstance\(inst\);/g) || []).length >= 3,
+  'Prism duplicate actions must preserve custom group/icon/favorite metadata and share one tested code path');
+check(js.includes("item('⇩ Экспортировать…', async () => {\n      await exportInstanceWithDialog(inst);")
+    && js.includes("item('🧩 Папка модов', async () => {")
+    && js.includes("menu.setAttribute('role', 'menu')")
+    && js.includes("b.setAttribute('role', 'menuitem')")
+    && repairCss.includes(':root[data-ui=\'prism\'] .inst-menu button:focus-visible'),
+  'Prism context menu must use Save As export, expose the selected instance mods folder, and support keyboard focus');

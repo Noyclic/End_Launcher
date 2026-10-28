@@ -1,5 +1,12 @@
 # Changelog
 
+## Prism/Pinecone reference pass 1
+
+- Tuned the Prism-inspired window proportions against the supplied PineconeMC screenshot: compact top strip, narrower right-side action rail, tighter toolbar spacing, and a denser instance shelf.
+- Adjusted instance tile width and icon size to better match the reference while retaining End Launcher-owned artwork and existing handlers.
+- This is a first geometry pass; visual comparison in the running Windows build is still required before calling it close to final.
+
+
 ## UI fidelity pass — layout-specific polish
 
 - Refined the instance library toolbar, card density, active-selection state, and launch controls independently for Prism-inspired, Modrinth-inspired, TL Legacy-inspired, GDLauncher Carbon-inspired, official Minecraft Launcher-inspired, ATLauncher-inspired, and Lunar-inspired layouts.

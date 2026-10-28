@@ -428,7 +428,7 @@ for (const id of layoutFeatureIds) {
 check(js.includes("const FAVORITES_STORE = 'end-launcher-favorite-instances-v1'")
     && js.includes('function toggleFavoriteInstance(id)')
     && js.includes('localStorage.setItem(FAVORITES_STORE, JSON.stringify([...favoriteInstanceIds]))')
-    && js.includes("'is-favorite'"),
+    && js.includes("' is-favorite'"),
   'Favorites must persist by instance ID and be reflected on rendered cards');
 check(js.includes("currentUi === 'lunar' && lunarFavoritesOnly")
     && js.includes('favoriteInstanceIds.has(String(b.id))'),

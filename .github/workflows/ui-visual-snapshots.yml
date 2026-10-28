@@ -183,7 +183,8 @@ jobs:
               addAfterContent: add ? getComputedStyle(add, '::after').content : 'missing',
               sidebarOverflow: !!sidebar && sidebar.scrollWidth > sidebar.clientWidth + 2,
               petDisplay: pet ? getComputedStyle(pet).display : 'missing',
-              p2pClearOfStatus: !!fabRect && !!statusRect && fabRect.bottom <= statusRect.top - 2,
+              p2pInOverflow: fab?.parentElement?.id === 'prism-toolbar-overflow',
+              p2pPosition: fab ? getComputedStyle(fab).position : 'missing',
               documentOverflow: document.documentElement.scrollWidth > window.innerWidth + 2,
             };
           });
@@ -195,7 +196,8 @@ jobs:
               || prismGeometry.addAfterContent !== 'none'
               || prismGeometry.sidebarOverflow
               || prismGeometry.petDisplay !== 'none'
-              || !prismGeometry.p2pClearOfStatus
+              || !prismGeometry.p2pInOverflow
+              || prismGeometry.p2pPosition !== 'static'
               || prismGeometry.documentOverflow) {
             throw new Error('Prism desktop geometry is broken; refusing to publish misleading screenshots.');
           }
@@ -235,7 +237,8 @@ jobs:
               status: rect(status),
               p2pFab: rect(fab),
               petDisplay: pet ? getComputedStyle(pet).display : 'missing',
-              p2pClearOfPlaybar: !!fab && !!playbar && fab.getBoundingClientRect().bottom <= playbar.getBoundingClientRect().top - 2,
+              p2pInOverflow: fab?.parentElement?.id === 'prism-toolbar-overflow',
+              p2pPosition: fab ? getComputedStyle(fab).position : 'missing',
               tileColumn: activeCard ? getComputedStyle(activeCard).flexDirection : 'missing',
               labelBelowIcon: !!iconRect && !!labelRect && labelRect.top >= iconRect.bottom - 1,
               playbarContained: !!playbar && playbar.scrollWidth <= playbar.clientWidth + 2,
@@ -255,7 +258,8 @@ jobs:
               || !prismMobileGeometry.playbarVerticalFit
               || !prismMobileGeometry.layoutContained
               || prismMobileGeometry.petDisplay !== 'none'
-              || !prismMobileGeometry.p2pClearOfPlaybar
+              || !prismMobileGeometry.p2pInOverflow
+              || prismMobileGeometry.p2pPosition !== 'static'
               || !mobilePlaybar || !mobileStatus
               || mobilePlaybar.right > 392
               || mobileStatus.right > 392

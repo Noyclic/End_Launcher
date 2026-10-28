@@ -774,4 +774,27 @@ check(css.includes("/* Prism/Pinecone pass 31")
     && css.includes("background: #91d85a;"),
   'Prism selected tiles should use the green label strip as the primary selection cue and keep the icon border neutral');
 
-console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags.');
+
+
+check(js.includes("const collapsed = !query && prismCollapsedGroups.has(currentGroupLabel);")
+    && js.includes("card.hidden = !query && prismCollapsedGroups.has(currentGroupLabel);"),
+  'Typing a library search must reveal matches within persisted collapsed groups without changing the saved group state');
+
+check(js.includes("aria-keyshortcuts', 'ArrowLeft ArrowRight ArrowUp ArrowDown Home End Enter Space Shift+F10")
+    && js.includes('const movement = {')
+    && js.includes('ArrowLeft: [-1, 0]')
+    && js.includes('ArrowRight: [1, 0]')
+    && js.includes('ArrowUp: [0, -1]')
+    && js.includes('ArrowDown: [0, 1]')
+    && js.includes('const centerX = rect.left + rect.width / 2;')
+    && js.includes("event.key === 'ContextMenu' || (event.key === 'F10' && event.shiftKey)")
+    && js.includes("card.querySelector('.inst-menu button')?.focus();"),
+  'Prism library cards must support spatial arrow navigation, Home/End, focus retention on selection, and keyboard access to instance actions');
+
+check(css.includes('/* Prism/Pinecone pass 33 — keyboard navigation')
+    && css.includes(":root[data-ui='prism'] #library .inst-card:focus-visible")
+    && css.includes('text-overflow: ellipsis;')
+    && css.includes(":root[data-ui='prism'] #library .library-group-heading:focus-visible"),
+  'Prism keyboard focus and long profile labels must stay visible and contained within compact tiles');
+
+console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags, plus keyboard-navigable Prism profile tiles and search-aware collapsed groups.');

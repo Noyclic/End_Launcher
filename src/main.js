@@ -1523,7 +1523,7 @@ function renderLibrary() {
         const heading = mk('div', 'library-group-heading', currentGroupLabel);
         heading.dataset.group = prismLibraryGroup === 'none' ? 'custom' : prismLibraryGroup;
         heading.dataset.groupLabel = currentGroupLabel;
-        const collapsed = prismCollapsedGroups.has(currentGroupLabel);
+        const collapsed = !query && prismCollapsedGroups.has(currentGroupLabel);
         heading.dataset.collapsed = String(collapsed);
         heading.tabIndex = 0;
         heading.setAttribute('role', 'button');
@@ -1547,7 +1547,7 @@ function renderLibrary() {
     card.dataset.loader = String(inst.loader || 'vanilla').toLowerCase();
     if (currentUi === 'prism') {
       card.dataset.groupLabel = currentGroupLabel;
-      card.hidden = prismCollapsedGroups.has(currentGroupLabel);
+      card.hidden = !query && prismCollapsedGroups.has(currentGroupLabel);
     }
     card.dataset.searchText = searchable;
     card.style.setProperty('--i', Math.min(ci++, 10));
@@ -1600,7 +1600,76 @@ function renderLibrary() {
       menu.style.top = `${Math.max(8, Math.min(event.clientY, window.innerHeight - estimatedHeight - 8))}px`;
       menu.style.right = 'auto';
     });
-    card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActive(inst.id); } });
+    if (currentUi === 'prism') {
+      card.setAttribute('aria-keyshortcuts', 'ArrowLeft ArrowRight ArrowUp ArrowDown Home End Enter Space Shift+F10');
+      card.title = 'Стрелки — переход между сборками; Enter/Пробел — выбрать; Shift+F10 — действия';
+    }
+    card.addEventListener('keydown', async (event) => {
+      if (event.target !== card) return;
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        const instanceId = String(inst.id);
+        await setActive(inst.id);
+        if (currentUi === 'prism') {
+          [...box.querySelectorAll('.inst-card')].find((item) => item.dataset.instanceId === instanceId)
+            ?.focus({ preventScroll: true });
+        }
+        return;
+      }
+      if (currentUi !== 'prism') return;
+      if (event.key === 'ContextMenu' || (event.key === 'F10' && event.shiftKey)) {
+        event.preventDefault();
+        const menuWasOpen = !!card.querySelector('.inst-menu');
+        toggleMenu(card, inst);
+        const menu = card.querySelector('.inst-menu');
+        if (menu) menu.querySelector('button')?.focus();
+        else if (menuWasOpen) card.focus({ preventScroll: true });
+        return;
+      }
+      const cards = [...box.querySelectorAll('.inst-card:not(.add):not([hidden])')]
+        .filter((item) => item.getClientRects().length > 0);
+      if (!cards.includes(card)) return;
+      let target = null;
+      if (event.key === 'Home') {
+        target = cards[0];
+      } else if (event.key === 'End') {
+        target = cards.at(-1);
+      } else {
+        const movement = {
+          ArrowLeft: [-1, 0],
+          ArrowRight: [1, 0],
+          ArrowUp: [0, -1],
+          ArrowDown: [0, 1],
+        }[event.key];
+        if (!movement) return;
+        event.preventDefault();
+        const rect = card.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const candidates = cards.filter((item) => item !== card).map((item) => {
+          const candidateRect = item.getBoundingClientRect();
+          return {
+            card: item,
+            dx: candidateRect.left + candidateRect.width / 2 - centerX,
+            dy: candidateRect.top + candidateRect.height / 2 - centerY,
+          };
+        }).filter((item) => movement[0]
+          ? item.dx * movement[0] > 2
+          : item.dy * movement[1] > 2);
+        candidates.sort((a, b) => {
+          const primaryA = movement[0] ? Math.abs(a.dx) : Math.abs(a.dy);
+          const primaryB = movement[0] ? Math.abs(b.dx) : Math.abs(b.dy);
+          const crossA = movement[0] ? Math.abs(a.dy) : Math.abs(a.dx);
+          const crossB = movement[0] ? Math.abs(b.dy) : Math.abs(b.dx);
+          return (primaryA + crossA * 2.25) - (primaryB + crossB * 2.25);
+        });
+        target = candidates[0]?.card || null;
+      }
+      if (target) {
+        event.preventDefault();
+        target.focus();
+      }
+    });
     box.appendChild(card);
   }
   if (!shownCount && instances.length) {

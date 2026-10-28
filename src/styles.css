@@ -6495,3 +6495,23 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   outline: 1px solid #91d85a;
   outline-offset: -2px;
 }
+
+
+/* Prism/Pinecone pass 33 — keyboard navigation: contain dense profile labels and make focus easy to see. */
+:root[data-ui='prism'] #library .inst-card .inst-name {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  overflow-wrap: normal;
+}
+:root[data-ui='prism'] #library .inst-card:focus-visible {
+  outline: 1px solid #91d85a;
+  outline-offset: -2px;
+}
+:root[data-ui='prism'] #library .library-group-heading:focus-visible {
+  outline: 1px solid #91d85a;
+  outline-offset: 1px;
+  background: #2c302b;
+}

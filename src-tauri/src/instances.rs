@@ -392,46 +392,11 @@ pub fn duplicate_instance(id: String) -> Result<Instance, String> {
     Ok(copy)
 }
 
-/// Exports an instance to a user-selected .zip location using the existing safe archive builder.
-#[tauri::command]
-pub fn export_instance_to_path(id: String, path: String) -> Result<String, String> {
-    let raw_path = path.trim();
-    if raw_path.is_empty() {
-        return Err("Путь экспорта не указан".into());
-    }
-    let mut destination = PathBuf::from(raw_path);
-    if !destination.is_absolute() {
-        return Err("Путь экспорта должен быть абсолютным (его должен вернуть системный диалог)".into());
-    }
-    match destination.extension().and_then(|value| value.to_str()) {
-        Some(extension) if extension.eq_ignore_ascii_case("zip") => {}
-        None => { destination.set_extension("zip"); }
-        _ => return Err("Экспорт экземпляра поддерживает ZIP-архивы (*.zip)".into()),
-    }
-    let parent = destination.parent().ok_or("Не удалось определить папку экспорта")?;
-    if !parent.is_dir() {
-        return Err("Папка назначения не существует".into());
-    }
-
-    let generated = PathBuf::from(export_instance(id)?);
-    if generated == destination {
-        return Ok(destination.to_string_lossy().to_string());
-    }
-    std::fs::copy(&generated, &destination).map_err(|error| format!("Не удалось сохранить ZIP в выбранное место: {error}"))?;
-    let _ = std::fs::remove_file(&generated);
-    Ok(destination.to_string_lossy().to_string())
-}
-
-/// Экспортирует сборку в ZIP в config/exports и возвращает полный путь к архиву.
-#[tauri::command]
-pub fn export_instance(id: String) -> Result<String, String> {
-    let inst = get(&id).ok_or("сборка не найдена")?;
-    let source = instance_dir(&id);
-    let export_dir = crate::config::config_dir().join("exports");
-    std::fs::create_dir_all(&export_dir).map_err(err)?;
-    let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_err(err)?.as_millis();
-    let archive_path = export_dir.join(format!("{}-{stamp}.zip", slug(&inst.name)));
-    let file = std::fs::File::create(&archive_path).map_err(err)?;
+/// Builds an instance ZIP directly at the requested path to avoid a second full-size copy.
+fn write_instance_export(id: &str, archive_path: &Path) -> Result<String, String> {
+    get(id).ok_or("сборка не найдена")?;
+    let source = instance_dir(id);
+    let file = std::fs::File::create(archive_path).map_err(err)?;
     let mut zip = zip::ZipWriter::new(file);
     let options = zip::write::FileOptions::default().compression_method(zip::CompressionMethod::Deflated);
     fn add_dir(zip: &mut zip::ZipWriter<std::fs::File>, root: &Path, dir: &Path, options: zip::write::FileOptions) -> Result<(), String> {
@@ -456,6 +421,39 @@ pub fn export_instance(id: String) -> Result<String, String> {
     Ok(archive_path.to_string_lossy().to_string())
 }
 
+/// Экспортирует сборку в ZIP в config/exports и возвращает полный путь к архиву.
+#[tauri::command]
+pub fn export_instance(id: String) -> Result<String, String> {
+    let inst = get(&id).ok_or("сборка не найдена")?;
+    let export_dir = crate::config::config_dir().join("exports");
+    std::fs::create_dir_all(&export_dir).map_err(err)?;
+    let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_err(err)?.as_millis();
+    let archive_path = export_dir.join(format!("{}-{stamp}.zip", slug(&inst.name)));
+    write_instance_export(&id, &archive_path)
+}
+
+/// Exports an instance directly to the path returned by the native Save As dialog.
+#[tauri::command]
+pub fn export_instance_to_path(id: String, path: String) -> Result<String, String> {
+    let raw_path = path.trim();
+    if raw_path.is_empty() {
+        return Err("Путь экспорта не указан".into());
+    }
+    let mut destination = PathBuf::from(raw_path);
+    if !destination.is_absolute() {
+        return Err("Путь экспорта должен быть абсолютным (его должен вернуть системный диалог)".into());
+    }
+    match destination.extension().and_then(|value| value.to_str()) {
+        Some(extension) if extension.eq_ignore_ascii_case("zip") => {}
+        None => { destination.set_extension("zip"); }
+        _ => return Err("Экспорт экземпляра поддерживает ZIP-архивы (*.zip)".into()),
+    }
+    let parent = destination.parent().ok_or("Не удалось определить папку экспорта")?;
+    if !parent.is_dir() {
+        return Err("Папка назначения не существует".into());
+    }
+    write_instance_export(&id, &destination)
+}
 
 #[derive(Serialize)]
 pub struct ImportResult {

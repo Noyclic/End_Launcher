@@ -524,7 +524,7 @@ check(js.includes("currentGroupLabel = prismGroupKey(inst)")
     && js.includes("heading.setAttribute('aria-expanded', String(!collapsed))")
     && js.includes("heading.addEventListener('keydown'")
     && css.includes("#library .library-group-heading[data-collapsed='true']::before")
-    && css.includes("#library .inst-card[hidden]"),
+    && css.includes("#library .inst-card[hidden]")
     && js.includes('PRISM_INSTANCE_GROUPS_STORE')
     && js.includes('function savePrismInstanceGroup')
     && js.includes('function openPrismGroupEditor')

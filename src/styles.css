@@ -4872,3 +4872,77 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
     padding: 8px;
   }
 }
+
+
+/* Prism/Pinecone pass 2 — use a real compact action strip like the Qt reference. */
+:root[data-ui='prism'] .sidebar {
+  position: relative;
+  z-index: 5;
+}
+:root[data-ui='prism'] .sidebar .logo {
+  margin-right: 1px;
+}
+:root[data-ui='prism'] .sidebar #library-add,
+:root[data-ui='prism'] .sidebar #prism-open-folder {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 25px;
+  padding: 4px 8px;
+  border: 1px solid #4a4a4a;
+  border-radius: 3px;
+  background: linear-gradient(#383838, #2c2c2c);
+  color: #e6e6e6;
+  font: 500 10px 'Inter', sans-serif;
+  line-height: 1.15;
+  white-space: nowrap;
+  box-shadow: inset 0 1px #ffffff09;
+  filter: none;
+}
+:root[data-ui='prism'] .sidebar #library-add::before {
+  content: '＋';
+  display: inline-grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  border: 1px solid #596c5b;
+  border-radius: 2px;
+  background: #263e2a;
+  color: #a6e7ae;
+  font-size: 13px;
+  line-height: 1;
+}
+:root[data-ui='prism'] .sidebar #library-add:hover,
+:root[data-ui='prism'] .sidebar #prism-open-folder:hover {
+  border-color: #696969;
+  background: linear-gradient(#414141, #333333);
+}
+:root[data-ui='prism'] .sidebar #prism-open-folder .prism-folder-icon {
+  width: 14px;
+  height: 11px;
+  flex: 0 0 14px;
+}
+:root[data-ui='prism'] .sidebar #prism-open-folder .prism-folder-icon::before {
+  border-color: #6a8b61;
+  background: #4d7744;
+}
+:root[data-ui='prism'] .sidebar .account {
+  margin-left: auto;
+}
+:root[data-ui='prism'] .library-toolbar {
+  border-bottom-color: #3d3d3d;
+}
+:root[data-ui='prism'] .library-toolbar-actions > #library-import,
+:root[data-ui='prism'] .library-toolbar-actions > #layout-extras-toggle,
+:root[data-ui='prism'] .library-toolbar-actions > #library-view {
+  order: initial;
+}
+@media (max-width: 740px) {
+  :root[data-ui='prism'] .sidebar #library-add,
+  :root[data-ui='prism'] .sidebar #prism-open-folder {
+    min-height: 24px;
+    padding: 3px 6px;
+  }
+}

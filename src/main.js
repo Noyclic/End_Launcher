@@ -1722,6 +1722,57 @@ function closeNewInstance() {
   if (createInstanceReturnFocus && typeof createInstanceReturnFocus.focus === 'function') createInstanceReturnFocus.focus();
   createInstanceReturnFocus = null;
 }
+function setPrismCreateMode(mode) {
+  const supported = ['minecraft', 'import', 'modrinth', 'curseforge'];
+  const next = supported.includes(mode) ? mode : 'minecraft';
+  document.querySelectorAll('[data-create-view]').forEach((button) => {
+    const active = button.dataset.createView === next;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-selected', String(active));
+    button.tabIndex = active ? 0 : -1;
+  });
+  document.querySelectorAll('[data-create-panel]').forEach((panel) => {
+    panel.hidden = panel.dataset.createPanel !== next;
+  });
+  const description = {
+    minecraft: 'Создай отдельную установку Minecraft с выбранной версией и загрузчиком.',
+    import: 'Перенеси готовую сборку без ручного копирования файлов.',
+    modrinth: 'Найди модпак в каталоге Modrinth и затем импортируй его архив.',
+    curseforge: 'Найди модпак в каталоге CurseForge и затем импортируй его архив.',
+  }[next];
+  const desc = $('ni-description');
+  if (desc) desc.textContent = description;
+  const create = $('ni-create');
+  if (create) create.textContent = currentUi === 'prism' ? '＋ Создать экземпляр' : '＋ Создать сборку';
+}
+document.querySelectorAll('[data-create-view]').forEach((button) => {
+  button.addEventListener('click', () => setPrismCreateMode(button.dataset.createView));
+  button.addEventListener('keydown', (event) => {
+    if (!['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const tabs = [...document.querySelectorAll('[data-create-view]')];
+    const index = tabs.indexOf(button);
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1
+      : (index + (event.key === 'ArrowDown' ? 1 : -1) + tabs.length) % tabs.length;
+    tabs[next]?.focus();
+    setPrismCreateMode(tabs[next]?.dataset.createView);
+  });
+});
+$('ni-import-start')?.addEventListener('click', () => {
+  closeNewInstance();
+  const guide = $('library-import-guide');
+  if (guide) guide.style.display = 'flex';
+  $('library-import')?.setAttribute('aria-expanded', 'true');
+  showToast('Перетащи .mrpack, ZIP или папку сборки в окно. Импорт начнётся автоматически.');
+});
+$('ni-open-modrinth')?.addEventListener('click', async () => {
+  try { await invoke('open_url', { url: 'https://modrinth.com/modpacks' }); }
+  catch (error) { showToast('Не удалось открыть Modrinth: ' + String(error), false); }
+});
+$('ni-open-curseforge')?.addEventListener('click', async () => {
+  try { await invoke('open_url', { url: 'https://www.curseforge.com/minecraft/search?class=modpacks' }); }
+  catch (error) { showToast('Не удалось открыть CurseForge: ' + String(error), false); }
+});
 async function openNewInstance() {
   const wrapper = $('new-instance');
   createInstanceReturnFocus = document.activeElement;
@@ -1730,7 +1781,10 @@ async function openNewInstance() {
   const dialog = wrapper.querySelector('[role="dialog"]');
   if (currentUi === 'prism') dialog?.setAttribute('aria-modal', 'true');
   else dialog?.removeAttribute('aria-modal');
+  const title = $('create-instance-title');
+  if (title) title.textContent = currentUi === 'prism' ? 'Добавить экземпляр' : 'Новая сборка';
   $('ni-msg').textContent = '';
+  setPrismCreateMode('minecraft');
   const ids = await loadReleases();
   if (!ids.length) $('ni-msg').textContent = 'Не удалось получить список версий (нет интернета?)';
   $('ni-name').focus();
@@ -1773,7 +1827,7 @@ $('ni-create').addEventListener('click', async () => {
     closeNewInstance();
     $('ni-name').value = '';
     await loadInstances();
-    showToast(`Сборка «${name}» создана`);
+    showToast(currentUi === 'prism' ? `Экземпляр «${name}» создан` : `Сборка «${name}» создана`);
   } catch (e) {
     $('ni-msg').textContent = String(e);
   } finally {
@@ -2419,10 +2473,63 @@ document.addEventListener('keydown', (event) => {
 });
 window.addEventListener('resize', () => { closePrismFoldersMenu(); closePrismOverflow(); });
 
+let prismSettingsActiveTab = 'general';
+function syncPrismSettingsPage(mode) {
+  const page = $('page-settings');
+  if (!page) return;
+  const prism = mode === 'prism';
+  const tabs = $('prism-settings-tabs');
+  if (tabs) tabs.hidden = !prism;
+  const title = page.querySelector(':scope > h1');
+  if (title) title.textContent = prism ? 'Параметры' : 'НАСТРОЙКИ';
+
+  let group = 'appearance';
+  for (const child of [...page.children]) {
+    if (child.id === 'prism-settings-tabs' || child.tagName === 'H1') continue;
+    if (child.tagName === 'H2') {
+      const label = child.textContent.toLocaleUpperCase();
+      if (label.includes('ИГРОК') || label.includes('ОФЛАЙН')) group = 'general';
+      else if (label.includes('JAVA')) group = 'java';
+      else if (label.includes('БЕЗОПАСНОСТЬ') || label.includes('END SHIELD')) group = 'security';
+      else if (label.includes('ДИАГНОСТИКА')) group = 'diagnostics';
+      else if (label.includes('ИИ-ПОМОЩНИК') || label.includes('ЭНДЕР-МОЗГ')) group = 'ai';
+      else group = 'appearance';
+    }
+    if (child.id === 'settings-ai-tab' || child.id === 'api-key' || child.id === 'key-status') group = 'ai';
+    if (child.classList.contains('customize-launcher-card') || child.id === 'catpack-settings') group = 'appearance';
+    child.dataset.prismSettingsSection = group;
+    child.hidden = prism && group !== prismSettingsActiveTab;
+  }
+  tabs?.querySelectorAll('[data-prism-settings-tab]').forEach((button) => {
+    const active = button.dataset.prismSettingsTab === prismSettingsActiveTab;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-selected', String(active));
+    button.tabIndex = active ? 0 : -1;
+  });
+}
+document.querySelectorAll('[data-prism-settings-tab]').forEach((button) => {
+  button.addEventListener('click', () => {
+    prismSettingsActiveTab = button.dataset.prismSettingsTab || 'general';
+    syncPrismSettingsPage(currentUi);
+  });
+  button.addEventListener('keydown', (event) => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const tabs = [...document.querySelectorAll('[data-prism-settings-tab]')];
+    const index = tabs.indexOf(button);
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1
+      : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+    prismSettingsActiveTab = tabs[next]?.dataset.prismSettingsTab || 'general';
+    syncPrismSettingsPage(currentUi);
+    tabs[next]?.focus();
+  });
+});
+
 function applyUi(mode) {
   if (!UI_STYLES[mode]) mode = 'end';
   currentUi = mode;
   root.dataset.ui = mode;
+  syncPrismSettingsPage(mode);
   syncPrismLogoNavigation(mode);
   syncPrismOverflow(mode);
   syncPrismToolbar(mode);

@@ -30,6 +30,7 @@
           <button id="nav-settings-button" class="nav-btn" data-page="settings" title="Настройки"><span class="ico">⚙</span><span class="lbl">Настройки</span></button>
         </nav>
         <button id="prism-help" class="prism-header-action" type="button" title="Открыть справку End Launcher">Справка</button>
+        <button id="prism-cat-toggle" class="prism-header-action" type="button" aria-pressed="false" title="Показать или скрыть котика на фоне">🐈 Котик</button>
         <button id="prism-update" class="prism-header-action" type="button" title="Проверить новую версию End Launcher">Обновить…</button>
         <div class="account" id="account-box" title="Аккаунт" role="button" tabindex="0" aria-haspopup="dialog" aria-controls="account-modal">
           <div class="avatar" id="avatar">E</div>
@@ -318,6 +319,21 @@
         <section class="page" id="page-settings">
           <h1>НАСТРОЙКИ</h1>
           <div class="customize-launcher-card"><div><strong>🎨 Измените на свой вкус</strong><p class="dim small">Перетаскивайте элементы, добавляйте GIF, картинки, мемы, фон и эффекты.</p></div><button id="open-customizer" class="big-btn">ОТКРЫТЬ КАСТОМИЗАЦИЮ</button></div>
+          <section class="catpack-settings panel" id="catpack-settings" aria-labelledby="catpack-heading">
+            <div class="catpack-heading-row"><div><h2 id="catpack-heading" class="mono dim">КОТИК НА ФОНЕ · CATPACK</h2><p class="dim small">Котик появляется за списком сборок, как в Prism Launcher. Поддерживаются PNG, JPG, WebP и анимированные GIF.</p></div><button id="catpack-toggle" class="ghost" type="button" aria-pressed="false">Показать котика</button></div>
+            <div class="row catpack-controls">
+              <label>Набор котиков <select id="catpack-select" aria-label="Выбрать котика"><option value="">Котики не добавлены</option></select></label>
+              <label>Прозрачность <input id="catpack-opacity" type="range" min="5" max="70" value="24" /></label>
+              <label>Размещение <select id="catpack-fit"><option value="contain">Вписать</option><option value="cover">Заполнить</option><option value="stretch">Растянуть</option></select></label>
+            </div>
+            <div class="row catpack-controls">
+              <button id="catpack-upload" class="ghost" type="button">＋ Добавить котика / GIF</button>
+              <button id="catpack-random" class="ghost" type="button">⤨ Случайный котик</button>
+              <button id="catpack-remove" class="ghost" type="button">× Удалить выбранный</button>
+              <input id="catpack-files" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/avif" multiple hidden />
+            </div>
+            <p id="catpack-status" class="mono dim small" aria-live="polite">Изображения сохраняются локально на этом компьютере.</p>
+          </section>
           <h2 class="mono dim">ИГРОК (ОФЛАЙН)</h2>
           <div class="row">
             <input id="nickname" placeholder="Ник (3–16, латиница)" maxlength="16" />

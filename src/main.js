@@ -2019,6 +2019,110 @@ function renderUiCards() {
   }
 }
 
+
+/* Prism/Pinecone CatPack — local background cat images/GIFs, inspired by Prism's user-facing feature. */
+(() => {
+  const STORE = 'el-prism-catpack-v1';
+  const $cat = (id) => document.getElementById(id);
+  const wrap = $cat('library-wrap');
+  const settingsPanel = $cat('catpack-settings');
+  if (!wrap || !settingsPanel) return;
+  let state = { enabled: false, items: [], active: '', opacity: 24, fit: 'contain' };
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORE) || '{}');
+    state = { ...state, ...saved, items: Array.isArray(saved.items) ? saved.items.filter(x => x && typeof x.id === 'string' && typeof x.data === 'string') : [] };
+  } catch {}
+  const layer = document.createElement('div');
+  layer.id = 'prism-cat-background';
+  layer.className = 'prism-cat-background';
+  layer.setAttribute('aria-hidden', 'true');
+  const img = document.createElement('img');
+  img.alt = '';
+  layer.appendChild(img);
+  wrap.prepend(layer);
+  const save = () => {
+    try {
+      localStorage.setItem(STORE, JSON.stringify(state));
+      return true;
+    } catch {
+      $cat('catpack-status').textContent = 'Не удалось сохранить: хранилище заполнено. Попробуйте GIF/картинку поменьше.';
+      return false;
+    }
+  };
+  function render() {
+    const selected = state.items.find(item => item.id === state.active) || state.items[0] || null;
+    if (selected && selected.id !== state.active) state.active = selected.id;
+    layer.hidden = !(state.enabled && selected);
+    img.src = selected ? selected.data : '';
+    img.style.opacity = String(Math.max(5, Math.min(70, Number(state.opacity) || 24)) / 100);
+    img.style.objectFit = ['contain','cover','fill'].includes(state.fit) ? state.fit : 'contain';
+    const select = $cat('catpack-select');
+    select.replaceChildren();
+    if (!state.items.length) select.add(new Option('Котики не добавлены', ''));
+    for (const item of state.items) select.add(new Option(item.name, item.id));
+    select.value = selected?.id || '';
+    $cat('catpack-opacity').value = String(state.opacity);
+    $cat('catpack-fit').value = state.fit === 'fill' ? 'stretch' : state.fit;
+    for (const id of ['catpack-toggle','prism-cat-toggle']) {
+      const button = $cat(id);
+      if (!button) continue;
+      button.setAttribute('aria-pressed', String(state.enabled));
+      if (id === 'catpack-toggle') button.textContent = state.enabled ? 'Скрыть котика' : 'Показать котика';
+      else button.textContent = state.enabled ? '🐈 Котик: вкл.' : '🐈 Котик';
+    }
+    $cat('catpack-random').disabled = state.items.length < 2;
+    $cat('catpack-remove').disabled = !selected;
+    $cat('catpack-status').textContent = state.items.length
+      ? 'Котиков: ' + state.items.length + ' · выбран: ' + selected.name + (state.enabled ? ' · отображается на фоне' : ' · скрыт')
+      : 'Добавьте PNG/JPG/WebP или GIF. Файл хранится только локально.';
+  }
+  function toggle() { state.enabled = !state.enabled; save(); render(); }
+  $cat('catpack-toggle').addEventListener('click', toggle);
+  $cat('prism-cat-toggle')?.addEventListener('click', toggle);
+  $cat('catpack-select').addEventListener('change', event => { state.active = event.target.value; save(); render(); });
+  $cat('catpack-opacity').addEventListener('input', event => { state.opacity = Number(event.target.value); render(); save(); });
+  $cat('catpack-fit').addEventListener('change', event => { state.fit = event.target.value; render(); save(); });
+  $cat('catpack-upload').addEventListener('click', () => $cat('catpack-files').click());
+  $cat('catpack-files').addEventListener('change', async event => {
+    const files = [...(event.target.files || [])];
+    event.target.value = '';
+    for (const file of files) {
+      if (!/^image\/(png|jpeg|webp|gif|avif)$/.test(file.type)) continue;
+      if (file.size > 1_200_000) {
+        $cat('catpack-status').textContent = 'Файл «' + file.name + '» больше 1,2 МБ — пропущен, чтобы не переполнить локальное хранилище.';
+        continue;
+      }
+      try {
+        const data = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        const id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random());
+        state.items.push({ id, name: file.name.slice(0, 100), data });
+        state.active = id;
+        if (!save()) {
+          state.items = state.items.filter(item => item.id !== id);
+          break;
+        }
+      } catch { $cat('catpack-status').textContent = 'Не удалось прочитать файл «' + file.name + '».'; }
+    }
+    render();
+  });
+  $cat('catpack-random').addEventListener('click', () => {
+    const choices = state.items.filter(item => item.id !== state.active);
+    if (choices.length) state.active = choices[Math.floor(Math.random() * choices.length)].id;
+    save(); render();
+  });
+  $cat('catpack-remove').addEventListener('click', () => {
+    state.items = state.items.filter(item => item.id !== state.active);
+    state.active = state.items[0]?.id || '';
+    save(); render();
+  });
+  render();
+})();
+
 // ник в нижней панели TL: в офлайне редактируется, с аккаунтом показывает имя аккаунта
 function syncTlNick() {
   const el = $('tl-nick');

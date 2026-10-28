@@ -1,5 +1,12 @@
 # Changelog
 
+## Prism/Pinecone reference pass 8
+
+- Reworked the bottom status bar to match the reference's two-row rhythm more closely: project news/update label and a working “Больше новостей” action above; selected instance details and launch state below.
+- The news link opens the End Launcher releases page and reports open failures rather than acting as a decorative control.
+- Added a regression assertion for the link destination, styling, and active-instance field.
+
+
 ## Prism/Pinecone reference pass 7
 
 - Aligned the floating P2P control's right offset with the narrowed 164 px desktop action rail (and 156 px compact breakpoint) so it no longer reserves space for the old 264 px panel.

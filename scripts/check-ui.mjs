@@ -693,4 +693,19 @@ check(css.includes("/* Prism/Pinecone pass 15")
       && css.includes("border-color: transparent;"),
   'Prism account selector should have a quiet background, a visible dropdown cue, and overflow aligned in the free toolbar gap');
 
+
+check(js.includes("const PRISM_PLAY_STATS_STORE = 'end-launcher-prism-play-stats-v1'")
+    && js.includes('function formatPrismDuration(value)')
+    && js.includes('function formatPrismLastPlayed(value)')
+    && js.includes('function finishPrismPlaySession()')
+    && js.includes("finishPrismPlaySession();")
+    && js.includes("prismActivePlaySession = { instanceId: String(inst.id), startedAt: Date.now() }")
+    && js.includes('renderPrismFooterStats(selected)')
+    && css.includes('/* Prism/Pinecone pass 27')
+    && css.includes('#prism-status-details')
+    && css.includes('#prism-status-active')
+    && html.includes('id="prism-status-details"')
+    && html.includes('id="prism-status-active"'),
+  'Prism footer must persist per-instance last-played time and completed session duration, and keep total-time text readable in the status row');
+
 console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags.');

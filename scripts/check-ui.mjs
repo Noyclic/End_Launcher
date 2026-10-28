@@ -788,7 +788,7 @@ check(js.includes("aria-keyshortcuts', 'ArrowLeft ArrowRight ArrowUp ArrowDown H
     && js.includes('ArrowDown: [0, 1]')
     && js.includes('const centerX = rect.left + rect.width / 2;')
     && js.includes("event.key === 'ContextMenu' || (event.key === 'F10' && event.shiftKey)")
-    && js.includes("card.querySelector('.inst-menu button')?.focus();"),
+    && js.includes("menu.querySelector('button')?.focus();"),
   'Prism library cards must support spatial arrow navigation, Home/End, focus retention on selection, and keyboard access to instance actions');
 
 check(css.includes('/* Prism/Pinecone pass 33 — keyboard navigation')

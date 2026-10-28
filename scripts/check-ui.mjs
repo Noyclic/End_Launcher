@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const [html, js, css, rustConfig, rustInstances, rustMain, rustJava] = await Promise.all([
+const [html, js, css, repairCss, rustConfig, rustInstances, rustMain, rustJava] = await Promise.all([
   readFile(new URL('../src/index.html', import.meta.url), 'utf8'),
   readFile(new URL('../src/main.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/styles.css', import.meta.url), 'utf8'),
+  readFile(new URL('../src/prism-layout-fixes.css', import.meta.url), 'utf8'),
   readFile(new URL('../src-tauri/src/config.rs', import.meta.url), 'utf8'),
   readFile(new URL('../src-tauri/src/instances.rs', import.meta.url), 'utf8'),
   readFile(new URL('../src-tauri/src/main.rs', import.meta.url), 'utf8'),
@@ -852,5 +853,18 @@ check(js.includes("Загрузить своё фото…")
     && css.includes("/* Prism/Pinecone pass 38")
     && css.includes("[data-action='icon'] {\n  display: flex !important;"),
   'Prism must expose a custom-photo upload action and keep its quick-action buttons consistently sized');
+
+
+// Prism/Pinecone visual repair: include the last-loaded scoped stylesheet in regression checks.
+check(html.includes('<link rel="stylesheet" href="prism-layout-fixes.css" />')
+    && repairCss.includes('#library.grid:not(.list-view) .inst-card:not(.add)')
+    && repairCss.includes('display: flex !important;')
+    && repairCss.includes('flex-direction: column !important;')
+    && repairCss.includes('background: #91d85a;')
+    && repairCss.includes('font-size: 10px !important;')
+    && repairCss.includes('content: none !important;')
+    && repairCss.includes('max-height: 36vh;')
+    && repairCss.includes('grid-template-columns: repeat(2, minmax(0, 1fr));'),
+  'Prism repair stylesheet must be loaded last and preserve icon-first tiles, one add label, and a contained mobile launch panel');
 
 console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags, plus keyboard-navigable Prism profile tiles and search-aware collapsed groups.');

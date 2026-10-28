@@ -888,8 +888,8 @@ check(html.includes('id="prism-settings-tabs"')
     && html.includes('data-prism-settings-tab="java"')
     && js.includes('function syncPrismSettingsPage(mode)')
     && js.includes('prismSettingsActiveTab')
-    && css.includes('.prism-settings-tabs button.active')
-    && css.includes('#page-settings [data-prism-settings-section][hidden]'),
+    && repairCss.includes('.prism-settings-tabs button.active')
+    && repairCss.includes('#page-settings [data-prism-settings-section][hidden]'),
   'Prism Parameters must use its own working tabbed view while restoring the classic settings page in other layouts');
 check(html.includes('data-create-view="minecraft"')
     && html.includes('data-create-view="import"')
@@ -902,9 +902,9 @@ check(html.includes('data-create-view="minecraft"')
     && js.includes("url: 'https://modrinth.com/modpacks'")
     && js.includes("url: 'https://www.curseforge.com/minecraft/search?class=modpacks'"),
   'Prism Add Instance wizard must expose working native creation/import flows and clear provider catalog actions');
-check(css.includes('/* Prism/Pinecone pass 39')
-    && css.includes('.create-instance-layout')
-    && css.includes('.create-instance-sidebar')
-    && css.includes('.create-provider-card')
-    && css.includes('@media (max-width: 620px)'),
+check(repairCss.includes('/* Prism/Pinecone pass 39')
+    && repairCss.includes('.create-instance-layout')
+    && repairCss.includes('.create-instance-sidebar')
+    && repairCss.includes('.create-provider-card')
+    && repairCss.includes('@media (max-width: 620px)'),
   'Prism create-instance wizard must have a compact left command rail, provider/import panels and a narrow-window fallback');

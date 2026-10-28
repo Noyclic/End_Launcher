@@ -1051,6 +1051,11 @@ function applyUi(mode) {
   if (banner) banner.hidden = !['modrinth', 'gd', 'official', 'lunar'].includes(mode);
   const toolbar = $('library-toolbar');
   if (toolbar) toolbar.dataset.mode = mode;
+  const playHeading = $('page-play')?.querySelector('h1 .not-classic');
+  if (playHeading) playHeading.textContent = ({
+    end: 'БИБЛИОТЕКА', modrinth: 'Главная', prism: 'Instances', tl: 'Minecraft',
+    gd: 'Library', official: 'Minecraft: Java Edition', at: 'Instances', lunar: 'Play',
+  })[mode] || 'БИБЛИОТЕКА';
   renderUiCards();
   syncTlNick();
   syncLibraryChrome();

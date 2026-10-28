@@ -386,6 +386,16 @@
 - Added regression checks for secondary-page coverage, dialogs, form controls and backdrop suppression.
 
 
+
+### UI fidelity pass 40 — Prism, Official, ATLauncher and Lunar refinements
+
+- Tightened Prism's instance shelf into compact icon tiles and reduced visual noise by revealing secondary card actions on hover or keyboard focus.
+- Clarified the official-launcher-inspired workspace with a Java Edition heading, flat installation rows and a distinct green selected state.
+- Added ATLauncher's large focused-instance row above compact instance entries, using original CSS artwork rather than copied instance art.
+- Refined the Lunar-inspired header and active-instance presentation with its own purple gradient hierarchy.
+- Made the main workspace heading follow the selected skin so its visual language no longer inherits one generic page title.
+- Added UI regression checks for the unique structures and states.
+
 ### UI fidelity pass 39 — launcher-specific home composition
 
 - Reworked GDLauncher-inspired mode around the horizontal app header, featured library banner, wider instance gallery and bottom play strip seen in the current Carbon layout.

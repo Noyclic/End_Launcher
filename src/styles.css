@@ -3395,3 +3395,254 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 }
 
 /* Real launch buttons in the featured banner must work just like the main Play button. */
+
+
+/* UI fidelity pass 40 — refine the remaining reference-inspired home screens. */
+
+/* Prism: prioritize the instance shelf; the action rail remains separate and always visible. */
+:root[data-ui='prism'] #page-play > h1 { display:none; }
+:root[data-ui='prism'] #page-play .library-toolbar {
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:10px;
+  padding:0 0 10px;
+  margin:0 0 10px;
+  border-bottom:1px solid #41464b;
+}
+:root[data-ui='prism'] #page-play .library-toolbar-heading { display:none; }
+:root[data-ui='prism'] #page-play .library-toolbar-actions { flex:1 1 auto; gap:5px; }
+:root[data-ui='prism'] #page-play .library-search { flex:1 1 220px; min-width:130px; }
+:root[data-ui='prism'] #page-play .library-toolbar button { padding:7px 10px; }
+:root[data-ui='prism'] #library {
+  grid-template-columns:repeat(auto-fill,minmax(112px,1fr));
+  align-content:start;
+  gap:5px;
+  margin-top:8px;
+}
+:root[data-ui='prism'] #library .inst-card {
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  gap:5px;
+  min-height:110px;
+  padding:8px 6px 7px;
+  border:1px solid #3f4449;
+  border-radius:3px;
+  background:#2b2f33;
+  box-shadow:none;
+  text-align:center;
+}
+:root[data-ui='prism'] #library .inst-icon {
+  flex:0 0 auto;
+  width:46px;
+  height:46px;
+  margin:2px auto 1px;
+  border-radius:4px;
+  font-size:17px;
+  background:#42494f;
+}
+:root[data-ui='prism'] #library .inst-name {
+  width:100%;
+  font-size:10px;
+  line-height:1.3;
+  overflow-wrap:anywhere;
+  text-align:center;
+}
+:root[data-ui='prism'] #library .chip {
+  align-self:center;
+  max-width:100%;
+  padding:2px 4px;
+  border-radius:2px;
+  font-size:8px;
+  line-height:1.3;
+  overflow-wrap:anywhere;
+}
+:root[data-ui='prism'] #library .inst-play,
+:root[data-ui='prism'] #library .inst-more {
+  position:absolute;
+  z-index:2;
+  top:5px;
+  width:22px;
+  height:22px;
+  padding:0;
+  border:1px solid #555d63;
+  border-radius:3px;
+  background:#282d31;
+  box-shadow:none;
+  font-size:11px;
+  opacity:0;
+  pointer-events:none;
+}
+:root[data-ui='prism'] #library .inst-play { right:31px; }
+:root[data-ui='prism'] #library .inst-more { right:5px; }
+:root[data-ui='prism'] #library .inst-card:hover .inst-play,
+:root[data-ui='prism'] #library .inst-card:hover .inst-more,
+:root[data-ui='prism'] #library .inst-card:focus-within .inst-play,
+:root[data-ui='prism'] #library .inst-card:focus-within .inst-more {
+  opacity:1;
+  pointer-events:auto;
+}
+:root[data-ui='prism'] #library .inst-card.active {
+  border-color:#4ea9d7;
+  background:#303a40;
+  box-shadow:inset 0 0 0 1px #4ea9d733;
+}
+:root[data-ui='prism'] #library .inst-card.add {
+  justify-content:center;
+  min-height:110px;
+  border-style:dashed;
+}
+:root[data-ui='prism'] #library .inst-card.add .inst-icon {
+  width:34px;
+  height:34px;
+  font-size:15px;
+}
+@media (hover:none) {
+  :root[data-ui='prism'] #library .inst-play,
+  :root[data-ui='prism'] #library .inst-more { opacity:1; pointer-events:auto; }
+}
+@media (max-width:620px) {
+  :root[data-ui='prism'] #library { grid-template-columns:repeat(auto-fill,minmax(94px,1fr)); }
+  :root[data-ui='prism'] #page-play .library-toolbar-actions { align-items:stretch; }
+  :root[data-ui='prism'] #page-play .library-search { flex-basis:100%; }
+}
+
+/* Official Minecraft Launcher: clearly named Java workspace, flat install rows and green play states. */
+:root[data-ui='official'] #page-play > h1 {
+  display:block;
+  margin:0 0 18px;
+  font-size:clamp(20px,2vw,26px);
+  letter-spacing:-.02em;
+  font-weight:650;
+  text-transform:none;
+}
+:root[data-ui='official'] #page-play .launcher-banner-kicker { letter-spacing:.08em; }
+:root[data-ui='official'] #page-play .library-toolbar {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 0 12px;
+  border-bottom:1px solid #374139;
+}
+:root[data-ui='official'] #page-play .library-toolbar-title {
+  font-size:15px;
+  font-weight:650;
+}
+:root[data-ui='official'] #page-play .library-search input {
+  background:#171d19;
+  border-color:#384139;
+  font-family:'Inter',sans-serif;
+}
+:root[data-ui='official'] #library .inst-card {
+  min-height:76px;
+  border-radius:5px;
+  background:#202621;
+  box-shadow:none;
+}
+:root[data-ui='official'] #library .inst-card.active {
+  border-left:3px solid #76b951;
+  background:#26352a;
+}
+:root[data-ui='official'] #library .inst-play {
+  min-height:29px;
+  background:#70b849;
+  color:#fff;
+  font-weight:750;
+}
+:root[data-ui='official'] #library .inst-card.add {
+  border-style:solid;
+  border-color:#374139;
+  background:#1c211e;
+  justify-content:flex-start;
+}
+:root[data-ui='official'] #page-play .launcher-banner-play { background:#70b849; color:#fff; }
+
+/* ATLauncher: a large focused instance treatment over compact rows, matching the old instance manager. */
+:root[data-ui='at'] #page-play .library-toolbar {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 9px;
+  margin-bottom:7px;
+  border:1px solid #404447;
+  border-radius:3px;
+  background:#26292b;
+}
+:root[data-ui='at'] #page-play .library-toolbar-heading { flex:0 0 auto; }
+:root[data-ui='at'] #page-play .library-toolbar-actions { flex:1 1 auto; gap:5px; justify-content:flex-end; }
+:root[data-ui='at'] #page-play .library-search { flex:1 1 150px; min-width:100px; }
+:root[data-ui='at'] #library .inst-card.active {
+  display:grid;
+  grid-template-columns:164px minmax(0,1fr) auto;
+  grid-template-rows:minmax(26px,auto) auto;
+  align-items:center;
+  gap:6px 12px;
+  min-height:122px;
+  padding:10px;
+  border:1px solid #63aeca;
+  border-radius:3px;
+  background:#2b3337;
+  box-shadow:inset 3px 0 #63aeca;
+}
+:root[data-ui='at'] #library .inst-card.active .inst-icon {
+  grid-column:1;
+  grid-row:1 / span 2;
+  width:152px;
+  height:96px;
+  border-radius:2px;
+  background:
+    linear-gradient(180deg,#1b2b30aa,#1b2b30aa),
+    linear-gradient(135deg,#466d79,#263c42 48%,#1c282c);
+  font-size:28px;
+}
+:root[data-ui='at'] #library .inst-card.active .inst-name { grid-column:2; grid-row:1; font-size:14px; }
+:root[data-ui='at'] #library .inst-card.active .chip { grid-column:2; grid-row:2; font-size:10px; }
+:root[data-ui='at'] #library .inst-card.active .inst-play { grid-column:3; grid-row:1; min-width:66px; min-height:30px; background:#365c69; }
+:root[data-ui='at'] #library .inst-card.active .inst-more { grid-column:3; grid-row:2; min-width:66px; min-height:30px; background:#303538; }
+:root[data-ui='at'] #library .inst-card.add { min-height:44px; }
+@media (max-width:620px) {
+  :root[data-ui='at'] #page-play .library-toolbar { align-items:stretch; flex-wrap:wrap; }
+  :root[data-ui='at'] #page-play .library-toolbar-actions { justify-content:flex-start; }
+  :root[data-ui='at'] #library .inst-card.active { grid-template-columns:74px minmax(0,1fr) auto; gap:5px 8px; min-height:84px; }
+  :root[data-ui='at'] #library .inst-card.active .inst-icon { width:66px; height:62px; }
+}
+
+/* Lunar: the active profile becomes the featured card; artwork remains original CSS gradients. */
+:root[data-ui='lunar'] #page-play > h1 {
+  display:block;
+  margin:0 0 12px;
+  font-size:24px;
+  letter-spacing:-.03em;
+  text-transform:none;
+}
+:root[data-ui='lunar'] #page-play .launcher-banner {
+  min-height:136px;
+  border:1px solid #464165;
+  background:
+    linear-gradient(90deg,#1b1a2ab0,#1b1a2a28),
+    radial-gradient(ellipse at 85% 8%,#a79cff88,transparent 43%),
+    linear-gradient(125deg,#373353,#25243c 55%,#1d1d2b);
+}
+:root[data-ui='lunar'] #page-play .launcher-banner h2 { font-size:clamp(23px,2.5vw,30px); }
+:root[data-ui='lunar'] #page-play .launcher-banner-play {
+  border:1px solid #c3bbff55;
+  background:linear-gradient(110deg,#8983ff,#ab78ff);
+  color:#11121a;
+}
+:root[data-ui='lunar'] #page-play .library-toolbar {
+  padding:7px 0 10px;
+  border-bottom:1px solid #35344c;
+}
+:root[data-ui='lunar'] #page-play .library-toolbar-title { font-size:16px; }
+:root[data-ui='lunar'] #library .inst-card.active {
+  border-color:#aaa3ff;
+  box-shadow:inset 0 0 0 1px #aaa3ff55,0 6px 24px #0005;
+}
+:root[data-ui='lunar'] #library .inst-card.add { background:#1c1b2d; }
+@media (max-width:620px) {
+  :root[data-ui='lunar'] #page-play .launcher-banner { min-height:112px; padding:14px; }
+  :root[data-ui='lunar'] #page-play .launcher-banner h2 { font-size:20px; }
+}

@@ -387,4 +387,27 @@ check(css.includes(":root[data-ui='gd'] .nav-btn.active")
     && css.includes(":root[data-ui='prism'] #library .inst-card"),
   'Major launcher skins must retain separate application-level composition rules');
 
+
+check(js.includes("playHeading.textContent = ({")
+    && js.includes("official: 'Minecraft: Java Edition'")
+    && js.includes("prism: 'Instances'")
+    && js.includes("lunar: 'Play'"),
+  'The main workspace heading must follow the selected layout rather than retaining one generic label');
+check(css.includes(":root[data-ui='prism'] #library {")
+    && css.includes("grid-template-columns:repeat(auto-fill,minmax(112px,1fr))")
+    && css.includes(":root[data-ui='prism'] #library .inst-card:hover .inst-play"),
+  'Prism needs compact icon tiles with action buttons that reveal on hover and keyboard focus');
+check(css.includes(":root[data-ui='official'] #page-play > h1")
+    && css.includes("official") === true
+    && css.includes(":root[data-ui='official'] #library .inst-card.active"),
+  'Official-inspired mode must keep the Java edition heading and selected-installation state distinct');
+check(css.includes(":root[data-ui='at'] #library .inst-card.active")
+    && css.includes("grid-template-columns:164px minmax(0,1fr) auto")
+    && css.includes(":root[data-ui='at'] #library .inst-card.active .inst-icon"),
+  'ATLauncher must give the focused installation a large preview area while retaining compact secondary rows');
+check(css.includes(":root[data-ui='lunar'] #page-play .launcher-banner")
+    && css.includes(":root[data-ui='lunar'] #library .inst-card.active")
+    && css.includes("radial-gradient(ellipse at 85% 8%"),
+  'Lunar-inspired mode must distinguish the featured active profile from the regular version gallery');
+
 console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags.');

@@ -312,9 +312,36 @@
   }
 }
 
-/* CatPack remains available in Settings without adding a non-reference button to Prism's toolbar. */
-:root[data-ui='prism'] .sidebar #prism-cat-toggle {
-  display: none !important;
+/* Keep the Prism toolbar buttons on one compact, consistent height. */
+:root[data-ui='prism'] .sidebar .library-toolbar-actions > button {
+  min-height: 28px !important;
+  height: 28px !important;
+  box-sizing: border-box;
+  padding: 4px 8px !important;
+  font: 500 10px/1 'Inter', sans-serif !important;
+  vertical-align: middle;
+}
+/* The cat toggle lives in the existing overflow menu so it is always reachable. */
+:root[data-ui='prism'] .prism-toolbar-overflow #prism-cat-toggle {
+  display: inline-flex !important;
+  position: static !important;
+  inset: auto !important;
+  width: auto !important;
+  min-width: 64px;
+  max-width: 100%;
+  height: 27px !important;
+  min-height: 27px !important;
+  margin: 0;
+  padding: 4px 8px !important;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #484848;
+  border-radius: 3px;
+  background: #303030;
+  color: #dedede;
+  box-shadow: none;
+  font: 500 10px/1.15 'Inter', sans-serif !important;
+  white-space: nowrap;
 }
 
 

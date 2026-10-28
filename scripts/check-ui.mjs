@@ -585,14 +585,16 @@ check(html.includes('id="nav-settings-button" class="nav-btn" data-page="setting
 check(html.includes('aria-controls="prism-folders-menu"')
     && html.includes('Папки ▾')
     && js.includes('function ensurePrismFoldersMenu(sidebar)')
-    && js.includes("await invoke('open_instance_folder', { id: selected.id })")
+    && js.includes("await invoke('open_instances_folder')")
     && js.includes("await invoke('open_mods_folder')")
     && js.includes("await invoke('open_launcher_folder')")
+    && rustInstances.includes("pub fn open_instances_folder()")
+    && rustMain.includes("instances::open_instances_folder,")
     && js.includes("event.key !== 'Escape'")
     && js.includes("closePrismFoldersMenu();\n      if (!prismOverflowPanel) return;")
     && js.includes("if (prismOverflowPanel && !prismOverflowPanel.hidden)")
     && css.includes('.prism-folders-menu-item:focus-visible'),
-  'Prism toolbar Folders menu must expose working instance/mods/launcher folder actions and keyboard dismissal');
+  'Prism Folders menu must open launcher root, central instances, and shared mods directories with keyboard dismissal');
 
 check(js.indexOf("addAction('group', '▤ Изменить группу…'") < js.indexOf("addAction('folder', '📂 Папка'")
     && js.indexOf("addAction('folder', '📂 Папка'") < js.indexOf("addAction('export', '⇩ Экспортировать…'"),

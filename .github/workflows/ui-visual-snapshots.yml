@@ -172,12 +172,14 @@ jobs:
             const cardRect = card?.getBoundingClientRect();
             const iconRect = icon?.getBoundingClientRect();
             const labelRect = label?.getBoundingClientRect();
+            const labelLineClamp = label ? getComputedStyle(label).webkitLineClamp : 'missing';
             const fabRect = fab?.getBoundingClientRect();
             const statusRect = status?.getBoundingClientRect();
             return {
               cardDisplay: card ? getComputedStyle(card).display : 'missing',
               cardDirection: card ? getComputedStyle(card).flexDirection : 'missing',
               labelBelowIcon: !!iconRect && !!labelRect && labelRect.top >= iconRect.bottom - 1,
+              labelLineClamp,
               labelInsideCard: !!cardRect && !!labelRect
                 && labelRect.left >= cardRect.left - 1 && labelRect.right <= cardRect.right + 1,
               addAfterContent: add ? getComputedStyle(add, '::after').content : 'missing',
@@ -192,6 +194,7 @@ jobs:
           if (prismGeometry.cardDisplay !== 'flex'
               || prismGeometry.cardDirection !== 'column'
               || !prismGeometry.labelBelowIcon
+              || prismGeometry.labelLineClamp !== '2'
               || !prismGeometry.labelInsideCard
               || prismGeometry.addAfterContent !== 'none'
               || prismGeometry.sidebarOverflow
@@ -240,6 +243,7 @@ jobs:
               p2pInOverflow: fab?.parentElement?.id === 'prism-toolbar-overflow',
               p2pPosition: fab ? getComputedStyle(fab).position : 'missing',
               tileColumn: activeCard ? getComputedStyle(activeCard).flexDirection : 'missing',
+              labelLineClamp: activeCard ? getComputedStyle(activeCard.querySelector(':scope > .inst-name')).webkitLineClamp : 'missing',
               labelBelowIcon: !!iconRect && !!labelRect && labelRect.top >= iconRect.bottom - 1,
               playbarContained: !!playbar && playbar.scrollWidth <= playbar.clientWidth + 2,
               playbarVerticalFit: !!playbar && playbar.scrollHeight <= playbar.clientHeight + 2,
@@ -253,6 +257,7 @@ jobs:
           const mobileStatus = prismMobileGeometry.status;
           if (prismMobileGeometry.documentWidth > 392
               || prismMobileGeometry.tileColumn !== 'column'
+              || prismMobileGeometry.labelLineClamp !== '2'
               || !prismMobileGeometry.labelBelowIcon
               || !prismMobileGeometry.playbarContained
               || !prismMobileGeometry.playbarVerticalFit

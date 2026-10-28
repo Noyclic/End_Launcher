@@ -7,7 +7,6 @@
 use serde::{Deserialize, Serialize};
 use std::path::{Component, Path, PathBuf};
 use std::io::Read;
-#[cfg(target_os = "windows")]
 use std::process::Command;
 #[cfg(target_os = "windows")]
 use base64::Engine as _;
@@ -929,6 +928,117 @@ async fn download_modrinth_files(index: &serde_json::Value, target: &Path) -> Re
         downloaded += 1;
     }
     Ok((downloaded, skipped_optional))
+}
+
+/// Opens a native file/folder picker. The requested kind is allow-listed before calling the OS UI.
+#[tauri::command]
+pub fn pick_local_path(kind: String) -> Result<Option<String>, String> {
+    let kind = kind.trim().to_ascii_lowercase();
+    if !["archive", "folder", "java"].contains(&kind.as_str()) {
+        return Err("Неизвестный тип выбора пути".into());
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        let script = match kind.as_str() {
+            "folder" => r#"
+                [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+                Add-Type -AssemblyName System.Windows.Forms
+                $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
+                $dialog.Description = 'Выбери папку экспортированной сборки Minecraft'
+                $dialog.ShowNewFolderButton = $false
+                if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { [Console]::Write($dialog.SelectedPath) }
+            "#,
+            "java" => r#"
+                [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+                Add-Type -AssemblyName System.Windows.Forms
+                $dialog = New-Object System.Windows.Forms.OpenFileDialog
+                $dialog.Title = 'Выбери исполняемый файл Java'
+                $dialog.Filter = 'Java (java.exe;javaw.exe)|java.exe;javaw.exe|Все файлы (*.*)|*.*'
+                $dialog.CheckFileExists = $true
+                if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { [Console]::Write($dialog.FileName) }
+            "#,
+            _ => r#"
+                [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+                Add-Type -AssemblyName System.Windows.Forms
+                $dialog = New-Object System.Windows.Forms.OpenFileDialog
+                $dialog.Title = 'Выбери архив сборки Minecraft'
+                $dialog.Filter = 'Сборки Minecraft (*.mrpack;*.zip)|*.mrpack;*.zip|Все файлы (*.*)|*.*'
+                $dialog.CheckFileExists = $true
+                if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { [Console]::Write($dialog.FileName) }
+            "#,
+        };
+        let output = Command::new("powershell.exe")
+            .args(["-NoProfile", "-STA", "-ExecutionPolicy", "Bypass", "-Command", script])
+            .output()
+            .map_err(|e| format!("Не удалось открыть диалог Windows: {e}"))?;
+        if !output.status.success() {
+            return Err(format!("Системный диалог Windows завершился с ошибкой: {}", String::from_utf8_lossy(&output.stderr).trim()));
+        }
+        let selected = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        return Ok((!selected.is_empty()).then_some(selected));
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        let script = match kind.as_str() {
+            "folder" => r#"POSIX path of (choose folder with prompt "Выбери папку экспортированной сборки Minecraft")"#,
+            "java" => r#"POSIX path of (choose file with prompt "Выбери исполняемый файл Java")"#,
+            _ => r#"POSIX path of (choose file with prompt "Выбери архив сборки Minecraft")"#,
+        };
+        let output = Command::new("osascript")
+            .args(["-e", script])
+            .output()
+            .map_err(|e| format!("Не удалось открыть системный диалог macOS: {e}"))?;
+        if !output.status.success() { return Ok(None); }
+        let selected = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        return Ok((!selected.is_empty()).then_some(selected));
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        let title = match kind.as_str() {
+            "folder" => "Выбери папку экспортированной сборки Minecraft",
+            "java" => "Выбери исполняемый файл Java",
+            _ => "Выбери архив сборки Minecraft",
+        };
+        let zenity_args: Vec<&str> = if kind == "folder" {
+            vec!["--file-selection", "--directory", "--title", title]
+        } else if kind == "java" {
+            vec!["--file-selection", "--title", title, "--file-filter=Java executables | java javaw java.exe javaw.exe *.bin", "--file-filter=All files | *"]
+        } else {
+            vec!["--file-selection", "--title", title, "--file-filter=Minecraft packs | *.mrpack *.zip", "--file-filter=ZIP archives | *.zip", "--file-filter=All files | *"]
+        };
+        match Command::new("zenity").args(&zenity_args).output() {
+            Ok(output) => {
+                if !output.status.success() { return Ok(None); }
+                let selected = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                return Ok((!selected.is_empty()).then_some(selected));
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => return Err(format!("Не удалось открыть диалог zenity: {error}")),
+        }
+        let kdialog = if kind == "folder" {
+            Command::new("kdialog").args(["--getexistingdirectory", ".", "--title", title]).output()
+        } else {
+            let filter = match kind.as_str() {
+                "java" => "Java executables (java javaw java.exe javaw.exe *.bin)",
+                _ => "Minecraft packs (*.mrpack *.zip)",
+            };
+            Command::new("kdialog").args(["--getopenfilename", ".", filter, "--title", title]).output()
+        };
+        match kdialog {
+            Ok(output) => {
+                if !output.status.success() { return Ok(None); }
+                let selected = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                Ok((!selected.is_empty()).then_some(selected))
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Err(
+                "Не найден диалог выбора файла. Установи zenity или kdialog либо перетащи архив/папку прямо в окно лаунчера.".into()
+            ),
+            Err(error) => Err(format!("Не удалось открыть диалог kdialog: {error}")),
+        }
+    }
 }
 
 /// Импорт сборки по перетаскиванию файла .mrpack/.zip или папки стороннего лаунчера.

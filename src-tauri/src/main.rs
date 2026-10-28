@@ -108,6 +108,7 @@ fn main() {
             instances::list_instances,
             instances::create_instance,
             instances::rename_instance,
+            instances::update_instance,
             instances::duplicate_instance,
             instances::export_instance,
             instances::import_instance,

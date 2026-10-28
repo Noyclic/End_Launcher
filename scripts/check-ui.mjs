@@ -739,7 +739,7 @@ check(js.includes('function openPrismEmptyContextMenu(event)')
     && js.includes("addItem('⇩ Импортировать экземпляр…'")
     && js.includes("addItem('↻ Обновить список', () => loadInstances())")
     && js.includes("document.querySelector('.content main')?.addEventListener('contextmenu', openPrismEmptyContextMenu)")
-    && js.includes("if (event.key !== 'Escape' || !menu) return;")
+    && js.includes("if (event.key !== 'Escape' || !$('prism-empty-context-menu')) return;")
     && js.includes("target?.closest('.inst-card, button, input, select, textarea, a, [role=\"dialog\"], .inst-menu, .prism-folders-menu, .prism-toolbar-overflow')"),
   'Prism empty-library right-click menu must offer create/import/refresh, avoid intercepting cards or controls, and close on Escape');
 

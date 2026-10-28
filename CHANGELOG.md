@@ -1,5 +1,12 @@
 # Changelog
 
+## Prism/Pinecone reference pass 8
+
+- Reordered the functional right-rail actions so profile grouping appears before the folder and export operations, closer to the supplied PineconeMC action order.
+- Added a regression assertion for the quick-action order to prevent accidental drift.
+- Automated checks for this latest sequence are pending; visual review stays deferred until the planned 10-request checkpoint.
+
+
 ## Prism/Pinecone reference pass 7
 
 - Refined toolbar label sizing, Add Instance glyph size, and folder icon dimensions against the supplied desktop screenshot.

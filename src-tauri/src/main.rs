@@ -112,6 +112,7 @@ fn main() {
             instances::update_instance,
             instances::duplicate_instance,
             instances::export_instance,
+            instances::export_instance_to_path,
             instances::import_instance,
             instances::pick_local_path,
             instances::delete_instance,

@@ -823,4 +823,13 @@ check(css.includes('/* Prism/Pinecone pass 35')
     && css.includes("@media (prefers-reduced-motion: reduce)"),
   'Prism must keep the dense 108 px icon grid, 44 px profile icons, lime selection strip, fixed action rail, bottom status row, and compact responsive behavior');
 
+
+// Prism/Pinecone pass 36: small native-style toolbar controls, compact empty state, and explicit focus affordances.
+check(css.includes('/* Prism/Pinecone pass 36')
+    && css.includes(":root[data-ui='prism'] .sidebar #account-box .avatar")
+    && css.includes(":root[data-ui='prism'] #page-play .empty-hero")
+    && css.includes(":root[data-ui='prism'] #page-play #empty-create")
+    && css.includes(":root[data-ui='prism'] .sidebar #library-add:focus-visible"),
+  'Prism toolbar and empty-library state must remain compact, desktop-like, and keyboard accessible');
+
 console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags, plus keyboard-navigable Prism profile tiles and search-aware collapsed groups.');

@@ -7005,3 +7005,138 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
     animation: none !important;
   }
 }
+
+
+/* Prism/Pinecone pass 36 — finish the small desktop details without changing End mode. */
+:root[data-ui='prism'] .sidebar #library-add,
+:root[data-ui='prism'] .sidebar #prism-open-folder,
+:root[data-ui='prism'] .sidebar #nav-settings-button,
+:root[data-ui='prism'] .sidebar #prism-help,
+:root[data-ui='prism'] .sidebar #prism-update,
+:root[data-ui='prism'] .sidebar .prism-toolbar-overflow-toggle {
+  flex: 0 0 auto;
+  min-width: 0;
+  min-height: 25px;
+  border: 1px solid #484848;
+  border-radius: 2px;
+  background: linear-gradient(#383838, #2c2c2c);
+  color: #dedede;
+  box-shadow: none;
+  filter: none;
+  transition: background-color .12s ease, border-color .12s ease, color .12s ease;
+}
+:root[data-ui='prism'] .sidebar #library-add:hover,
+:root[data-ui='prism'] .sidebar #prism-open-folder:hover,
+:root[data-ui='prism'] .sidebar #nav-settings-button:hover,
+:root[data-ui='prism'] .sidebar #prism-help:hover,
+:root[data-ui='prism'] .sidebar #prism-update:hover,
+:root[data-ui='prism'] .sidebar .prism-toolbar-overflow-toggle:hover {
+  border-color: #686868;
+  background: linear-gradient(#414141, #333333);
+  color: #ffffff;
+  filter: none;
+}
+:root[data-ui='prism'] .sidebar #library-add:active,
+:root[data-ui='prism'] .sidebar #prism-open-folder:active,
+:root[data-ui='prism'] .sidebar #nav-settings-button:active,
+:root[data-ui='prism'] .sidebar #prism-help:active,
+:root[data-ui='prism'] .sidebar #prism-update:active,
+:root[data-ui='prism'] .sidebar .prism-toolbar-overflow-toggle:active {
+  transform: none;
+}
+:root[data-ui='prism'] .sidebar #library-add:focus-visible,
+:root[data-ui='prism'] .sidebar #prism-open-folder:focus-visible,
+:root[data-ui='prism'] .sidebar #nav-settings-button:focus-visible,
+:root[data-ui='prism'] .sidebar #prism-help:focus-visible,
+:root[data-ui='prism'] .sidebar #prism-update:focus-visible,
+:root[data-ui='prism'] .sidebar .prism-toolbar-overflow-toggle:focus-visible,
+:root[data-ui='prism'] .sidebar #account-box:focus-visible {
+  outline: 1px solid #91d85a;
+  outline-offset: 1px;
+}
+:root[data-ui='prism'] .sidebar #account-box .avatar {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  border: 1px solid #454545;
+  border-radius: 2px;
+  background: #343434;
+  color: #e2e2e2;
+  box-shadow: none;
+  font: 600 11px/1 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .sidebar #account-box .acc-name {
+  max-width: 82px;
+  overflow: hidden;
+  color: #dedede;
+  font-size: 10px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:root[data-ui='prism'] .sidebar #account-box .acc-mode {
+  color: #a9a9a9;
+  font-size: 8px;
+}
+:root[data-ui='prism'] .sidebar #account-box:hover,
+:root[data-ui='prism'] .sidebar #account-box:focus-visible {
+  border-color: #4b4b4b;
+  background: #303030;
+  outline-offset: 1px;
+}
+:root[data-ui='prism'] #page-play .empty-hero {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  width: min(100%, 560px);
+  min-width: 0;
+  min-height: 0;
+  margin: 8px 4px;
+  padding: 9px 10px;
+  border: 1px solid #424242;
+  border-radius: 2px;
+  background: #292929;
+  box-shadow: none;
+  text-align: left;
+}
+:root[data-ui='prism'] #page-play .empty-hero .big {
+  display: none;
+}
+:root[data-ui='prism'] #page-play .empty-hero .t {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: #e0e0e0;
+  font-size: 11px;
+  font-weight: 500;
+}
+:root[data-ui='prism'] #page-play .empty-hero .mono.dim.small {
+  display: none;
+}
+:root[data-ui='prism'] #page-play #empty-create {
+  flex: 0 0 auto;
+  min-height: 26px;
+  padding: 4px 9px;
+  border: 1px solid #6f9259;
+  border-radius: 2px;
+  background: linear-gradient(#3f6536, #31532c);
+  color: #eef8e8;
+  font-size: 10px;
+  box-shadow: none;
+}
+:root[data-ui='prism'] #page-play #empty-create:hover,
+:root[data-ui='prism'] #page-play #empty-create:focus-visible {
+  border-color: #91d85a;
+  background: linear-gradient(#4a7540, #385f31);
+  filter: none;
+}
+@media (max-width: 740px) {
+  :root[data-ui='prism'] #page-play .empty-hero {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  :root[data-ui='prism'] #page-play #empty-create {
+    margin-left: auto;
+  }
+}

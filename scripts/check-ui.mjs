@@ -485,7 +485,7 @@ check(css.includes(":root[data-ui='prism'] .playbar") && css.includes(":root[dat
   'Prism layout needs a separate launch panel, profile-label tiles, and compact toolbar');
 
 check(html.includes('id="stop-btn"')
-      && js.includes("invoke('stop_instance', { id: String(inst.id) })")
+      && js.includes("invoke('stop_instance', { id: String(runningInstanceId) })")
       && js.includes("payload.stopped === true")
       && rustMain.includes("java::stop_instance")
       && rustJava.includes("pub fn stop_instance(id: String)")

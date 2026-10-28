@@ -462,6 +462,15 @@ check(js.includes('let installedModsCache = [];')
     && js.includes("sortMode === 'size-desc'")
     && js.includes("sortMode === 'size-asc'"),
   'Modrinth-style installed-content list must filter enabled/disabled mods and sort by file size/name');
+
+check(/:root\\[data-ui='prism'\\] #library\\s*\\{[^}]*grid-template-columns:\\s*repeat\\(auto-fill,\\s*minmax\\(76px,\\s*1fr\\)\\)/s.test(css),
+  'Prism mode must keep the compact icon-grid library layout');
+check(/:root\\[data-ui='prism'\\] #library \\.inst-card\\s*\\{[^}]*flex-direction:\\s*column/s.test(css),
+  'Prism instance cards must remain vertically stacked like the reference launcher');
+check(css.includes(":root[data-ui='prism'] .playbar") && css.includes(":root[data-ui='prism'] #library .inst-name")
+    && css.includes(":root[data-ui='prism'] .library-toolbar"),
+  'Prism layout needs a separate launch panel, profile-label tiles, and compact toolbar');
+
 check(css.includes(":root[data-ui='prism'] #prism-library-tools")
     && css.includes(":root[data-ui='modrinth'] #modrinth-library-tools")
     && css.includes(":root[data-ui='gd'] #gd-pack-tools")

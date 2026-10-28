@@ -710,6 +710,46 @@ $('launcher-banner-play')?.addEventListener('click', () => {
   playBtn.click();
 });
 
+function syncPrismSelectedInstance() {
+  const bar = $('slot-bar');
+  if (!bar) return;
+  let summary = $('prism-selected-instance');
+  if (currentUi !== 'prism') {
+    summary?.remove();
+    return;
+  }
+  if (!summary) {
+    summary = document.createElement('section');
+    summary.id = 'prism-selected-instance';
+    summary.className = 'prism-selected-instance';
+    summary.setAttribute('aria-label', 'Выбранный экземпляр');
+    const icon = document.createElement('div');
+    icon.className = 'prism-selected-icon';
+    icon.setAttribute('aria-hidden', 'true');
+    const name = document.createElement('div');
+    name.className = 'prism-selected-name';
+    const version = document.createElement('div');
+    version.className = 'prism-selected-version';
+    summary.append(icon, name, version);
+  }
+  const selected = instances.find((item) => String(item.id) === String(activeId));
+  summary.hidden = !selected;
+  const icon = summary.querySelector('.prism-selected-icon');
+  const name = summary.querySelector('.prism-selected-name');
+  const version = summary.querySelector('.prism-selected-version');
+  if (selected) {
+    const loader = String(selected.loader || 'vanilla').toLowerCase();
+    icon.dataset.loader = loader;
+    name.textContent = selected.name || selected.version || 'Minecraft';
+    version.textContent = selected.version ? `Minecraft ${selected.version}` : 'Minecraft';
+  } else {
+    name.textContent = 'Нет экземпляров';
+    version.textContent = 'Создай новую сборку';
+  }
+  const play = $('play-ui');
+  if (play && summary.parentElement !== bar) bar.insertBefore(summary, play);
+}
+
 function renderLibrary() {
   const box = $('library');
   box.replaceChildren();
@@ -781,6 +821,7 @@ function renderLibrary() {
     const isFavorite = favoriteInstanceIds.has(String(inst.id));
     const card = mk('div', 'inst-card' + (inst.id === activeId ? ' active' : '') + (isFavorite ? ' is-favorite' : ''));
     card.dataset.instanceId = String(inst.id);
+    card.dataset.loader = String(inst.loader || 'vanilla').toLowerCase();
     card.dataset.searchText = searchable;
     card.style.setProperty('--i', Math.min(ci++, 10));
     card.tabIndex = 0;
@@ -801,8 +842,10 @@ function renderLibrary() {
       e.stopPropagation();
       toggleMenu(card, inst);
     });
+    const icon = mk('div', 'inst-icon', (inst.name[0] || '?').toUpperCase());
+    icon.dataset.loader = String(inst.loader || 'vanilla').toLowerCase();
     card.append(
-      mk('div', 'inst-icon', (inst.name[0] || '?').toUpperCase()),
+      icon,
       mk('div', 'inst-name', inst.name),
       mk('span', 'chip', `${inst.version} · ${LOADER_NAME[inst.loader] || inst.loader}`),
       play,
@@ -825,6 +868,7 @@ function renderLibrary() {
   box.appendChild(add);
   syncLibraryChrome(shownCount);
   syncLauncherBanner();
+  syncPrismSelectedInstance();
 }
 
 // ── список версий игры (для формы сборки и для страницы модов) ──

@@ -5042,6 +5042,9 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 }
 :root[data-ui='prism'] #library .inst-icon[data-loader='fabric'],
 :root[data-ui='prism'] .prism-selected-icon[data-loader='fabric'] {
+  background-size: 100% 100%, 17% 14%, 18% 11%, 13% 12%, 16% 9%, 12% 13%, 14% 12%, 100% 100%;
+  background-position: 0 0, 0 5%, 36% 0, 73% 8%, 18% 22%, 82% 25%, 51% 24%, 0 0;
+  background-repeat: no-repeat;
   background-image:
     linear-gradient(90deg, #0002, transparent 18%, transparent 82%, #fff1),
     linear-gradient(#8ad4bf 0 0),
@@ -5054,6 +5057,9 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 }
 :root[data-ui='prism'] #library .inst-icon[data-loader='forge'],
 :root[data-ui='prism'] .prism-selected-icon[data-loader='forge'] {
+  background-size: 100% 100%, 17% 14%, 18% 11%, 13% 12%, 16% 9%, 12% 13%, 14% 12%, 100% 100%;
+  background-position: 0 0, 0 5%, 36% 0, 73% 8%, 18% 22%, 82% 25%, 51% 24%, 0 0;
+  background-repeat: no-repeat;
   background-image:
     linear-gradient(90deg, #0002, transparent 18%, transparent 82%, #fff1),
     linear-gradient(#b96b55 0 0),
@@ -5066,6 +5072,9 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 }
 :root[data-ui='prism'] #library .inst-icon[data-loader='neoforge'],
 :root[data-ui='prism'] .prism-selected-icon[data-loader='neoforge'] {
+  background-size: 100% 100%, 17% 14%, 18% 11%, 13% 12%, 16% 9%, 12% 13%, 14% 12%, 100% 100%;
+  background-position: 0 0, 0 5%, 36% 0, 73% 8%, 18% 22%, 82% 25%, 51% 24%, 0 0;
+  background-repeat: no-repeat;
   background-image:
     linear-gradient(90deg, #0002, transparent 18%, transparent 82%, #fff1),
     linear-gradient(#c69a4b 0 0),

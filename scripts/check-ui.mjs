@@ -442,11 +442,12 @@ check(js.includes("const FAVORITES_STORE = 'end-launcher-favorite-instances-v1'"
 check(js.includes("currentUi === 'lunar' && lunarFavoritesOnly")
     && js.includes('favoriteInstanceIds.has(String(b.id))'),
   'Lunar quick-access filter must show favorites and prioritize them in the gallery');
-check(js.includes("currentUi === 'prism' && prismLibraryGroup !== 'none'")
+check(js.includes("currentUi === 'prism'")
     && js.includes("prismLibrarySort === 'version-desc'")
     && js.includes("prismLibraryGroup === 'loader'")
+    && js.includes("return prismInstanceGroups[String(inst.id)] || 'Без группы'")
     && js.includes('library-group-heading'),
-  'Prism instance library must sort instances and optionally group them by loader/version');
+  'Prism instance library must sort instances and support custom, loader and version groups');
 check(js.includes("currentUi === 'official' && !isOfficialCategoryVisible(inst)")
     && js.includes("officialInstanceSort === 'version'")
     && js.includes('official-show-snapshots'),

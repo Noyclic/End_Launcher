@@ -5214,3 +5214,85 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 :root[data-ui='prism'] #library .inst-card.add {
   display: none !important;
 }
+
+
+/* Prism/Pinecone pass 5 — two restrained status rows at the bottom of the window. */
+:root[data-ui='prism'] .layout {
+  grid-template-rows: 38px minmax(0, 1fr) 56px;
+}
+:root[data-ui='prism'] #prism-status-bar {
+  display: flex;
+  grid-column: 1 / -1;
+  grid-row: 3;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  height: 56px;
+  padding: 0;
+  overflow: hidden;
+  border-top: 1px solid #454545;
+  background: #292929;
+  color: #d8d8d8;
+  font: 10px 'Inter', sans-serif;
+}
+:root[data-ui='prism'] #prism-status-bar[hidden] {
+  display: none !important;
+}
+:root[data-ui='prism'] .prism-status-news-row,
+:root[data-ui='prism'] .prism-status-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 0 8px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+:root[data-ui='prism'] .prism-status-news-row {
+  flex: 0 0 29px;
+  height: 29px;
+  border-bottom: 1px solid #444;
+  background: #292929;
+  font-size: 10px;
+}
+:root[data-ui='prism'] .prism-status-meta-row {
+  flex: 0 0 26px;
+  height: 26px;
+  background: #242424;
+  color: #bcbcbc;
+  font-size: 10px;
+}
+:root[data-ui='prism'] .prism-status-spacer {
+  flex: 1 1 auto;
+  min-width: 4px;
+}
+:root[data-ui='prism'] .prism-status-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+  border: 1px solid #3a8d53;
+  border-radius: 3px;
+  background: #247b42;
+  color: #c7f7d1;
+  font-size: 10px;
+  line-height: 1;
+}
+@media (max-width: 1180px) and (min-width: 741px) {
+  :root[data-ui='prism'] .layout {
+    grid-template-rows: auto minmax(0, 1fr) 56px;
+  }
+}
+@media (max-width: 740px) {
+  :root[data-ui='prism'] .layout {
+    grid-template-rows: auto minmax(0, 1fr) 56px;
+  }
+  :root[data-ui='prism'] #prism-status-bar {
+    flex: 0 0 56px;
+    height: 56px;
+  }
+  :root[data-ui='prism'] .prism-status-meta-row > :last-child {
+    display: none;
+  }
+}

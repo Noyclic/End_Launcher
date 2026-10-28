@@ -346,4 +346,18 @@ check(css.includes(":root:not([data-ui='end']) #page-play .library-help {")
     && css.includes("display: none;"),
   'Reference-inspired layouts should prioritize interface hierarchy over prototype help copy');
 
+
+check(css.includes(":root:not([data-ui='end']) .end-void { background:var(--el-bg); transition:none; }")
+    && css.includes(":root:not([data-ui='end']) #ender-particles { display:none !important; }"),
+  'Reference-inspired skins must remove the classic End backdrop and particle layer');
+for (const mode of ['prism','modrinth','tl','gd','official','at','lunar']) {
+  check(css.includes(`:root[data-ui='${mode}'] .mods-search-panel`)
+      && css.includes(`:root[data-ui='${mode}'] .account-dialog`)
+      && css.includes(`:root[data-ui='${mode}'] input,`),
+    `The ${mode} skin must cover secondary pages, dialogs and form controls`);
+}
+check(css.includes(":root:not([data-ui='end']) #page-mods,")
+    && css.includes("max-width:min(100%, 1040px)"),
+  'Reference-inspired secondary pages must use a wider, responsive content surface');
+
 console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags.');

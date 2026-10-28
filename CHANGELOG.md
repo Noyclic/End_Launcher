@@ -377,6 +377,14 @@
 - Extended regression checks for palette restoration and dialog-safe edit behavior.
 
 
+
+### UI fidelity pass 38 — carry the reference style across the whole app
+
+- Extended each launcher-inspired visual language to the Mods screen, settings, create-instance form, account dialog, customizer dialog and AI output instead of styling only the library.
+- Reworked form surfaces, input geometry, project rows, source tags and panel borders per mode, keeping original End Launcher controls and actions.
+- Removed the classic End backdrop gradients and ambient particle canvas in reference-inspired layouts so they no longer compete with the target launcher's flatter or more focused surfaces.
+- Added regression checks for secondary-page coverage, dialogs, form controls and backdrop suppression.
+
 ### UI fidelity pass 37 — structural launcher layout pass
 
 - Rebuilt the Prism-inspired desktop workspace around a compact top toolbar, dense instance tiles and a dedicated launch rail.

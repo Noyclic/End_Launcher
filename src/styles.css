@@ -2900,3 +2900,176 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   :root[data-ui='lunar'] #library .inst-card { min-height:145px; padding:10px; }
   :root[data-ui='gd'] #page-play .launcher-banner h2 { font-size:21px; }
 }
+
+
+/* UI fidelity pass 38 — cross-screen skin consistency.
+   Extend each reference-inspired visual language to the mods, settings, dialogs and forms. */
+:root:not([data-ui='end']) .end-void { background:var(--el-bg); transition:none; }
+:root:not([data-ui='end']) #ender-particles { display:none !important; }
+:root:not([data-ui='end']) #page-mods,
+:root:not([data-ui='end']) #page-settings,
+:root:not([data-ui='end']) #page-ai { max-width:min(100%, 1040px); }
+:root:not([data-ui='end']) #page-mods > h1,
+:root:not([data-ui='end']) #page-settings > h1,
+:root:not([data-ui='end']) #page-ai > h1 { margin-top:0; font-size:clamp(22px,2vw,28px); letter-spacing:-.02em; }
+:root:not([data-ui='end']) .mods-search-panel,
+:root:not([data-ui='end']) .create-instance-panel,
+:root:not([data-ui='end']) .security-card,
+:root:not([data-ui='end']) .account-dialog,
+:root:not([data-ui='end']) .customizer-window,
+:root:not([data-ui='end']) .welcome-card { box-shadow:none; }
+:root:not([data-ui='end']) .mods-search-panel { min-width:0; }
+:root:not([data-ui='end']) .mods-search-controls { align-items:center; gap:8px; }
+:root:not([data-ui='end']) .mods-search-controls > * { min-width:0; }
+:root:not([data-ui='end']) .mod-card,
+:root:not([data-ui='end']) .mod-row { min-width:0; }
+:root:not([data-ui='end']) .mod-card .d { overflow-wrap:anywhere; line-height:1.45; }
+:root:not([data-ui='end']) #page-settings > .row { gap:8px; }
+:root:not([data-ui='end']) #page-settings > .row > input,
+:root:not([data-ui='end']) #page-settings > .row > button { min-width:0; }
+:root:not([data-ui='end']) .account-dialog,
+:root:not([data-ui='end']) .customizer-window,
+:root:not([data-ui='end']) .welcome-card { border-color:var(--el-line); background:var(--el-bg); }
+:root:not([data-ui='end']) .account-provider-card { min-width:0; border-color:var(--el-line); background:var(--el-panel); }
+:root:not([data-ui='end']) .settings-ai-tab { border-color:var(--el-line); background:var(--el-panel); }
+:root:not([data-ui='end']) .create-instance-panel { border-color:var(--el-line); background:var(--el-panel); }
+:root:not([data-ui='end']) .security-card { border-color:var(--el-line); background:var(--el-panel); }
+
+/* Prism dialogs and tool forms: squared desktop-utility panels, quiet borders. */
+:root[data-ui='prism'] .mods-search-panel,
+:root[data-ui='prism'] .create-instance-panel,
+:root[data-ui='prism'] .security-card,
+:root[data-ui='prism'] .account-dialog,
+:root[data-ui='prism'] .customizer-window,
+:root[data-ui='prism'] .welcome-card,
+:root[data-ui='prism'] .account-provider-card,
+:root[data-ui='prism'] .mod-card,
+:root[data-ui='prism'] .mod-row { border-radius:4px; box-shadow:none; }
+:root[data-ui='prism'] .mods-search-panel,
+:root[data-ui='prism'] .create-instance-panel,
+:root[data-ui='prism'] .security-card { background:#2b2f33; }
+:root[data-ui='prism'] .mod-card,
+:root[data-ui='prism'] .mod-row { border-color:#41464b; background:#2b2f33; }
+:root[data-ui='prism'] input,
+:root[data-ui='prism'] select,
+:root[data-ui='prism'] textarea { border-radius:4px; background:#1c2023; border-color:#464c51; font-family:'Inter',sans-serif; }
+:root[data-ui='prism'] button { border-radius:4px; box-shadow:none; }
+:root[data-ui='prism'] #ai-output { border-radius:4px; background:#1c2023; }
+
+/* Modrinth: green-tinted project surfaces and app-like rounded controls. */
+:root[data-ui='modrinth'] .mods-search-panel { border-radius:12px; border-color:#343d37; background:#202523; }
+:root[data-ui='modrinth'] .mods-source-tag { border-radius:6px; border-color:#395146; background:#25332b; color:#a7d7bd; }
+:root[data-ui='modrinth'] .mod-card,
+:root[data-ui='modrinth'] .mod-row { border-radius:10px; border-color:#323b35; background:#202523; }
+:root[data-ui='modrinth'] .mod-card img { border-radius:8px; }
+:root[data-ui='modrinth'] .create-instance-panel,
+:root[data-ui='modrinth'] .security-card,
+:root[data-ui='modrinth'] .account-dialog,
+:root[data-ui='modrinth'] .customizer-window,
+:root[data-ui='modrinth'] .welcome-card { border-radius:12px; border-color:#35443b; background:#1d2220; }
+:root[data-ui='modrinth'] .account-provider-card,
+:root[data-ui='modrinth'] .settings-ai-tab { border-radius:9px; border-color:#35443b; background:#242a27; }
+:root[data-ui='modrinth'] input,
+:root[data-ui='modrinth'] select,
+:root[data-ui='modrinth'] textarea { border-radius:8px; background:#242a27; border-color:#38423c; font-family:'Inter',sans-serif; }
+:root[data-ui='modrinth'] button { border-radius:8px; box-shadow:none; }
+:root[data-ui='modrinth'] .mods-search-controls #mod-search-btn,
+:root[data-ui='modrinth'] #page-settings .customize-launcher-card .big-btn { background:#1bdc8b; color:#10241b; }
+:root[data-ui='modrinth'] #ai-output { border-radius:9px; background:#202523; }
+
+/* TL Legacy: blue-gray forms, square buttons and compact settings blocks. */
+:root[data-ui='tl'] .mods-search-panel,
+:root[data-ui='tl'] .create-instance-panel,
+:root[data-ui='tl'] .security-card,
+:root[data-ui='tl'] .account-dialog,
+:root[data-ui='tl'] .customizer-window,
+:root[data-ui='tl'] .welcome-card { border-radius:6px; background:#1b202b; border-color:#343b4a; }
+:root[data-ui='tl'] .mod-card,
+:root[data-ui='tl'] .mod-row,
+:root[data-ui='tl'] .account-provider-card,
+:root[data-ui='tl'] .settings-ai-tab { border-radius:5px; background:#202735; border-color:#343b4a; }
+:root[data-ui='tl'] input,
+:root[data-ui='tl'] select,
+:root[data-ui='tl'] textarea { border-radius:5px; background:#171c26; border-color:#343b4a; font-family:'Inter',sans-serif; }
+:root[data-ui='tl'] button { border-radius:5px; box-shadow:none; }
+:root[data-ui='tl'] #ai-output { border-radius:5px; background:#171c26; }
+
+/* GDLauncher Carbon: layered slate cards, rounded project rows and spacious form groups. */
+:root[data-ui='gd'] .mods-search-panel,
+:root[data-ui='gd'] .create-instance-panel,
+:root[data-ui='gd'] .security-card,
+:root[data-ui='gd'] .account-dialog,
+:root[data-ui='gd'] .customizer-window,
+:root[data-ui='gd'] .welcome-card { border-radius:12px; border-color:#3a3e4b; background:#22252e; }
+:root[data-ui='gd'] .mod-card,
+:root[data-ui='gd'] .mod-row,
+:root[data-ui='gd'] .account-provider-card,
+:root[data-ui='gd'] .settings-ai-tab { border-radius:10px; border-color:#373b48; background:#262a35; }
+:root[data-ui='gd'] input,
+:root[data-ui='gd'] select,
+:root[data-ui='gd'] textarea { border-radius:8px; background:#1d2028; border-color:#373b48; }
+:root[data-ui='gd'] button { border-radius:8px; box-shadow:none; }
+:root[data-ui='gd'] .mods-search-controls #mod-search-btn { background:#7186f4; color:#fff; }
+:root[data-ui='gd'] #ai-output { border-radius:9px; background:#1c1f27; }
+
+/* Official Minecraft Launcher-inspired: flat charcoal panels with green state markers. */
+:root[data-ui='official'] .mods-search-panel,
+:root[data-ui='official'] .create-instance-panel,
+:root[data-ui='official'] .security-card,
+:root[data-ui='official'] .account-dialog,
+:root[data-ui='official'] .customizer-window,
+:root[data-ui='official'] .welcome-card { border-radius:6px; border-color:#374139; background:#202522; }
+:root[data-ui='official'] .mod-card,
+:root[data-ui='official'] .mod-row,
+:root[data-ui='official'] .account-provider-card,
+:root[data-ui='official'] .settings-ai-tab { border-radius:5px; border-color:#374139; background:#242b25; }
+:root[data-ui='official'] .mods-source-tag { border-radius:4px; border-color:#3d5a3f; background:#26352a; color:#b9d6ae; }
+:root[data-ui='official'] input,
+:root[data-ui='official'] select,
+:root[data-ui='official'] textarea { border-radius:4px; background:#171d19; border-color:#384139; font-family:'Inter',sans-serif; }
+:root[data-ui='official'] button { border-radius:4px; box-shadow:none; }
+:root[data-ui='official'] #ai-output { border-radius:4px; background:#171d19; }
+
+/* ATLauncher: dense rectangular preferences and list rows. */
+:root[data-ui='at'] .mods-search-panel,
+:root[data-ui='at'] .create-instance-panel,
+:root[data-ui='at'] .security-card,
+:root[data-ui='at'] .account-dialog,
+:root[data-ui='at'] .customizer-window,
+:root[data-ui='at'] .welcome-card { border-radius:3px; border-color:#414548; background:#25282a; }
+:root[data-ui='at'] .mod-card,
+:root[data-ui='at'] .mod-row,
+:root[data-ui='at'] .account-provider-card,
+:root[data-ui='at'] .settings-ai-tab { border-radius:3px; border-color:#414548; background:#292d2f; }
+:root[data-ui='at'] .mods-search-heading h2 { font-size:14px; }
+:root[data-ui='at'] input,
+:root[data-ui='at'] select,
+:root[data-ui='at'] textarea { border-radius:3px; background:#1b1d1f; border-color:#414548; font-family:'Inter',sans-serif; }
+:root[data-ui='at'] button { border-radius:3px; box-shadow:none; }
+:root[data-ui='at'] #ai-output { border-radius:3px; background:#1b1d1f; }
+
+/* Lunar: purple-black cards and softer dialog surfaces continue beyond the library. */
+:root[data-ui='lunar'] .mods-search-panel,
+:root[data-ui='lunar'] .create-instance-panel,
+:root[data-ui='lunar'] .security-card,
+:root[data-ui='lunar'] .account-dialog,
+:root[data-ui='lunar'] .customizer-window,
+:root[data-ui='lunar'] .welcome-card { border-radius:14px; border-color:#393750; background:linear-gradient(145deg,#242337,#1b1c2b); }
+:root[data-ui='lunar'] .mod-card,
+:root[data-ui='lunar'] .mod-row,
+:root[data-ui='lunar'] .account-provider-card,
+:root[data-ui='lunar'] .settings-ai-tab { border-radius:11px; border-color:#393750; background:#232337; }
+:root[data-ui='lunar'] .mods-source-tag { border-radius:7px; border-color:#4a4672; background:#282640; color:#d1ccff; }
+:root[data-ui='lunar'] input,
+:root[data-ui='lunar'] select,
+:root[data-ui='lunar'] textarea { border-radius:9px; background:#171825; border-color:#393750; }
+:root[data-ui='lunar'] button { border-radius:9px; box-shadow:none; }
+:root[data-ui='lunar'] #ai-output { border-radius:10px; background:#171825; }
+
+@media (max-width:760px) {
+  :root:not([data-ui='end']) .mods-search-panel { padding:12px; }
+  :root:not([data-ui='end']) .mods-search-heading { gap:8px; }
+  :root:not([data-ui='end']) .security-head { gap:8px; }
+  :root:not([data-ui='end']) .account-provider-title { gap:8px; }
+  :root:not([data-ui='end']) #page-settings > .row { flex-wrap:wrap; }
+}

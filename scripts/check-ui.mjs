@@ -504,6 +504,13 @@ check(js.includes("const groupLabel = prismGroupKey(inst)")
     && css.includes('display: none !important;'),
   'Prism must support persistent per-instance groups, an editor, the custom-group option and no duplicate add tile');
 
+check(css.includes(":root[data-ui='prism'] .sidebar #library-add::before")
+    && css.includes("width: 17px;")
+    && css.includes(":root[data-ui='prism'] .sidebar #prism-open-folder .prism-folder-icon")
+    && css.includes("font-size: 11px;")
+    && css.includes("@media (max-width: 740px)"),
+  'Prism toolbar must keep compact reference-sized icons and readable labels with narrower-window overrides');
+
 check(css.includes(":root[data-ui='prism'] #prism-library-tools")
     && css.includes(":root[data-ui='modrinth'] #modrinth-library-tools")
     && css.includes(":root[data-ui='gd'] #gd-pack-tools")

@@ -1163,7 +1163,9 @@ function renderPrismFooterStats(selected) {
   const liveMs = prismActivePlaySession?.instanceId === key
     ? Math.max(0, Date.now() - prismActivePlaySession.startedAt)
     : 0;
-  const totalMs = stats.totalMs + liveMs;
+  const totalMs = prismActivePlaySession?.instanceId === key
+    ? prismActivePlaySession.baseTotalMs + liveMs
+    : stats.totalMs;
   const versionLabel = `Minecraft ${selected.version || '—'}`;
   let details = stats.lastPlayedAt
     ? `${versionLabel}, в последний раз играли ${formatPrismLastPlayed(stats.lastPlayedAt)} в течение ${formatPrismDuration(stats.lastSessionMs)}`
@@ -1187,7 +1189,7 @@ function finishPrismPlaySession() {
   const elapsed = Math.max(0, Math.min(Date.now() - session.startedAt, PRISM_PLAY_SESSION_MAX_MS));
   const old = prismPlayStats[session.instanceId] || { totalMs: 0, lastPlayedAt: 0, lastSessionMs: 0 };
   prismPlayStats[session.instanceId] = {
-    totalMs: old.totalMs + elapsed,
+    totalMs: (Number(session.baseTotalMs) || 0) + elapsed,
     lastPlayedAt: session.startedAt,
     lastSessionMs: elapsed,
   };
@@ -1197,15 +1199,39 @@ function finishPrismPlaySession() {
   renderPrismFooterStats(selected);
 }
 
-// Persist a partial session if the launcher window closes before the game-exit event arrives.
-window.addEventListener('pagehide', () => {
-  finishPrismPlaySession();
-}, { once: true });
+// Persist elapsed time periodically so abrupt WebView exits lose at most one interval.
+function checkpointPrismPlaySession() {
+  const session = prismActivePlaySession;
+  if (!session) return;
+  const elapsed = Math.max(0, Math.min(Date.now() - session.startedAt, PRISM_PLAY_SESSION_MAX_MS));
+  prismPlayStats[session.instanceId] = {
+    totalMs: (Number(session.baseTotalMs) || 0) + elapsed,
+    lastPlayedAt: session.startedAt,
+    lastSessionMs: elapsed,
+  };
+  savePrismPlayStats();
+}
+window.addEventListener('pagehide', checkpointPrismPlaySession);
 
 window.setInterval(() => {
-  if (currentUi !== 'prism' || !prismActivePlaySession) return;
-  renderPrismFooterStats(instances.find((item) => String(item.id) === String(activeId)));
+  if (!prismActivePlaySession) return;
+  checkpointPrismPlaySession();
+  if (currentUi === 'prism') {
+    renderPrismFooterStats(instances.find((item) => String(item.id) === String(activeId)));
+  }
 }, 15000);
+
+function startPrismPlaySession(inst) {
+  const instanceId = String(inst.id);
+  const previous = prismPlayStats[instanceId] || { totalMs: 0, lastPlayedAt: 0, lastSessionMs: 0 };
+  prismActivePlaySession = {
+    instanceId,
+    startedAt: Date.now(),
+    baseTotalMs: previous.totalMs,
+  };
+  checkpointPrismPlaySession();
+  renderPrismFooterStats(inst);
+}
 
 function syncPrismSelectedInstance() {
   const bar = $('slot-bar');
@@ -2516,8 +2542,7 @@ playBtn.addEventListener('click', async () => {
       await invoke('launch_instance', { id: inst.id });
       runningInstanceId = String(inst.id);
       gameRunning = true;
-      prismActivePlaySession = { instanceId: String(inst.id), startedAt: Date.now() };
-      renderPrismFooterStats(inst);
+      startPrismPlaySession(inst);
     }
   } catch (e) {
     error = String(e);

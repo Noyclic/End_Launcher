@@ -1260,7 +1260,7 @@ function renderLibrary() {
     card.dataset.loader = String(inst.loader || 'vanilla').toLowerCase();
     if (currentUi === 'prism') {
       card.dataset.groupLabel = currentGroupLabel;
-      card.hidden = prismCollapsedGroups.has(currentGroupLabel) && !query;
+      card.hidden = prismCollapsedGroups.has(currentGroupLabel);
     }
     card.dataset.searchText = searchable;
     card.style.setProperty('--i', Math.min(ci++, 10));

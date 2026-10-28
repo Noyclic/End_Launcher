@@ -1,5 +1,11 @@
 # Changelog
 
+## Prism/Pinecone reference pass 4
+
+- Prevented the relocated Settings control from inheriting the old full-width sidebar navigation width; it now sizes to its icon and label.
+- Extended the UI check to guard against this regression.
+
+
 ## Prism/Pinecone reference pass 3
 
 - Reworked the top Folders action into a real dropdown instead of redundantly opening the selected instance directory.

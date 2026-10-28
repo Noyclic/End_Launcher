@@ -5652,3 +5652,27 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 :root:not([data-ui='prism']) .prism-header-action {
   display: none !important;
 }
+
+
+/* Prism/Pinecone pass 9 — custom per-instance icons overlay generated defaults without changing tile geometry. */
+:root[data-ui='prism'] #library .inst-icon.has-custom-icon,
+:root[data-ui='prism'] .prism-selected-icon.has-custom-icon {
+  position: relative;
+  overflow: hidden;
+  background-image: none;
+  background-color: #242424;
+}
+:root[data-ui='prism'] img.prism-custom-instance-icon {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+  image-rendering: auto;
+  pointer-events: none;
+}
+:root[data-ui='prism'] .prism-quick-actions button[hidden] {
+  display: none !important;
+}

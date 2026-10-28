@@ -5949,3 +5949,60 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   background: #303030;
   outline: none;
 }
+
+
+/* Prism/Pinecone pass 16 — the Stop row is real process control, not a decorative mock. */
+:root:not([data-ui='prism']) #stop-btn {
+  display: none !important;
+}
+:root[data-ui='prism'] .play-ui #stop-btn {
+  order: 2;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-width: 0;
+  min-height: 25px;
+  padding: 4px 3px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: #bcbcbc;
+  font: 500 10px 'Inter', sans-serif;
+  line-height: 1.2;
+  text-align: left;
+  box-shadow: none;
+}
+:root[data-ui='prism'] .play-ui #stop-btn::before {
+  content: '×';
+  display: inline-grid;
+  place-items: center;
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  margin-right: 6px;
+  border: 1px solid #666;
+  border-radius: 2px;
+  color: #aaa;
+  font-size: 11px;
+  line-height: 1;
+}
+:root[data-ui='prism'] .play-ui #stop-btn:disabled {
+  opacity: .65;
+  cursor: default;
+}
+:root[data-ui='prism'] .play-ui #stop-btn:not(:disabled) {
+  color: #e5c5c2;
+}
+:root[data-ui='prism'] .play-ui #stop-btn:not(:disabled)::before {
+  border-color: #995e5b;
+  color: #f08e87;
+}
+:root[data-ui='prism'] .play-ui #stop-btn:not(:disabled):hover {
+  border-color: #63403e;
+  background: #382b2a;
+}
+:root[data-ui='prism'] .play-ui .prism-quick-actions { order: 3; }
+:root[data-ui='prism'] .play-ui .pb-info { order: 10; }
+:root[data-ui='prism'] .play-ui .pb-selects { order: 11; }
+:root[data-ui='prism'] .play-ui #tl-nick { order: 12; }

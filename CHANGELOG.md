@@ -1,5 +1,14 @@
 # Changelog
 
+## Prism/Pinecone reference pass 11
+
+- Reordered the compact desktop toolbar to follow the supplied capture: Add Instance, Folder, Settings, Help, Update, project-owned mark, overflow, and account.
+- Hid duplicate Play/AI navigation shortcuts in this narrow toolbar; AI remains reachable from Settings.
+- Matched the right action rail's surface, selected-instance spacing, play-row height, and compact quick-action rhythm more closely to the Pinecone screenshot.
+- Adjusted horizontal content inset to keep the grouped instance library close to the reference's window edge.
+- This remains a visual approximation pending a fresh Windows/Tauri screenshot.
+
+
 ## Prism/Pinecone reference pass 10
 
 - Made instance group headings collapsible with keyboard support (Enter/Space), aria-expanded state and a visible focus outline.

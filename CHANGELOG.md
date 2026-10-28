@@ -1,5 +1,14 @@
 # Changelog
 
+## Prism/Pinecone reference pass 7
+
+- Reworked the Prism header into a compact desktop toolbar: Add Instance, selected-instance folder, Settings, Help, update check, and a single overflow button.
+- Moved search, list/card view, import, extra launcher controls, and custom/loader/version grouping into an anchored overflow panel so the library stays visually clean by default without losing existing handlers.
+- The panel closes on outside click; original controls return to their original DOM positions when switching away from Prism.
+- Help opens End Launcher's Russian README; Update checks the existing release-check command and opens a newer release when available.
+- Added UI regression assertions for the overflow panel and project help/update controls. Visual verification and the newest Windows installer build are pending.
+
+
 ## Prism/Pinecone reference pass 8
 
 - Reordered the functional right-rail actions so profile grouping appears before the folder and export operations, closer to the supplied PineconeMC action order.

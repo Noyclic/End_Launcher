@@ -6385,3 +6385,40 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   white-space: nowrap;
   font-size: 10px;
 }
+
+
+/* Prism/Pinecone pass 29 — a project-owned compact list/settings glyph, not a copied icon asset. */
+:root[data-ui='prism'] .sidebar #nav-settings-button .ico {
+  position: relative;
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  overflow: visible;
+  border: 1px solid #b8c2c8;
+  border-radius: 2px;
+  background: #303538;
+  font-size: 0;
+  line-height: 0;
+  box-sizing: border-box;
+}
+:root[data-ui='prism'] .sidebar #nav-settings-button .ico::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 6px;
+  height: 1px;
+  background: #d4dadd;
+  box-shadow: 0 3px #d4dadd, 0 6px #d4dadd;
+}
+:root[data-ui='prism'] .sidebar #nav-settings-button .ico::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 2px;
+  height: 2px;
+  background: #91d47b;
+  box-shadow: 5px 3px #91d47b, 2px 6px #91d47b;
+}

@@ -38,36 +38,139 @@ jobs:
           mkdir -p artifacts/ui
           node --input-type=module <<'NODE'
           import { chromium } from 'playwright';
+
           const browser = await chromium.launch({ headless: true });
-          const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
+          const page = await browser.newPage({
+            viewport: { width: 1440, height: 900 },
+            deviceScaleFactor: 1,
+          });
+          const pageErrors = [];
+          page.on('pageerror', (error) => {
+            pageErrors.push(error.stack || error.message);
+            console.error('PAGE ERROR:', error.stack || error.message);
+          });
+
+          // Mock only native Tauri services; all DOM/layout changes run through main.js itself.
           await page.addInitScript(() => {
-            window.__TAURI__ = { core: { invoke: async (cmd) => {
-              if (cmd === 'get_settings') return { ui_style: 'prism', first_run_complete: true };
-              return null;
-            } } };
+            const responses = {
+              get_settings: { username: 'Enderman', max_ram_mb: 2048 },
+              get_theme: 'void',
+              get_palette: null,
+              get_accounts: { active: 'offline', microsoft: null, ely: null },
+              get_ms_client_id: '',
+              list_instances: [],
+              get_active_instance: null,
+              list_installed_versions: [],
+              get_ui_style: 'prism',
+              get_ai_enabled: false,
+              ai_install_state: { llama: false, micro: false, advanced: false, llama_auto: false },
+              detect_bedrock: { found: false, package_dir: '' },
+              mc_news: [],
+              p2p_status: { mode: 'off', info: '', peers: 0 },
+              p2p_available: false,
+              p2p_detect_port: null,
+              has_api_key: false,
+              get_advanced: { jvm_args: '', java_path: '' },
+              get_startup_instance: null,
+            };
+            window.__TAURI__ = {
+              core: {
+                invoke: async (command) =>
+                  Object.prototype.hasOwnProperty.call(responses, command)
+                    ? responses[command]
+                    : null,
+              },
+              event: {
+                listen: async () => () => {},
+              },
+              window: {
+                getCurrentWindow: () => ({
+                  onDragDropEvent: async () => () => {},
+                }),
+              },
+            };
             localStorage.setItem('el-first-run-complete', '1');
             localStorage.setItem('el-ui-style', 'prism');
             localStorage.setItem('el-ui-style-v2', 'prism');
           });
-          page.on('pageerror', error => console.error('PAGE ERROR:', error.message));
-          await page.goto('http://127.0.0.1:4173/index.html', { waitUntil: 'networkidle', timeout: 30000 });
-          await page.waitForTimeout(1800);
-          // Force the visual skin without relying on hidden navigation controls or native Tauri APIs.
-          await page.evaluate(() => {
-            document.getElementById('welcome-wizard')?.setAttribute('hidden', '');
-            document.documentElement.dataset.ui = 'prism';
-            document.getElementById('page-play')?.classList.add('active');
-            document.querySelectorAll('[data-page]').forEach(el => el.classList.toggle('active', el.dataset.page === 'play'));
+
+          await page.goto('http://127.0.0.1:4173/index.html', {
+            waitUntil: 'networkidle',
+            timeout: 30000,
           });
-          await page.waitForTimeout(500);
-          await page.screenshot({ path: 'artifacts/ui/prism-pinecone-desktop.png', fullPage: true });
+          await page.waitForTimeout(900);
+
+          // Hide onboarding only; use the real application functions for page/style state.
+          await page.evaluate(async () => {
+            document.getElementById('welcome-wizard')?.setAttribute('hidden', '');
+            if (typeof window.chooseUi !== 'function' || typeof window.goPage !== 'function') {
+              throw new Error('Main UI controls are not exposed by the loaded application script.');
+            }
+            await window.chooseUi('prism');
+            window.goPage('play');
+          });
+          await page.waitForTimeout(400);
+
+          const prismState = await page.evaluate(() => ({
+            ui: document.documentElement.dataset.ui,
+            pageActive: document.getElementById('page-play')?.classList.contains('active'),
+            layout: document.getElementById('library')?.dataset.layout,
+            playUiParent: document.getElementById('play-ui')?.parentElement?.id,
+            sidebarVisible: !!document.querySelector('.sidebar')
+              && getComputedStyle(document.querySelector('.sidebar')).display !== 'none',
+            bodyTextLength: (document.body.innerText || '').trim().length,
+            navButtons: document.querySelectorAll('.nav-btn').length,
+          }));
+          console.log('PRISM UI ASSERTIONS:', JSON.stringify(prismState));
+          if (prismState.ui !== 'prism'
+              || !prismState.pageActive
+              || prismState.layout !== 'prism'
+              || prismState.playUiParent !== 'slot-bar'
+              || !prismState.sidebarVisible
+              || prismState.bodyTextLength < 80
+              || prismState.navButtons < 3) {
+            throw new Error('Prism UI did not render correctly; refusing to publish misleading screenshots.');
+          }
+          if (pageErrors.length) {
+            throw new Error(`Prism page emitted ${pageErrors.length} JavaScript error(s).`);
+          }
+
+          await page.screenshot({
+            path: 'artifacts/ui/prism-pinecone-desktop.png',
+            fullPage: true,
+          });
           await page.setViewportSize({ width: 390, height: 844 });
-          await page.waitForTimeout(300);
-          await page.screenshot({ path: 'artifacts/ui/prism-pinecone-mobile.png', fullPage: true });
+          await page.waitForTimeout(250);
+          await page.screenshot({
+            path: 'artifacts/ui/prism-pinecone-mobile.png',
+            fullPage: true,
+          });
+
           await page.setViewportSize({ width: 1440, height: 900 });
-          await page.evaluate(() => { document.documentElement.dataset.ui = 'end'; });
+          await page.evaluate(async () => {
+            await window.chooseUi('end');
+            window.goPage('play');
+          });
           await page.waitForTimeout(300);
-          await page.screenshot({ path: 'artifacts/ui/end-classic-desktop.png', fullPage: true });
+          const endState = await page.evaluate(() => ({
+            ui: document.documentElement.dataset.ui,
+            layout: document.getElementById('library')?.dataset.layout,
+            playUiParent: document.getElementById('play-ui')?.parentElement?.id,
+          }));
+          console.log('END UI ASSERTIONS:', JSON.stringify(endState));
+          if (endState.ui !== 'end'
+              || endState.layout !== 'end'
+              || endState.playUiParent !== 'slot-page') {
+            throw new Error('End Launcher classic UI did not switch back correctly.');
+          }
+          if (pageErrors.length) {
+            throw new Error(`UI emitted ${pageErrors.length} JavaScript error(s).`);
+          }
+          await page.screenshot({
+            path: 'artifacts/ui/end-classic-desktop.png',
+            fullPage: true,
+          });
+
           await browser.close();
           NODE
       - name: Upload UI screenshots

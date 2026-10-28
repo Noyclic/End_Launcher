@@ -1,5 +1,14 @@
 # Changelog
 
+## Prism/Pinecone reference pass 8
+
+- Added a functional instance editor to the right-side action rail. It edits the instance name, Minecraft version and loader without changing the instance folder or removing worlds/mods.
+- Added Rust-side validation for the name, version identifier and supported loader before writing the updated instance metadata.
+- The editor warns that changing Minecraft version/loader can affect mod and world compatibility; it reports backend errors and does not pretend that failed saves succeeded.
+- UI regression checks now inspect the edit action, editor styling, Rust validation and command registration.
+- Per-instance custom groups can now be assigned from the rail; the latest branch also includes collapsible group headings with a remembered collapsed state.
+
+
 ## Prism/Pinecone reference pass 9
 
 - Added persistent per-instance custom icons, matching a useful Prism/Modrinth library feature. PNG, JPG, GIF, WebP and AVIF images are supported; each icon is capped at 256 KB and the saved collection has a total size cap.

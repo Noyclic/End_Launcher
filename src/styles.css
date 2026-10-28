@@ -6251,3 +6251,19 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   font-size: 10px;
   white-space: nowrap;
 }
+
+
+/* Prism/Pinecone pass 24 — keep the floating P2P dock aligned to the real 164/156 px launch rail. */
+:root[data-ui='prism'] {
+  --el-p2p-dock-right: 182px;
+}
+@media (max-width: 980px) and (min-width: 901px) {
+  :root[data-ui='prism'] {
+    --el-p2p-dock-right: 174px;
+  }
+}
+@media (max-width: 900px) {
+  :root[data-ui='prism'] {
+    --el-p2p-dock-right: 18px;
+  }
+}

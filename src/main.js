@@ -1196,6 +1196,20 @@ $('library-filter')?.addEventListener('input', (event) => {
   renderLibrary();
 });
 $('library-add')?.addEventListener('click', openNewInstance);
+
+$('prism-open-folder')?.addEventListener('click', async () => {
+  const selected = instances.find((item) => String(item.id) === String(activeId));
+  if (!selected) {
+    showToast('Сначала выбери сборку.', false);
+    return;
+  }
+  try {
+    await invoke('open_instance_folder', { id: selected.id });
+  } catch (error) {
+    showToast('Не удалось открыть папку сборки: ' + String(error), false);
+  }
+});
+
 $('library-import')?.addEventListener('click', () => {
   const guide = $('library-import-guide');
   const open = guide.style.display === 'none' || !guide.style.display;

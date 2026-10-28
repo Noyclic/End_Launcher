@@ -525,6 +525,17 @@ check(css.includes(":root[data-ui='prism'] .sidebar #library-add::before")
     && css.includes("@media (max-width: 740px)"),
   'Prism toolbar must keep compact reference-sized icons and readable labels with narrower-window overrides');
 
+check(js.includes('PRISM_INSTANCE_ICONS_STORE')
+    && js.includes('PRISM_ICON_MAX_CHARS')
+    && js.includes('PRISM_ICON_TOTAL_MAX_CHARS')
+    && js.includes('function savePrismInstanceIcons')
+    && js.includes('function choosePrismInstanceIcon')
+    && js.includes("addAction('icon', '▧ Выбрать иконку…'")
+    && js.includes("addAction('reset-icon', '× Сбросить иконку'")
+    && css.includes('img.prism-custom-instance-icon')
+    && css.includes('.prism-quick-actions button[hidden]'),
+  'Prism custom icons must be bounded, persistent, resettable, and styled without changing tile geometry');
+
 check(css.includes(":root[data-ui='prism'] #prism-library-tools")
     && css.includes(":root[data-ui='modrinth'] #modrinth-library-tools")
     && css.includes(":root[data-ui='gd'] #gd-pack-tools")

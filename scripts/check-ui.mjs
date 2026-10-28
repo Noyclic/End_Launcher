@@ -699,6 +699,7 @@ check(js.includes("const PRISM_PLAY_STATS_STORE = 'end-launcher-prism-play-stats
     && js.includes('function formatPrismLastPlayed(value)')
     && js.includes('function finishPrismPlaySession()')
     && js.includes("finishPrismPlaySession();")
+    && js.includes("window.addEventListener('pagehide', () => {\n  finishPrismPlaySession();")
     && js.includes("prismActivePlaySession = { instanceId: String(inst.id), startedAt: Date.now() }")
     && js.includes('renderPrismFooterStats(selected)')
     && css.includes('/* Prism/Pinecone pass 27')

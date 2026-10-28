@@ -317,12 +317,38 @@
 :root[data-ui='prism'] .pet {
   display: none !important;
 }
-:root[data-ui='prism'] {
-  --el-p2p-dock-bottom: 72px;
+/* Place the P2P launcher action in Prism's existing overflow menu rather than over library cards. */
+:root[data-ui='prism'] .prism-toolbar-overflow #p2p-fab {
+  position: static !important;
+  inset: auto !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  z-index: auto !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: auto !important;
+  min-width: 64px;
+  height: 27px !important;
+  margin: 0;
+  padding: 4px 8px;
+  border: 1px solid #484848;
+  border-radius: 3px;
+  background: #303030;
+  color: #dedede;
+  box-shadow: none;
+  filter: none;
+  font: 500 10px/1.15 'Inter', sans-serif;
+  white-space: nowrap;
 }
-@media (max-width: 900px) {
-  :root[data-ui='prism'] {
-    --el-p2p-dock-right: 18px;
-    --el-p2p-dock-bottom: calc(40vh + 62px);
-  }
+:root[data-ui='prism'] .prism-toolbar-overflow #p2p-fab > span {
+  font-size: 12px;
+  line-height: 1;
+}
+:root[data-ui='prism'] .prism-toolbar-overflow #p2p-fab::after {
+  content: 'P2P';
+  font: inherit;
 }

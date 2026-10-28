@@ -590,6 +590,7 @@ function openPrismEmptyContextMenu(event) {
       e.preventDefault();
       e.stopPropagation();
       closeMenus();
+      closePrismEmptyContextMenu({ restoreFocus: true });
       try {
         await action();
       } catch (error) {

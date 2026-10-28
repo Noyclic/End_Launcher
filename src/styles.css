@@ -5768,3 +5768,100 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 :root[data-ui='prism'] #library .inst-card[hidden] {
   display: none !important;
 }
+
+
+/* Prism/Pinecone pass 11 — align the toolbar order and rail details with the supplied desktop reference. */
+:root[data-ui='prism'] .layout {
+  grid-template-columns: minmax(0, 1fr) 164px;
+  grid-template-rows: 38px minmax(0, 1fr) 56px;
+}
+:root[data-ui='prism'] .sidebar {
+  height: 38px;
+  min-height: 38px;
+  flex-wrap: nowrap;
+  gap: 8px;
+  padding: 3px 8px;
+}
+:root[data-ui='prism'] .sidebar .sb-arrow {
+  display: none !important;
+}
+:root[data-ui='prism'] .sidebar .logo {
+  order: 6;
+  flex: 0 0 auto;
+  margin: 0 0 0 3px;
+}
+:root[data-ui='prism'] .sidebar .logo-cube {
+  width: 22px;
+  height: 22px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+:root[data-ui='prism'] .sidebar .logo-text {
+  display: none !important;
+}
+:root[data-ui='prism'] .sidebar .nav-btn[data-page='play'],
+:root[data-ui='prism'] .sidebar .nav-btn[data-page='ai'] {
+  display: none !important;
+}
+:root[data-ui='prism'] .sidebar .nav-btn[data-page='settings'] {
+  order: 3;
+}
+:root[data-ui='prism'] .sidebar #library-add { order: 1; }
+:root[data-ui='prism'] .sidebar #prism-open-folder { order: 2; }
+:root[data-ui='prism'] .sidebar #prism-help { order: 4; }
+:root[data-ui='prism'] .sidebar #prism-update { order: 5; }
+:root[data-ui='prism'] .sidebar .prism-toolbar-overflow-toggle { order: 7; }
+:root[data-ui='prism'] .sidebar #account-box {
+  order: 10;
+  flex: 0 0 132px;
+  width: 132px;
+  max-width: 145px;
+  margin-left: auto;
+}
+:root[data-ui='prism'] .sidebar .nav-btn[data-page='settings'] {
+  min-height: 27px;
+  padding: 4px 8px;
+  border-radius: 3px;
+}
+:root[data-ui='prism'] .content main {
+  padding: 10px 3px 12px;
+}
+:root[data-ui='prism'] .playbar {
+  padding: 25px 7px 8px;
+  border-left: 1px solid #454545;
+  background: #303030;
+}
+:root[data-ui='prism'] .play-ui #play-btn {
+  min-height: 24px;
+  padding: 4px 6px;
+  font-size: 11px;
+}
+:root[data-ui='prism'] .play-ui #play-btn::before {
+  margin-right: 5px;
+  font-size: 11px;
+}
+:root[data-ui='prism'] .play-ui .prism-quick-actions button {
+  min-height: 21px;
+  padding: 2px 3px;
+}
+:root[data-ui='prism'] .prism-selected-instance {
+  gap: 7px;
+  margin-bottom: 1px;
+}
+:root[data-ui='prism'] .prism-selected-icon {
+  width: 72px;
+  height: 72px;
+  flex-basis: 72px;
+  border-radius: 5px;
+}
+:root[data-ui='prism'] #prism-status-bar {
+  grid-row: 3;
+  height: 56px;
+}
+@media (max-width: 1180px) and (min-width: 741px) {
+  :root[data-ui='prism'] .sidebar {
+    height: auto;
+    min-height: 38px;
+    flex-wrap: wrap;
+  }
+}

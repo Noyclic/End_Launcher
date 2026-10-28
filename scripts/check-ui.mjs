@@ -505,6 +505,11 @@ check(js.includes("addAction('shortcut', '↗ Создать ярлык'")
       && css.includes("[data-action='rename'] {\n  display: none !important;"),
   'Prism Create Shortcut must create a desktop entry, launch the intended instance, and replace the redundant Rename row');
 
+check(js.includes("card.addEventListener('dblclick', async (event) => {")
+      && js.includes("if (currentUi !== 'prism' || event.target.closest('button, input, select, textarea')) return;")
+      && js.includes("await setActive(inst.id);\n      playBtn.click();"),
+  'Double-clicking a Prism instance tile should launch that instance without changing click actions in other layouts');
+
 const prismMenuStart = js.indexOf("if (currentUi === 'prism') {", js.indexOf("function toggleMenu(card, inst)"));
 const prismMenuEnd = js.indexOf("item('🧩 Моды'", prismMenuStart);
 const prismMenu = js.slice(prismMenuStart, prismMenuEnd);

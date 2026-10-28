@@ -6267,3 +6267,18 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
     --el-p2p-dock-right: 18px;
   }
 }
+
+
+/* Prism/Pinecone pass 25 — keep the right rail limited to the reference's seven primary instance actions. */
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='mods'],
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='icon'],
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='reset-icon'] {
+  display: none !important;
+}
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='edit'] { order: 1; }
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='group'] { order: 2; }
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='folder'] { order: 3; }
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='export'] { order: 4; }
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='duplicate'] { order: 5; }
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='delete'] { order: 6; }
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='shortcut'] { order: 7; }

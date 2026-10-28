@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const [html, js, css, rustConfig] = await Promise.all([
+const [html, js, css, rustConfig, rustInstances, rustMain] = await Promise.all([
   readFile(new URL('../src/index.html', import.meta.url), 'utf8'),
   readFile(new URL('../src/main.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/styles.css', import.meta.url), 'utf8'),
   readFile(new URL('../src-tauri/src/config.rs', import.meta.url), 'utf8'),
+  readFile(new URL('../src-tauri/src/instances.rs', import.meta.url), 'utf8'),
+  readFile(new URL('../src-tauri/src/main.rs', import.meta.url), 'utf8'),
 ]);
 
 const check = (condition, message) => assert.ok(condition, message);
@@ -488,6 +490,14 @@ check(js.includes('function syncPrismSelectedInstance()')
     && js.includes("addAction('duplicate', '⧉ Копировать…'")
     && js.includes("addAction('delete', '▤ Удалить'"),
   'Prism action rail must expose working folder, export, copy, rename and delete actions');
+check(js.includes('function openPrismInstanceEditor(inst, button, actions)')
+    && js.includes("addAction('edit', '✎ Изменить…'")
+    && js.includes("invoke('update_instance', { id: inst.id, name, version, loader })")
+    && rustInstances.includes('pub fn update_instance(id: String, name: String, version: String, loader: String)')
+    && rustInstances.includes('crate::mc::check_id(&version)?')
+    && rustMain.includes('instances::update_instance,')
+    && css.includes('.prism-instance-editor'),
+  'Prism Edit must validate and persist the instance name, Minecraft version and loader via Rust');
 check(html.includes('id="prism-status-bar"')
     && css.includes(':root[data-ui=\'prism\'] #prism-status-bar')
     && css.includes('grid-template-rows: 38px minmax(0, 1fr) 56px')

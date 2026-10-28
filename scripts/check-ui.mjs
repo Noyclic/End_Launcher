@@ -926,3 +926,29 @@ check(html.includes('Перейти к перетаскиванию файла')
     && repairCss.includes('#page-settings button:not(.theme-card)')
     && repairCss.includes('#ui-styles .theme-card.active'),
   'Prism settings controls must use the neutral desktop palette while preserving selected-theme and launch accents');
+
+
+// Prism/Pinecone pass 41: native OS pickers and modal instance editor are real app actions.
+check(html.includes('id="ni-import-archive"')
+    && html.includes('id="ni-import-folder"')
+    && js.includes("invoke('pick_local_path', { kind })")
+    && js.includes("addEventListener('click', () => pickAndImportLocalPath('archive'))")
+    && js.includes("addEventListener('click', () => pickAndImportLocalPath('folder'))")
+    && rustInstances.includes('pub fn pick_local_path(kind: String)')
+    && rustMain.includes('instances::pick_local_path,')
+    && rustInstances.includes('Command::new("powershell.exe")')
+    && rustInstances.includes('Command::new("zenity")')
+    && rustInstances.includes('Command::new("osascript")'),
+  'Prism import must offer OS-native archive/folder pickers backed by a registered cross-platform Rust command');
+check(js.includes("overlay.id = 'prism-instance-editor-modal'")
+    && js.includes("setAttribute('aria-modal', 'true')")
+    && js.includes('savePrismInstanceGroup({ ...inst, ...updated, id: inst.id }, groupInput.value)')
+    && repairCss.includes('.prism-instance-editor-overlay')
+    && repairCss.includes('.prism-instance-save'),
+  'Prism edit-instance actions must open a modal, save metadata and group, and remain keyboard accessible');
+check(html.includes('id="adv-java-browse"')
+    && html.includes('id="adv-java-auto"')
+    && html.includes('id="adv-java-check"')
+    && js.includes("invoke('check_java', { id: instance.version })")
+    && js.includes("invoke('set_advanced', { jvmArgs: $('adv-jvm').value, javaPath: '' })"),
+  'Prism Java settings must provide file browsing, automatic Java discovery, and version-aware checks');

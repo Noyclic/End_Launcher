@@ -149,7 +149,8 @@
               </div>
               <button id="library-import-close" class="ghost" aria-label="Закрыть подсказку импорта">×</button>
             </div>
-            <div id="new-instance" class="panel create-instance-panel" style="display:none" aria-labelledby="create-instance-title">
+            <div id="new-instance" class="create-instance-modal" style="display:none" aria-hidden="true">
+              <div class="panel create-instance-panel" role="dialog" aria-labelledby="create-instance-title" tabindex="-1">
               <div class="create-instance-heading">
                 <div class="create-instance-mark" aria-hidden="true">＋</div>
                 <div><h2 id="create-instance-title">Новая сборка</h2><p class="dim small">Выбери имя, версию Minecraft и загрузчик. Настройки можно изменить позже.</p></div>
@@ -170,6 +171,7 @@
                 <button id="ni-cancel" class="ghost">Отмена</button>
               </div>
               <p class="mono small" id="ni-msg"></p>
+              </div>
             </div>
             <div id="empty-hero" class="empty-hero" style="display:none">
               <div class="big">⛏</div>

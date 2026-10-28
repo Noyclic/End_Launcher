@@ -2153,7 +2153,7 @@ for (const id of ['library-toolbar-actions', 'prism-library-tools', 'nav-setting
     prismToolbarHome[id] = marker;
   }
 }
-const prismOverflowIds = ['library-search-control', 'library-view', 'library-import', 'layout-extras-toggle', 'prism-play-selects', 'prism-library-tools', 'nav-ai-button', 'p2p-fab'];
+const prismOverflowIds = ['library-search-control', 'library-view', 'library-import', 'layout-extras-toggle', 'prism-play-selects', 'prism-library-tools', 'nav-ai-button', 'p2p-fab', 'prism-cat-toggle'];
 const prismOverflowHome = {};
 for (const id of prismOverflowIds) {
   if (id === 'prism-library-tools') continue;

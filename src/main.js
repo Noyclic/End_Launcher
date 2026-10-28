@@ -1741,7 +1741,7 @@ $('tl-nick').addEventListener('change', async (e) => {
 // Prism uses a classic desktop toolbar. Move the existing action buttons instead of
 // cloning them, so their current handlers and IDs remain intact across layout changes.
 const prismToolbarHome = {};
-for (const id of ['library-toolbar-actions', 'prism-library-tools']) {
+for (const id of ['library-toolbar-actions', 'prism-library-tools', 'nav-settings-button']) {
   const element = $(id);
   if (element && element.parentNode && !prismToolbarHome[id]) {
     const marker = document.createComment(`${id}-original-position`);
@@ -1836,6 +1836,20 @@ function syncPrismToolbar(mode) {
       if (marker?.parentNode) marker.parentNode.insertBefore(element, marker.nextSibling);
     }
   }
+
+  // Treat Settings as a first-class Prism toolbar command, then restore it to
+  // the original navigation slot when switching back to any other UI layout.
+  const settingsButton = $('nav-settings-button');
+  if (settingsButton) {
+    if (mode === 'prism' && sidebar) {
+      const firstAfterToolbar = $('prism-help') || prismOverflowToggle || account;
+      sidebar.insertBefore(settingsButton, firstAfterToolbar);
+    } else {
+      const marker = prismToolbarHome['nav-settings-button'];
+      if (marker?.parentNode) marker.parentNode.insertBefore(settingsButton, marker.nextSibling);
+    }
+  }
+
   const addButton = $('library-add');
   if (addButton) {
     const isPrism = mode === 'prism';

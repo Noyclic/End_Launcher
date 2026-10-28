@@ -580,4 +580,11 @@ check(css.lastIndexOf("/* Prism/Pinecone pass 14")
       && css.lastIndexOf("[data-action='delete']") < css.lastIndexOf("[data-action='rename']"),
   'Prism launch row should stay unboxed, use the green launch glyph, and match selected-instance spacing/action order');
 
+check(css.includes("/* Prism/Pinecone pass 15")
+      && css.includes(":root[data-ui='prism'] .sidebar #account-box::after")
+      && css.includes("margin-left: auto;")
+      && css.includes("content: '▾';")
+      && css.includes("border-color: transparent;"),
+  'Prism account selector should have a quiet background, a visible dropdown cue, and overflow aligned in the free toolbar gap');
+
 console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags.');

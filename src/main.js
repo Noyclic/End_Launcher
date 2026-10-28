@@ -2902,7 +2902,17 @@ invoke('check_launcher_update').then((info) => {
 }).catch(() => {}); // нет сети или нет релизов — молча
 
 // стартовая отрисовка: не загружаем новости и список версий заранее.
-loadInstances().then(refreshPlay);
+loadInstances().then(async () => {
+  await refreshPlay();
+  const shortcutInstanceId = await invoke('get_startup_instance').catch(() => null);
+  if (!shortcutInstanceId) return;
+  if (!instances.some((item) => String(item.id) === String(shortcutInstanceId))) {
+    showToast('Ярлык ссылается на отсутствующую сборку.', false);
+    return;
+  }
+  await setActive(String(shortcutInstanceId));
+  playBtn.click();
+}).catch((error) => console.error('Не удалось загрузить сборки:', error));
 ensureNewsLoaded();
 
 

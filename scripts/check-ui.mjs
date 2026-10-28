@@ -868,7 +868,10 @@ check(html.includes('<link rel="stylesheet" href="prism-layout-fixes.css" />')
     && repairCss.includes('background-image:')
     && repairCss.includes("inst-icon[data-loader='fabric']")
     && repairCss.includes('max-height: 40vh;')
-    && repairCss.includes('font: 500 10px/1.15'),
+    && repairCss.includes('font: 500 10px/1.15')
+    && repairCss.includes(":root[data-ui='prism'] .pet")
+    && repairCss.includes('--el-p2p-dock-bottom: 72px;')
+    && repairCss.includes('calc(40vh + 62px)'),
   'Prism repair stylesheet must be loaded last and preserve icon-first tiles, one add label, and a contained mobile launch panel');
 
 console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags, plus keyboard-navigable Prism profile tiles and search-aware collapsed groups.');

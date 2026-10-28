@@ -2,6 +2,15 @@
 
 ## Prism/Pinecone reference pass 9
 
+- Added per-instance play-time history for the Prism-inspired status bar: last session start, last session duration, and accumulated time are stored locally.
+- The time row updates while the selected instance is running and finalizes its session when the game-exit event arrives; no values are fabricated for instances that have not yet been played.
+- Constrained the footer's detail and total-time fields so long instance metadata truncates cleanly instead of pushing the total counter out of view.
+- Added a UI regression assertion for the statistics storage, session-finalization path, and footer layout.
+- Actual running-app comparison remains part of the agreed 10-request checkpoint.
+
+
+## Prism/Pinecone reference pass 9
+
 - Corrected the Folders menu's path semantics: “Корневая папка” now opens the configured game root; “Папка экземпляров” opens its instances directory; “Общие моды” opens shared mods; “Папка настроек” separately opens End Launcher's config directory.
 - Added and registered a Rust/Tauri `open_game_folder` command so the root action follows a user-configured game directory rather than always opening the configuration folder.
 - Extended the regression checks for the new command and registration.

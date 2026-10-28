@@ -488,4 +488,17 @@ check(css.includes(":root[data-ui='prism'] #prism-library-tools")
     && css.includes(":root[data-ui='lunar'] #lunar-library-tools"),
   'Each feature toolbar must be scoped to its matching launcher-inspired style');
 
+
+check(css.includes('UI repair pass 43')
+    && css.includes('--el-p2p-dock-bottom')
+    && css.includes('.fab {')
+    && css.includes('bottom: calc(var(--el-p2p-dock-bottom, 18px) + 52px'),
+  'P2P control and popover must share a viewport-safe dock instead of covering the top toolbar');
+
+check(css.includes(":root[data-ui='modrinth'] #page-play .library-toolbar-actions")
+    && css.includes(":root[data-ui='modrinth'] #modrinth-library-tools")
+    && css.includes(":root[data-ui='modrinth'] #mod-results > .mod-card")
+    && css.includes(":root[data-ui='modrinth'] .mods-search-controls"),
+  'Modrinth library, filters and catalog cards must use shrink-safe, responsive layouts');
+
 console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags.');

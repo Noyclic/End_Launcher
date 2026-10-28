@@ -1,5 +1,12 @@
 # Changelog
 
+## Prism/Pinecone reference pass 7
+
+- Refined toolbar label sizing, Add Instance glyph size, and folder icon dimensions against the supplied desktop screenshot.
+- Kept secondary sort/group controls compact and preserved smaller control sizes on narrow screens.
+- Added a UI regression assertion for the toolbar geometry. The running Windows app still needs a side-by-side screenshot review after the current checks complete.
+
+
 ## Prism/Pinecone reference pass 6
 
 - Added persistent per-instance group assignment to Prism mode. The right-side action “Изменить группу…” opens a compact editor for existing groups, creating a new group, or returning an instance to “Без группы”.

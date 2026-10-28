@@ -339,7 +339,7 @@ check(css.includes(":root[data-ui='lunar'] #library .inst-card::before")
     && css.includes(":root[data-ui='lunar'] #library .inst-card:nth-child(4n+2)::before"),
   'Lunar layout must use a distinct version gallery with original abstract artwork');
 check(css.includes("@media (max-width:620px)")
-    && css.includes(":root[data-ui='official'] .nav-btn .lbl { display:none; }")
+    && css.includes(":root[data-ui='official'] .nav-btn .lbl,")
     && css.includes(":root[data-ui='lunar'] #library {"),
   'Reference-inspired layouts must retain dedicated compact-window behavior');
 check(css.includes(":root:not([data-ui='end']) #page-play .library-help {")

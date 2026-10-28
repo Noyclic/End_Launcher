@@ -2584,7 +2584,6 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   --el-text:#e5e8eb; --el-dim:#aab0b6; --el-accent:#39aee7;
   --el-accent-deep:#147db4; --el-accent-soft:#39aee71b;
 }
-:root[data-ui='prism'] body,.end-void { }
 :root[data-ui='prism'] body { background:#232629; }
 :root[data-ui='prism'] .layout { grid-template-columns:minmax(0,1fr) 272px; grid-template-rows:58px minmax(0,1fr); background:#232629; }
 :root[data-ui='prism'] .sidebar {
@@ -2829,7 +2828,11 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 :root[data-ui='lunar'] #library .inst-card:nth-child(4n+2)::before { background:linear-gradient(180deg,#15152218 0%,#17172566 47%,#11121af5 100%),radial-gradient(ellipse at 22% 17%,#66c7c288,transparent 44%),linear-gradient(135deg,#30524f,#28243f 52%,#191b29); }
 :root[data-ui='lunar'] #library .inst-card:nth-child(4n+3)::before { background:linear-gradient(180deg,#15152218 0%,#17172566 47%,#11121af5 100%),radial-gradient(ellipse at 80% 18%,#e1a1f477,transparent 46%),linear-gradient(135deg,#604663,#29243d 52%,#191b29); }
 :root[data-ui='lunar'] #library .inst-card:nth-child(4n)::before { background:linear-gradient(180deg,#15152218 0%,#17172566 47%,#11121af5 100%),radial-gradient(ellipse at 30% 12%,#e5c07c77,transparent 44%),linear-gradient(135deg,#625240,#2e2940 54%,#191b29); }
-:root[data-ui='lunar'] #library .inst-card > * { position:relative; z-index:1; }
+:root[data-ui='lunar'] #library .inst-card > .inst-icon,
+:root[data-ui='lunar'] #library .inst-card > .inst-name,
+:root[data-ui='lunar'] #library .inst-card > .chip { position:relative; z-index:1; }
+:root[data-ui='lunar'] #library .inst-card > .inst-play,
+:root[data-ui='lunar'] #library .inst-card > .inst-more { position:absolute; z-index:2; }
 :root[data-ui='lunar'] #library .inst-icon { align-self:flex-start; width:38px; height:38px; border-radius:10px; border:1px solid #ffffff27; background:#16162388; }
 :root[data-ui='lunar'] #library .inst-name { margin-top:auto; font-size:16px; font-weight:750; line-height:1.25; }
 :root[data-ui='lunar'] #library .chip { align-self:flex-start; border-radius:6px; background:#171727a6; border:1px solid #8d87ff42; color:#dedbff; }

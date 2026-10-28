@@ -192,8 +192,12 @@
                         <div class="create-provider-symbol">⇩</div>
                         <h3>Импорт готовой сборки</h3>
                         <p>Поддерживаются архивы <code>.mrpack</code> и <code>.zip</code>, а также папки из Prism, MultiMC и других лаунчеров. Исходные файлы не изменяются.</p>
-                        <p class="dim small">Нажми кнопку ниже, затем перетащи архив или папку прямо в окно End Launcher. Импорт начнётся автоматически.</p>
-                        <button id="ni-import-start" type="button">Перейти к перетаскиванию файла</button>
+                        <p class="dim small">Выбери архив модпака или папку экспорта Prism / MultiMC. Можно также перетащить файл в окно лаунчера.</p>
+                        <div class="create-import-actions">
+                          <button id="ni-import-archive" type="button">Выбрать архив…</button>
+                          <button id="ni-import-folder" class="ghost" type="button">Выбрать папку…</button>
+                          <button id="ni-import-start" class="ghost" type="button">Перетащить вручную</button>
+                        </div>
                       </div>
                     </div>
                     <div class="create-instance-mode" data-create-panel="modrinth" hidden>
@@ -393,9 +397,14 @@
           <div class="row">
             <input id="adv-jvm" placeholder="Свои JVM-аргументы, например -XX:+UseG1GC -Xms1G" />
           </div>
-          <div class="row">
+          <div class="row prism-java-path-row">
             <input id="adv-java" placeholder="Путь к своей Java (пусто = автоматически)" />
-            <button id="adv-save" class="ghost">Сохранить</button>
+            <button id="adv-java-browse" class="ghost" type="button">Обзор…</button>
+          </div>
+          <div class="row prism-java-action-row">
+            <button id="adv-java-auto" class="ghost" type="button">Автоматический выбор</button>
+            <button id="adv-java-check" class="ghost" type="button">Проверить Java</button>
+            <button id="adv-save" class="ghost" type="button">Сохранить</button>
           </div>
           <p class="mono small dim" id="adv-status">для продвинутых; пустые поля — как обычно</p>
 

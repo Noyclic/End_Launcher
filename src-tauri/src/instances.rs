@@ -1056,6 +1056,14 @@ pub fn open_instance_folder(id: String) -> Result<(), String> {
     open_dir(&instance_dir(&id))
 }
 
+/// Открывает каталог, в котором хранятся все экземпляры Minecraft.
+#[tauri::command]
+pub fn open_instances_folder() -> Result<(), String> {
+    let dir = instances_dir();
+    std::fs::create_dir_all(&dir).map_err(err)?;
+    open_dir(&dir)
+}
+
 /// Папка настроек лаунчера (config.json, crash.log, скачанная Java и т.д.).
 #[tauri::command]
 pub fn open_launcher_folder() -> Result<(), String> {

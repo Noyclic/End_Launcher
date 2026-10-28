@@ -4339,3 +4339,104 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   border-bottom: 0;
   border-radius: 1px 1px 0 0;
 }
+
+
+/* In Prism mode the creation form behaves like a compact desktop dialog. */
+:root[data-ui='prism'] .create-instance-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  overflow: auto;
+  background: rgba(0, 0, 0, .62);
+}
+:root[data-ui='prism'] .create-instance-panel {
+  width: min(680px, 100%);
+  max-height: calc(100vh - 44px);
+  margin: 0;
+  padding: 17px;
+  overflow: auto;
+  border-color: #4a4a4a;
+  border-radius: 5px;
+  background: #282828;
+  box-shadow: 0 16px 48px #0009;
+}
+:root[data-ui='prism'] .create-instance-heading {
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid #414141;
+}
+:root[data-ui='prism'] .create-instance-heading h2 {
+  margin: 0 0 3px;
+  color: #eee;
+  font-size: 16px;
+  font-weight: 600;
+}
+:root[data-ui='prism'] .create-instance-heading p {
+  color: #b7b7b7;
+  font-size: 10px;
+}
+:root[data-ui='prism'] .create-instance-mark {
+  width: 31px;
+  height: 31px;
+  flex-basis: 31px;
+  border: 1px solid #4a7898;
+  border-radius: 4px;
+  background: #304c60;
+  color: #d8e8f3;
+  font-size: 19px;
+}
+:root[data-ui='prism'] .create-instance-fields {
+  grid-template-columns: minmax(0, 1.25fr) minmax(110px, .8fr) minmax(110px, .8fr);
+  gap: 8px;
+}
+:root[data-ui='prism'] .create-field {
+  gap: 5px;
+  color: #bdbdbd;
+  font-size: 10px;
+}
+:root[data-ui='prism'] .create-field input,
+:root[data-ui='prism'] .create-field select {
+  min-height: 31px;
+  padding: 6px 8px;
+  border: 1px solid #484848;
+  border-radius: 3px;
+  background: #1e1e1e;
+  color: #e4e4e4;
+  font-size: 11px;
+}
+:root[data-ui='prism'] .create-instance-note {
+  margin: 10px 0;
+  color: #aaa;
+  font-size: 10px;
+  line-height: 1.5;
+}
+:root[data-ui='prism'] .create-instance-actions {
+  gap: 7px;
+  margin-top: 10px;
+}
+:root[data-ui='prism'] .create-instance-actions button {
+  border-radius: 4px;
+  font-size: 11px;
+}
+:root[data-ui='prism'] .create-instance-actions #ni-create {
+  border: 1px solid #4f86aa;
+  background: #315c77;
+  color: #f0f6fa;
+}
+:root[data-ui='prism'] .create-instance-actions #ni-cancel {
+  border: 1px solid #4a4a4a;
+  background: #303030;
+  color: #ddd;
+}
+:root[data-ui='prism'] #ni-msg { overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  :root[data-ui='prism'] .create-instance-modal { align-items: flex-start; padding: 10px; }
+  :root[data-ui='prism'] .create-instance-panel { max-height: calc(100vh - 20px); padding: 12px; }
+  :root[data-ui='prism'] .create-instance-fields { grid-template-columns: 1fr; }
+}

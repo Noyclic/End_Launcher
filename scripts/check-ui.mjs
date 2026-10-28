@@ -721,4 +721,12 @@ check(js.includes("const PRISM_PLAY_STATS_STORE = 'end-launcher-prism-play-stats
     && html.includes('id="prism-status-active"'),
   'Prism footer must persist per-instance last-played time and completed session duration, and keep total-time text readable in the status row');
 
+
+check(js.includes('function closePrismOverflow({ restoreFocus = false } = {})')
+    && js.includes('closePrismOverflow({ restoreFocus: true })')
+    && js.includes("window.addEventListener('resize', () => { closePrismFoldersMenu(); closePrismOverflow(); });")
+    && js.includes("prismOverflowToggle?.setAttribute('aria-expanded', 'false')")
+    && js.includes("event.key !== 'Escape' || currentUi !== 'prism' || !prismOverflowPanel || prismOverflowPanel.hidden"),
+  'Prism overflow menu must dismiss on Escape and resize, update aria-expanded, and restore focus to its trigger');
+
 console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags.');

@@ -559,7 +559,7 @@ check(html.includes('id="nav-ai-button" class="nav-btn" data-page="ai"')
 
 check(html.includes('id="library-toolbar-actions" class="library-toolbar-actions"')
       && html.includes('id="library-search-control" class="library-search"')
-      && js.includes("for (const id of ['library-toolbar-actions', 'prism-library-tools'])")
+      && js.includes("for (const id of ['library-toolbar-actions', 'prism-library-tools', 'nav-settings-button'])")
       && js.includes("'library-search-control'")
       && js.includes("sidebar.insertBefore(element, prismOverflowToggle || account)"),
   'Prism toolbar movers need matching element IDs so the real action row and search control move into their intended toolbar/overflow containers');
@@ -574,6 +574,22 @@ check(html.includes('id="library-search-control"')
     && css.includes('.sidebar .prism-toolbar-overflow[hidden]')
     && css.includes(':root:not([data-ui=\'prism\']) .prism-header-action'),
   'Prism toolbar must keep help/update available while hiding advanced tools in an accessible overflow panel');
+check(html.includes('id="nav-settings-button" class="nav-btn" data-page="settings"')
+    && js.includes("const settingsButton = $('nav-settings-button')")
+    && js.includes("prismToolbarHome['nav-settings-button']")
+    && css.includes("Prism/Pinecone pass 20"),
+  'Prism Parameters button must move into the top toolbar and return to the original navigation slot when switching layouts');
+
+check(html.includes('aria-controls="prism-folders-menu"')
+    && html.includes('Папки ▾')
+    && js.includes('function ensurePrismFoldersMenu(sidebar)')
+    && js.includes("await invoke('open_instance_folder', { id: selected.id })")
+    && js.includes("await invoke('open_mods_folder')")
+    && js.includes("await invoke('open_launcher_folder')")
+    && js.includes("event.key !== 'Escape'") 
+    && css.includes('.prism-folders-menu-item:focus-visible'),
+  'Prism toolbar Folders menu must expose working instance/mods/launcher folder actions and keyboard dismissal');
+
 check(js.indexOf("addAction('group', '▤ Изменить группу…'") < js.indexOf("addAction('folder', '📂 Папка'")
     && js.indexOf("addAction('folder', '📂 Папка'") < js.indexOf("addAction('export', '⇩ Экспортировать…'"),
   'Prism instance action rail should follow the reference order: group management before folder and export');

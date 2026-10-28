@@ -385,6 +385,22 @@
 - Removed the classic End backdrop gradients and ambient particle canvas in reference-inspired layouts so they no longer compete with the target launcher's flatter or more focused surfaces.
 - Added regression checks for secondary-page coverage, dialogs, form controls and backdrop suppression.
 
+
+### UI fidelity pass 39 — launcher-specific home composition
+
+- Reworked GDLauncher-inspired mode around the horizontal app header, featured library banner, wider instance gallery and bottom play strip seen in the current Carbon layout.
+- Brought Modrinth-inspired mode closer to its home dashboard pattern by exposing a dedicated “Welcome back” header above the compact library rows, with a green play action.
+- Rebuilt TL Legacy-inspired mode around a centered translucent launch selector over an original, softly layered landscape-style background; the actual install/library tools remain available below it.
+- Connected the featured banner's Play control to the same existing launcher action as the main Play button.
+- Added UI regression coverage for the layout routing, banner visibility, launch-button wiring and the three reference-specific home compositions.
+- Kept app logos and third-party icon artwork out of the styling pass. Runtime screenshot comparison in the Tauri window remains the next visual QA step.
+
+### UI fidelity pass 38 — cross-screen skin consistency
+
+- Extended reference-inspired styling beyond the home page to the mods browser, settings, dialogs, profile editor, forms and security panel.
+- Added per-skin surfaces, borders, radii, typography and input/button treatment while keeping the same functional controls.
+- Hid the classic particles/backdrop for reference-inspired styles and widened secondary pages to avoid the classic layout's narrow content column.
+
 ### UI fidelity pass 37 — structural launcher layout pass
 
 - Rebuilt the Prism-inspired desktop workspace around a compact top toolbar, dense instance tiles and a dedicated launch rail.

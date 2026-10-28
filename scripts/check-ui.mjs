@@ -324,8 +324,9 @@ check(css.includes(":root[data-ui='modrinth'] #library .inst-card")
     && css.includes(":root[data-ui='modrinth'] .play-ui #play-btn"),
   'Modrinth layout must use compact library rows, green actions, and a persistent play strip');
 check(css.includes(":root[data-ui='tl'] .layout { display:flex; flex-direction:column")
-    && css.includes(":root[data-ui='tl'] .playbar {"),
-  'TL layout must have top navigation and a bottom launch bar');
+    && css.includes(":root[data-ui='tl'] #slot-page .play-ui")
+    && css.includes(":root[data-ui='tl'] .playbar { display:none !important; }"),
+  'TL layout must use a centered launch panel rather than the shared bottom playbar');
 check(css.includes(":root[data-ui='gd'] #page-play .launcher-banner")
     && css.includes(":root[data-ui='gd'] #library {"),
   'GD layout must use a wide featured-library hierarchy and spacious cards');
@@ -359,5 +360,31 @@ for (const mode of ['prism','modrinth','tl','gd','official','at','lunar']) {
 check(css.includes(":root:not([data-ui='end']) #page-mods,")
     && css.includes("max-width:min(100%, 1040px)"),
   'Reference-inspired secondary pages must use a wider, responsive content surface');
+
+
+check(js.includes("const target = ['end', 'tl'].includes(mode) ? $('slot-page') : $('slot-bar');"),
+  'TL layout must place the working play controls inside its centered launcher panel');
+check(js.includes("!['modrinth', 'gd', 'official', 'lunar'].includes(mode)"),
+  'Modrinth, GD, official and Lunar layouts must expose their selected-instance header where designed');
+check(js.includes("if (currentUi === 'modrinth')") && js.includes("title.textContent = 'С возвращением!'"),
+  'Modrinth home must use a welcome-back header instead of the generic End hero');
+check(js.includes("$('launcher-banner-play')?.addEventListener('click', () => {")
+    && js.includes('playBtn.click();'),
+  'Featured launch buttons must invoke the actual native Play action');
+check(css.includes(":root[data-ui='gd'] .sidebar nav {")
+    && css.includes(":root[data-ui='gd'] .content {")
+    && css.includes(":root[data-ui='gd'] .playbar { order:2;"),
+  'GDLauncher-inspired layout must use its horizontal app navigation, scrollable center and footer play strip');
+check(css.includes(":root[data-ui='modrinth'] #page-play .launcher-banner {")
+    && css.includes("border-bottom:1px solid #2e3432;"),
+  'Modrinth welcome-back header must be visible above the library list');
+check(css.includes(":root[data-ui='tl'] #page-play::before")
+    && css.includes(":root[data-ui='tl'] #slot-page {")
+    && css.includes("background:rgba(234,241,238,.86);"),
+  'TL Legacy-inspired mode must use a centered translucent launch selector over an original soft landscape-like background');
+check(css.includes(":root[data-ui='gd'] .nav-btn.active")
+    && css.includes(":root[data-ui='official'] #library .inst-card")
+    && css.includes(":root[data-ui='prism'] #library .inst-card"),
+  'Major launcher skins must retain separate application-level composition rules');
 
 console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags.');

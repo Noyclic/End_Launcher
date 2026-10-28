@@ -634,12 +634,19 @@ function syncLauncherBanner() {
   const title = $('launcher-banner-title');
   const meta = $('launcher-banner-meta');
   const kicker = $('launcher-banner-kicker');
-  if (title) title.textContent = inst ? inst.name : 'Твоя следующая история начинается здесь';
-  if (meta) meta.textContent = inst
-    ? `Minecraft ${inst.version} · ${LOADER_NAME[inst.loader] || inst.loader} · ${accounts.active === 'offline' ? 'Офлайн-профиль' : 'Аккаунт подключён'}`
-    : 'Создайте или выберите сборку, чтобы продолжить.';
+  if (currentUi === 'modrinth') {
+    if (title) title.textContent = 'С возвращением!';
+    if (meta) meta.textContent = inst
+      ? `Продолжить игру: ${inst.name} · Minecraft ${inst.version} · ${LOADER_NAME[inst.loader] || inst.loader}`
+      : 'Выбери сборку ниже, чтобы продолжить игру.';
+  } else {
+    if (title) title.textContent = inst ? inst.name : 'Твоя следующая история начинается здесь';
+    if (meta) meta.textContent = inst
+      ? `Minecraft ${inst.version} · ${LOADER_NAME[inst.loader] || inst.loader} · ${accounts.active === 'offline' ? 'Офлайн-профиль' : 'Аккаунт подключён'}`
+      : 'Создайте или выберите сборку, чтобы продолжить.';
+  }
   if (kicker) kicker.textContent = ({
-    end: 'END LAUNCHER · БИБЛИОТЕКА', modrinth: 'БИБЛИОТЕКА · ВАШИ ПРОФИЛИ', prism: 'INSTANCES · ISOLATED PROFILES',
+    end: 'END LAUNCHER · БИБЛИОТЕКА', modrinth: 'ГЛАВНАЯ · ВАШИ СБОРКИ', prism: 'INSTANCES · ISOLATED PROFILES',
     tl: 'MINECRAFT · ПРОФИЛЬ ЗАПУСКА', gd: 'GD STYLE · LIBRARY', official: 'MINECRAFT JAVA EDITION',
     at: 'AT STYLE · INSTANCES', lunar: 'LUNAR STYLE · PLAY',
   })[currentUi] || 'END LAUNCHER';
@@ -647,8 +654,14 @@ function syncLauncherBanner() {
   if (play) {
     play.disabled = !inst;
     play.title = inst ? `Запустить ${inst.name}` : 'Сначала создайте сборку';
+    play.textContent = currentUi === 'modrinth' ? '▶ Играть' : '▶ Играть';
   }
 }
+
+$('launcher-banner-play')?.addEventListener('click', () => {
+  if (!instances.some((item) => item.id === activeId)) return;
+  playBtn.click();
+});
 
 function renderLibrary() {
   const box = $('library');
@@ -1032,10 +1045,10 @@ function applyUi(mode) {
   if (!UI_STYLES[mode]) mode = 'end';
   currentUi = mode;
   root.dataset.ui = mode;
-  const target = mode === 'end' ? $('slot-page') : $('slot-bar');
+  const target = ['end', 'tl'].includes(mode) ? $('slot-page') : $('slot-bar');
   if ($('play-ui').parentElement !== target) target.appendChild($('play-ui'));
   const banner = $('launcher-banner');
-  if (banner) banner.hidden = !['gd', 'official', 'lunar'].includes(mode);
+  if (banner) banner.hidden = !['modrinth', 'gd', 'official', 'lunar'].includes(mode);
   const toolbar = $('library-toolbar');
   if (toolbar) toolbar.dataset.mode = mode;
   renderUiCards();

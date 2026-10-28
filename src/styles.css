@@ -3073,3 +3073,325 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   :root:not([data-ui='end']) .account-provider-title { gap:8px; }
   :root:not([data-ui='end']) #page-settings > .row { flex-wrap:wrap; }
 }
+
+
+/* UI fidelity pass 39 — fix the overall composition of GD, Modrinth and TL.
+   The layouts are based on current public reference screenshots; app actions stay native. */
+
+/* GDLauncher Carbon: application-level top navigation, featured content, tiled library. */
+:root[data-ui='gd'] .layout {
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  min-height:0;
+  background:#191b22;
+}
+:root[data-ui='gd'] .sidebar {
+  order:0;
+  display:flex;
+  flex:0 0 58px;
+  flex-direction:row;
+  align-items:center;
+  gap:18px;
+  width:100%;
+  min-width:0;
+  padding:8px 20px;
+  background:#1c1f27;
+  border:0;
+  border-bottom:1px solid #323642;
+}
+:root[data-ui='gd'] .sb-arrow { display:none; }
+:root[data-ui='gd'] .logo {
+  flex:0 0 auto;
+  margin:0 8px 0 0;
+  gap:9px;
+}
+:root[data-ui='gd'] .logo-text { display:block; }
+:root[data-ui='gd'] .logo-cube {
+  width:34px;
+  height:34px;
+  border-radius:9px;
+  background:#30384d;
+  box-shadow:none;
+}
+:root[data-ui='gd'] .sidebar nav {
+  display:flex;
+  flex:1 1 auto;
+  flex-direction:row;
+  align-items:center;
+  gap:8px;
+  width:auto;
+  min-width:0;
+}
+:root[data-ui='gd'] .nav-btn {
+  display:flex;
+  flex:0 0 auto;
+  flex-direction:row;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  width:auto;
+  min-height:38px;
+  padding:8px 12px;
+  border:1px solid transparent;
+  border-radius:7px;
+  color:#a6acbb;
+  font-size:12px;
+}
+:root[data-ui='gd'] .nav-btn .ico { width:auto; font-size:14px; }
+:root[data-ui='gd'] .nav-btn.active {
+  color:#f0f1f8;
+  background:#292e3c;
+  border-color:#373e52;
+  box-shadow:inset 0 -2px #8295ff;
+}
+:root[data-ui='gd'] .account {
+  flex:0 0 auto;
+  margin:0 0 0 auto;
+  padding:5px 9px;
+  gap:8px;
+  border:1px solid #323642;
+  border-radius:8px;
+  background:#191c23;
+}
+:root[data-ui='gd'] .avatar { width:28px; height:28px; border-radius:7px; }
+:root[data-ui='gd'] .acc-name { font-size:12px; }
+:root[data-ui='gd'] .acc-mode { font-size:8px; }
+:root[data-ui='gd'] .content {
+  order:1;
+  flex:1 1 auto;
+  width:100%;
+  height:auto;
+  min-height:0;
+  overflow:hidden;
+}
+:root[data-ui='gd'] .content main {
+  height:100%;
+  min-height:0;
+  overflow:auto;
+  padding:22px clamp(18px,3vw,44px);
+}
+:root[data-ui='gd'] #page-play { max-width:none; }
+:root[data-ui='gd'] #page-play .launcher-banner {
+  display:flex;
+  min-height:152px;
+  align-items:flex-end;
+  padding:22px 26px;
+  margin:0 0 22px;
+  border:1px solid #3a3e4b;
+  border-radius:12px;
+  background:
+    linear-gradient(90deg,rgba(28,31,39,.16),#22252e 82%),
+    radial-gradient(ellipse at 15% 10%,#6676a966,transparent 46%),
+    linear-gradient(115deg,#30364a,#242834 60%,#22252e);
+}
+:root[data-ui='gd'] #page-play .launcher-banner-copy { max-width:700px; }
+:root[data-ui='gd'] #page-play .launcher-banner h2 { font-size:clamp(23px,2.6vw,30px); }
+:root[data-ui='gd'] #page-play .launcher-banner-play { min-width:112px; }
+:root[data-ui='gd'] #page-play .library-toolbar {
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  gap:14px;
+  padding:8px 0 12px;
+  border-bottom:1px solid #373b48;
+}
+:root[data-ui='gd'] #page-play .library-toolbar-heading { flex-direction:row; align-items:baseline; }
+:root[data-ui='gd'] #library {
+  grid-template-columns:repeat(auto-fill,minmax(218px,1fr));
+  gap:13px;
+  margin-top:12px;
+}
+:root[data-ui='gd'] #library .inst-card {
+  min-height:146px;
+  border-radius:10px;
+  border-color:#383c49;
+  background:linear-gradient(145deg,#262a35,#20232c);
+}
+:root[data-ui='gd'] #library .inst-card.add {
+  min-height:146px;
+  justify-content:center;
+  align-items:center;
+  border-style:dashed;
+}
+:root[data-ui='gd'] .playbar {
+  order:2;
+  flex:0 0 auto;
+  width:100%;
+  border:0;
+  border-top:1px solid #373b48;
+  border-radius:0;
+  padding:11px 20px;
+  background:#20232b;
+}
+:root[data-ui='gd'] .play-ui { flex-wrap:nowrap; }
+:root[data-ui='gd'] .play-ui .pb-selects { flex:0 1 260px; }
+:root[data-ui='gd'] .play-ui .pb-info { flex:1 1 140px; }
+:root[data-ui='gd'] .play-ui #play-btn {
+  min-width:130px;
+  min-height:40px;
+  border-radius:8px;
+  background:#7186f4;
+  box-shadow:none;
+}
+:root[data-ui='gd'] #page-play .home-extra { padding-top:8px; }
+:root[data-ui='gd'] #page-play .stats { gap:10px; }
+:root[data-ui='gd'] #page-play .stat { border-radius:10px; background:#22252e; }
+:root[data-ui='gd'] #page-play .island-card { border-radius:12px; background:#22252e; }
+@media (max-width:900px) {
+  :root[data-ui='gd'] .sidebar { flex-basis:auto; flex-wrap:wrap; min-height:58px; gap:8px; padding:8px 12px; }
+  :root[data-ui='gd'] .sidebar nav { flex:1 1 260px; flex-wrap:wrap; }
+  :root[data-ui='gd'] .account { margin-left:auto; }
+  :root[data-ui='gd'] .play-ui { flex-wrap:wrap; }
+}
+@media (max-width:620px) {
+  :root[data-ui='gd'] .logo { margin-right:0; }
+  :root[data-ui='gd'] .sidebar nav { order:3; flex:1 1 100%; }
+  :root[data-ui='gd'] .sidebar nav .nav-btn { flex:1 1 auto; }
+  :root[data-ui='gd'] .content main { padding:14px 11px; }
+  :root[data-ui='gd'] #page-play .launcher-banner { min-height:112px; padding:14px; }
+  :root[data-ui='gd'] #library { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+  :root[data-ui='gd'] #library .inst-card { min-height:124px; padding:10px; }
+  :root[data-ui='gd'] .playbar { padding:9px; }
+  :root[data-ui='gd'] .play-ui .pb-selects { flex:1 1 100%; }
+}
+
+/* Modrinth App: the welcome-back header belongs above the instance rows, not hidden. */
+:root[data-ui='modrinth'] #page-play .launcher-banner {
+  display:flex;
+  min-height:0;
+  align-items:center;
+  gap:16px;
+  margin:0 0 14px;
+  padding:2px 0 16px;
+  border:0;
+  border-bottom:1px solid #2e3432;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+:root[data-ui='modrinth'] #page-play .launcher-banner-kicker { display:none; }
+:root[data-ui='modrinth'] #page-play .launcher-banner h2 {
+  margin:0 0 4px;
+  font-size:21px;
+  letter-spacing:-.025em;
+}
+:root[data-ui='modrinth'] #page-play .launcher-banner p { font-size:12px; color:#9ca5a1; }
+:root[data-ui='modrinth'] #page-play .launcher-banner-play {
+  min-width:92px;
+  min-height:36px;
+  padding:0 16px;
+  border-radius:8px;
+  background:#1bdc8b;
+  color:#10241b;
+  box-shadow:none;
+  font-size:12px;
+}
+:root[data-ui='modrinth'] #page-play .library-toolbar {
+  border:0;
+  padding:6px 0 10px;
+}
+:root[data-ui='modrinth'] #page-play .library-toolbar-title { font-size:17px; }
+:root[data-ui='modrinth'] #library .inst-card { min-height:68px; }
+:root[data-ui='modrinth'] #page-play .home-extra { margin-top:24px; }
+:root[data-ui='modrinth'] #page-play .home-extra > h2 { margin-top:20px; }
+:root[data-ui='modrinth'] #page-play .stats .stat { border-radius:10px; background:#202523; }
+:root[data-ui='modrinth'] #page-play .island-card { border-radius:12px; background:#202523; }
+@media (max-width:620px) {
+  :root[data-ui='modrinth'] #page-play .launcher-banner { align-items:flex-start; }
+  :root[data-ui='modrinth'] #page-play .launcher-banner-play { flex:0 0 auto; }
+}
+
+/* TL Legacy: the launch selector is the centered glass panel over a soft landscape-like canvas. */
+:root[data-ui='tl'] .layout { display:flex; flex-direction:column; min-height:0; height:100vh; background:#18212a; }
+:root[data-ui='tl'] .sidebar { width:100%; flex:0 0 auto; min-height:56px; }
+:root[data-ui='tl'] .content { width:100%; height:auto; flex:1 1 auto; min-height:0; overflow:hidden; }
+:root[data-ui='tl'] .content main { height:100%; overflow:auto; padding:0 clamp(12px,3vw,32px) 28px; background:transparent; }
+:root[data-ui='tl'] #page-play { max-width:none; min-height:100%; position:relative; isolation:isolate; }
+:root[data-ui='tl'] #page-play::before {
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:0 -32px;
+  pointer-events:none;
+  background:
+    linear-gradient(180deg,#9fb8c5b8 0%,#8faeaf88 36%,#354b4266 66%,#192a2fdd 100%),
+    radial-gradient(ellipse at 22% 28%,#d8e1df 0%,transparent 34%),
+    radial-gradient(ellipse at 76% 48%,#60866d 0%,transparent 40%),
+    linear-gradient(160deg,#b3c9d2 0%,#7b9c9d 42%,#385745 68%,#1b3028 100%);
+  filter:blur(1.5px);
+}
+:root[data-ui='tl'] #page-play > h1,
+:root[data-ui='tl'] #page-play .launcher-banner { display:none !important; }
+:root[data-ui='tl'] #slot-page {
+  display:grid;
+  place-items:center;
+  min-height:min(64vh,500px);
+  padding:24px 0 18px;
+}
+:root[data-ui='tl'] #slot-page .play-ui {
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:9px;
+  width:min(360px,100%);
+  margin:auto;
+  padding:19px;
+  border:1px solid #ffffff80;
+  border-radius:4px;
+  background:rgba(234,241,238,.86);
+  color:#33434a;
+  box-shadow:0 10px 38px #17272c33;
+  backdrop-filter:blur(9px);
+}
+:root[data-ui='tl'] #slot-page .pb-selects { display:flex; flex-direction:column; gap:8px; margin:0; }
+:root[data-ui='tl'] #slot-page .pb-selects select,
+:root[data-ui='tl'] #slot-page #tl-nick {
+  width:100%;
+  min-width:0;
+  padding:9px 10px;
+  border:1px solid #b0bdc0;
+  border-radius:3px;
+  color:#33434a;
+  background:#f5f7f5;
+  font:13px 'Inter',sans-serif;
+}
+:root[data-ui='tl'] #slot-page #tl-nick { display:block; order:2; }
+:root[data-ui='tl'] #slot-page .pb-info { order:3; gap:6px; color:#34454a; }
+:root[data-ui='tl'] #slot-page #play-status { color:#465b61; font-size:11px; }
+:root[data-ui='tl'] #slot-page .progress { background:#c5d1cd; }
+:root[data-ui='tl'] #slot-page #play-btn {
+  order:4;
+  width:100%;
+  min-width:0;
+  margin:0;
+  padding:12px;
+  border:1px solid #c3cecb;
+  border-radius:3px;
+  color:#33434a;
+  background:#eff1e8;
+  box-shadow:none;
+  font-size:15px;
+  font-weight:800;
+}
+:root[data-ui='tl'] .playbar { display:none !important; }
+:root[data-ui='tl'] #page-play .library-wrap {
+  padding:0 0 24px;
+  background:#15212a66;
+}
+:root[data-ui='tl'] #page-play .library-toolbar { padding:8px; border:0; background:#15212acc; }
+:root[data-ui='tl'] #page-play .library-toolbar-title,
+:root[data-ui='tl'] #page-play .library-count { color:#e3ecee; }
+:root[data-ui='tl'] #page-play .library-search input { background:#eef2ef; color:#293d42; }
+:root[data-ui='tl'] #page-play #library .inst-card { background:#dbe4e0e8; border-color:#b0c1bb; color:#2a3c42; }
+:root[data-ui='tl'] #page-play #library .chip { background:#c7d7d0; color:#38555a; }
+:root[data-ui='tl'] #page-play #library .inst-card.active { background:#f0f4e9; border-color:#548c68; }
+@media (max-width:620px) {
+  :root[data-ui='tl'] #slot-page { min-height:52vh; padding:14px 0; }
+  :root[data-ui='tl'] #slot-page .play-ui { padding:13px; }
+  :root[data-ui='tl'] .sidebar { justify-content:flex-start; gap:6px; }
+  :root[data-ui='tl'] .sidebar nav { gap:2px; }
+  :root[data-ui='tl'] .nav-btn { padding:6px; font-size:10px; }
+}
+
+/* Real launch buttons in the featured banner must work just like the main Play button. */

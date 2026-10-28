@@ -1,5 +1,13 @@
 # Changelog
 
+## Prism/Pinecone reference pass 16
+
+- Added a real Stop action to the Prism right rail. It calls a registered Rust command and targets the process started for the specific running instance.
+- The process monitor polls the child process, accepts a cancellation request, terminates only that launched Java process, and reports an intentional stop separately from a crash.
+- The Stop row remains disabled when no Java instance is running and hidden in other interface modes.
+- Added UI regression coverage for the registered command, frontend event handling, and Prism-only control.
+
+
 ## Prism/Pinecone reference pass 15
 
 - Removed the persistent card-like outline behind the account selector, added a subtle dropdown cue, and retained a clear hover/focus state.

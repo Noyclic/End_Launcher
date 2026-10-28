@@ -119,6 +119,7 @@ fn main() {
             instances::create_instance_shortcut,
             instances::get_startup_instance,
             instances::open_instance_folder,
+            instances::open_instances_folder,
             instances::open_launcher_folder,
             diag::system_info,
             ai::ai_install_state,

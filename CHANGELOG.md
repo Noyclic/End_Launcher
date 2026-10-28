@@ -1,5 +1,13 @@
 # Changelog
 
+## Prism/Pinecone reference pass 6
+
+- Added persistent per-instance group assignment to Prism mode. The right-side action “Изменить группу…” opens a compact editor for existing groups, creating a new group, or returning an instance to “Без группы”.
+- Custom groups are stored separately in local storage under a namespaced key; failures to write are reported instead of silently pretending the group was saved.
+- Renamed the default grouping option to “Свои группы” and updated the UI regression check to cover custom, loader and Minecraft-version grouping.
+- A regression check initially caught an outdated assertion that expected the older grouping condition; the assertion was updated to reflect the new per-instance group model. The updated workflow must be green before considering this layer validated.
+
+
 ## Prism/Pinecone reference pass 5
 
 - Added a right-rail quick-action list for the selected instance: Mods, Open Folder, Export, Copy, Rename and two-step Delete. These call existing app operations instead of being decorative controls.

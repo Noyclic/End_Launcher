@@ -914,3 +914,9 @@ check(js.includes('const createInstanceHomeMarker = document.createComment')
     && js.includes('function restoreNewInstanceLocation()')
     && js.includes('document.body.appendChild(wrapper)'),
   'Prism instance creation overlay must be viewport-rooted and restore its original location after closing');
+
+check(html.includes('id="ni-group"')
+    && js.includes("const groupName = currentUi === 'prism' ? String($('ni-group')?.value || '').trim() : ''")
+    && js.includes('if (created?.id && groupName) savePrismInstanceGroup(created, groupName)')
+    && js.includes('const PRISM_INSTANCE_GROUPS_STORE ='),
+  'Prism instance creation must let users assign a group immediately and persist it through the existing group store');

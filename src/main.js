@@ -1223,7 +1223,7 @@ $('tl-nick').addEventListener('change', async (e) => {
 // Prism uses a classic desktop toolbar. Move the existing action buttons instead of
 // cloning them, so their current handlers and IDs remain intact across layout changes.
 const prismToolbarHome = {};
-for (const id of ['library-add', 'prism-open-folder']) {
+for (const id of ['library-toolbar-actions', 'prism-library-tools']) {
   const element = $(id);
   if (element && element.parentNode && !prismToolbarHome[id]) {
     const marker = document.createComment(`${id}-original-position`);
@@ -1234,7 +1234,7 @@ for (const id of ['library-add', 'prism-open-folder']) {
 function syncPrismToolbar(mode) {
   const sidebar = document.querySelector('.sidebar');
   const account = $('account-box');
-  for (const id of ['library-add', 'prism-open-folder']) {
+  for (const id of ['library-toolbar-actions', 'prism-library-tools']) {
     const element = $(id);
     if (!element) continue;
     if (mode === 'prism' && sidebar && account) {

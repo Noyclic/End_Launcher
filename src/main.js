@@ -1887,6 +1887,114 @@ function syncPrismLogoNavigation(mode) {
   }
 }
 
+let prismFoldersMenu = null;
+
+function closePrismFoldersMenu({ restoreFocus = false } = {}) {
+  if (prismFoldersMenu) prismFoldersMenu.hidden = true;
+  $('prism-open-folder')?.setAttribute('aria-expanded', 'false');
+  if (restoreFocus) $('prism-open-folder')?.focus();
+}
+
+function ensurePrismFoldersMenu(sidebar) {
+  if (!prismFoldersMenu) {
+    prismFoldersMenu = document.createElement('div');
+    prismFoldersMenu.id = 'prism-folders-menu';
+    prismFoldersMenu.className = 'prism-folders-menu';
+    prismFoldersMenu.hidden = true;
+    prismFoldersMenu.setAttribute('role', 'menu');
+    prismFoldersMenu.setAttribute('aria-label', 'Папки лаунчера');
+
+    const choices = [
+      { action: 'instance', icon: '▣', label: 'Папка экземпляра', title: 'Открыть папку выбранного экземпляра' },
+      { action: 'mods', icon: '▧', label: 'Папка модов', title: 'Открыть общую папку модов' },
+      { action: 'launcher', icon: '▰', label: 'Папка лаунчера', title: 'Открыть папку End Launcher' },
+    ];
+    for (const choice of choices) {
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'prism-folders-menu-item';
+      item.dataset.folderAction = choice.action;
+      item.setAttribute('role', 'menuitem');
+      item.title = choice.title;
+      const icon = document.createElement('span');
+      icon.className = 'prism-folders-menu-icon';
+      icon.setAttribute('aria-hidden', 'true');
+      icon.textContent = choice.icon;
+      const label = document.createElement('span');
+      label.textContent = choice.label;
+      item.append(icon, label);
+      item.addEventListener('click', async (event) => {
+        event.stopPropagation();
+        const action = item.dataset.folderAction;
+        const selected = instances.find((entry) => String(entry.id) === String(activeId));
+        closePrismFoldersMenu();
+        try {
+          if (action === 'instance') {
+            if (!selected) {
+              showToast('Сначала выбери сборку.', false);
+              return;
+            }
+            await invoke('open_instance_folder', { id: selected.id });
+          } else if (action === 'mods') {
+            await invoke('open_mods_folder');
+          } else if (action === 'launcher') {
+            await invoke('open_launcher_folder');
+          }
+        } catch (error) {
+          const label = action === 'instance' ? 'папку сборки' : action === 'mods' ? 'папку модов' : 'папку лаунчера';
+          showToast('Не удалось открыть ' + label + ': ' + String(error), false);
+        }
+      });
+      prismFoldersMenu.appendChild(item);
+    }
+  }
+  if (prismFoldersMenu.parentElement !== sidebar) sidebar.appendChild(prismFoldersMenu);
+  const trigger = $('prism-open-folder');
+  trigger?.setAttribute('aria-haspopup', 'menu');
+  trigger?.setAttribute('aria-controls', 'prism-folders-menu');
+}
+
+function togglePrismFoldersMenu() {
+  const trigger = $('prism-open-folder');
+  if (currentUi !== 'prism' || !trigger || !prismFoldersMenu) return;
+  const shouldOpen = prismFoldersMenu.hidden;
+  closePrismFoldersMenu();
+  if (!shouldOpen) return;
+  const rect = trigger.getBoundingClientRect();
+  const width = Math.min(238, Math.max(190, window.innerWidth - 16));
+  prismFoldersMenu.style.position = 'fixed';
+  prismFoldersMenu.style.top = Math.min(rect.bottom + 2, Math.max(8, window.innerHeight - 130)) + 'px';
+  prismFoldersMenu.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8)) + 'px';
+  prismFoldersMenu.style.width = width + 'px';
+  prismFoldersMenu.hidden = false;
+  trigger.setAttribute('aria-expanded', 'true');
+  prismFoldersMenu.querySelector('button')?.focus();
+}
+
+function syncPrismFoldersMenu(mode) {
+  const trigger = $('prism-open-folder');
+  if (mode !== 'prism') {
+    closePrismFoldersMenu();
+    trigger?.setAttribute('aria-expanded', 'false');
+    return;
+  }
+  const sidebar = document.querySelector('.sidebar');
+  if (!sidebar) return;
+  ensurePrismFoldersMenu(sidebar);
+}
+
+document.addEventListener('click', (event) => {
+  if (currentUi !== 'prism' || !prismFoldersMenu || prismFoldersMenu.hidden) return;
+  if (prismFoldersMenu.contains(event.target) || $('prism-open-folder')?.contains(event.target)) return;
+  closePrismFoldersMenu();
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape' || !prismFoldersMenu || prismFoldersMenu.hidden) return;
+  event.preventDefault();
+  closePrismFoldersMenu({ restoreFocus: true });
+});
+window.addEventListener('resize', () => closePrismFoldersMenu());
+
 function applyUi(mode) {
   if (!UI_STYLES[mode]) mode = 'end';
   currentUi = mode;
@@ -1894,6 +2002,7 @@ function applyUi(mode) {
   syncPrismLogoNavigation(mode);
   syncPrismOverflow(mode);
   syncPrismToolbar(mode);
+  syncPrismFoldersMenu(mode);
   const target = ['end', 'tl'].includes(mode) ? $('slot-page') : $('slot-bar');
   if ($('play-ui').parentElement !== target) target.appendChild($('play-ui'));
   const banner = $('launcher-banner');
@@ -1941,17 +2050,9 @@ $('library-filter')?.addEventListener('input', (event) => {
 });
 $('library-add')?.addEventListener('click', openNewInstance);
 
-$('prism-open-folder')?.addEventListener('click', async () => {
-  const selected = instances.find((item) => String(item.id) === String(activeId));
-  if (!selected) {
-    showToast('Сначала выбери сборку.', false);
-    return;
-  }
-  try {
-    await invoke('open_instance_folder', { id: selected.id });
-  } catch (error) {
-    showToast('Не удалось открыть папку сборки: ' + String(error), false);
-  }
+$('prism-open-folder')?.addEventListener('click', (event) => {
+  event.stopPropagation();
+  togglePrismFoldersMenu();
 });
 
 $('prism-help')?.addEventListener('click', async () => {

@@ -1767,10 +1767,40 @@ function syncPrismToolbar(mode) {
   }
 }
 
+let prismLogoNavigationBound = false;
+function syncPrismLogoNavigation(mode) {
+  const logo = document.querySelector('.sidebar .logo');
+  if (!logo) return;
+  if (!prismLogoNavigationBound) {
+    const openLibrary = () => {
+      if (currentUi === 'prism') document.querySelector('.nav-btn[data-page="play"]')?.click();
+    };
+    logo.addEventListener('click', openLibrary);
+    logo.addEventListener('keydown', (event) => {
+      if (currentUi !== 'prism' || (event.key !== 'Enter' && event.key !== ' ')) return;
+      event.preventDefault();
+      openLibrary();
+    });
+    prismLogoNavigationBound = true;
+  }
+  if (mode === 'prism') {
+    logo.setAttribute('role', 'button');
+    logo.tabIndex = 0;
+    logo.setAttribute('aria-label', 'Открыть библиотеку экземпляров');
+    logo.title = 'Открыть библиотеку экземпляров';
+  } else {
+    logo.removeAttribute('role');
+    logo.removeAttribute('tabindex');
+    logo.removeAttribute('aria-label');
+    logo.removeAttribute('title');
+  }
+}
+
 function applyUi(mode) {
   if (!UI_STYLES[mode]) mode = 'end';
   currentUi = mode;
   root.dataset.ui = mode;
+  syncPrismLogoNavigation(mode);
   syncPrismOverflow(mode);
   syncPrismToolbar(mode);
   const target = ['end', 'tl'].includes(mode) ? $('slot-page') : $('slot-bar');

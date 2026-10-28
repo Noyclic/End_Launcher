@@ -64,6 +64,7 @@ jobs:
               ],
               get_active_instance: 1001,
               list_installed_versions: ['1.21.1', '1.20.1'],
+              list_mods: [],
               check_java: { source: 'managed', required_major: 21 },
               get_ui_style: 'prism',
               get_ai_enabled: false,

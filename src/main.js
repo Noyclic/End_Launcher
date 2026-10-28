@@ -1157,6 +1157,7 @@ function syncPrismQuickActions() {
     actions.dataset.instanceId = selectedId;
     actions.dataset.armedDeleteId = '';
     actions.querySelector('.prism-group-editor')?.remove();
+    actions.querySelector('.prism-instance-editor')?.remove();
     const deleteButton = actions.querySelector('[data-action="delete"]');
     if (deleteButton) deleteButton.textContent = '▤ Удалить';
   }

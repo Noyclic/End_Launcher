@@ -66,6 +66,15 @@ check(js.includes("localStorage.setItem('el-ui-style', mode)"), 'UI choices shou
 
 
 // Modal accessible names and semantics are a regression-sensitive part of the UI.
+check(/id="new-instance" class="create-instance-modal" style="display:none" aria-hidden="true"/.test(html),
+  'New-instance dialog must have a dedicated, initially hidden overlay wrapper');
+check(/class="panel create-instance-panel" role="dialog" aria-labelledby="create-instance-title"/.test(html),
+  'New-instance panel must expose a labelled dialog');
+check(js.includes('function closeNewInstance()')
+    && js.includes("wrapper.setAttribute('aria-hidden', 'true')")
+    && js.includes("trapModalFocus(event, wrapper.querySelector('[role=\"dialog\"]'))")
+    && js.includes("if (event.key === 'Escape') {\n    closeNewInstance();"),
+  'Prism new-instance dialog must restore focus, trap Tab, and close on Escape');
 check(/class="account-dialog"[^>]*role="dialog"[^>]*aria-modal="true"[^>]*aria-labelledby="account-modal-title"/.test(html),
   'Account picker must expose labelled modal-dialog semantics');
 check(/class="customizer-window"[^>]*role="dialog"[^>]*aria-modal="true"[^>]*aria-labelledby="customizer-title"/.test(html),

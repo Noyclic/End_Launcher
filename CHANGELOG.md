@@ -1,5 +1,13 @@
 # Changelog
 
+## Prism/Pinecone — keyboard-safe toolbar menus
+
+- The “⋯” overflow menu now closes with Escape and returns keyboard focus to its trigger, matching the folder dropdown's keyboard behavior.
+- Resizing the window closes both popovers so they cannot remain detached from their toolbar buttons.
+- Added a static UI regression check for dismissal, focus restoration, and the expanded-state attribute.
+- Kept the existing menu contents and button handlers; this is an accessibility/interaction refinement.
+
+
 ## Prism/Pinecone reference pass 12
 
 - Matched the Settings toolbar label to Prism's “Параметры…” wording in Prism mode; it restores “Настройки” and its original title when switching back to the other End Launcher layouts.

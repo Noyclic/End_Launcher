@@ -1,5 +1,12 @@
 # Changelog
 
+## Prism/Pinecone reference pass 18
+
+- Fixed the missing DOM ID on the library toolbar action container. The existing Prism layout mover now finds and moves the real toolbar into the top strip instead of silently leaving it inside the library.
+- Confirmed the search control already had its expected ID; with the toolbar container fixed, the search can correctly be moved into the overflow panel and restored when switching UI modes.
+- Added a regression assertion for those actual HTML IDs and their mover code paths.
+
+
 ## Prism/Pinecone reference pass 17
 
 - Added a real “Create Shortcut” action to the selected-instance rail. It creates a Windows .lnk, Linux .desktop, or macOS .command entry on the desktop and starts End Launcher with the target instance ID.

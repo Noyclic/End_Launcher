@@ -7,7 +7,9 @@
 use serde::{Deserialize, Serialize};
 use std::path::{Component, Path, PathBuf};
 use std::io::Read;
+#[cfg(target_os = "windows")]
 use std::process::Command;
+#[cfg(target_os = "windows")]
 use base64::Engine as _;
 use futures_util::StreamExt;
 use sha1::{Digest, Sha1};

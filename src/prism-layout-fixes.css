@@ -510,3 +510,38 @@
   :root[data-ui='prism'] .create-instance-panel .create-instance-fields { grid-template-columns: minmax(0, 1fr); }
   :root[data-ui='prism'] .create-instance-panel .create-field:first-child { grid-column: auto; }
 }
+
+/* Prism/Pinecone pass 40 — neutral desktop controls, reserve blue/green for selected and launch states. */
+:root[data-ui='prism'] #page-settings button:not(.theme-card) {
+  border: 1px solid #4b4b4b;
+  background: #353535;
+  color: #dfdfdf;
+  box-shadow: none;
+}
+:root[data-ui='prism'] #page-settings button:not(.theme-card):hover {
+  border-color: #626262;
+  background: #404040;
+  filter: none;
+}
+:root[data-ui='prism'] #page-settings button:not(.theme-card):focus-visible {
+  outline: 2px solid #91d47b;
+  outline-offset: 2px;
+}
+:root[data-ui='prism'] #page-settings #ui-styles .theme-card.active {
+  border-color: #6ca65a;
+  background: #303730;
+  box-shadow: inset 0 0 0 1px #6ca65a;
+}
+:root[data-ui='prism'] #page-settings #ui-styles .theme-card.active .theme-card-copy > :first-child {
+  color: #a0df8c;
+}
+:root[data-ui='prism'] .create-instance-panel .create-provider-card button {
+  border: 1px solid #4b4b4b;
+  background: #353535;
+  color: #e1e1e1;
+}
+:root[data-ui='prism'] .create-instance-panel .create-provider-card button:hover {
+  border-color: #6b6b6b;
+  background: #404040;
+  filter: none;
+}

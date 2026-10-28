@@ -2107,7 +2107,7 @@ async function showJavaStatus() {
 function updatePlayBtn() {
   const prismMode = currentUi === 'prism';
   if (stopBtn) {
-    stopBtn.disabled = !gameRunning || editionSel.value !== 'java';
+    stopBtn.disabled = !gameRunning;
     const runningInstance = instances.find((item) => String(item.id) === String(runningInstanceId));
     stopBtn.title = gameRunning ? `Остановить ${runningInstance?.name || 'игру'}` : 'Игра не запущена';
   }

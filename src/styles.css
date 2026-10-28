@@ -3717,182 +3717,591 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 }
 
 
-/* Prism fidelity pass: compact, Qt-like desktop controls without changing behavior. */
+/* Prism-style library pass: compact toolbar, grouped profile tiles and a restrained Qt-like palette. */
+:root[data-ui='prism'] {
+  --el-bg: #202020;
+  --el-panel: #292929;
+  --el-line: #454545;
+  --el-text: #ededed;
+  --el-dim: #b7b7b7;
+  --el-accent: #4f9bd8;
+  --el-accent-deep: #2877b8;
+  --el-accent-soft: #4f9bd822;
+  --el-good: #8dcf9d;
+  --el-bad: #e47777;
+}
+:root[data-ui='prism'] .layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 264px;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 0;
+  height: 100vh;
+  background: #202020;
+}
+:root[data-ui='prism'] .sidebar {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 12px;
+  border: 0;
+  border-bottom: 1px solid #444;
+  background: #292929;
+}
+:root[data-ui='prism'] .logo {
+  flex: 0 0 auto;
+  gap: 7px;
+  margin: 0 2px 0 0;
+}
+:root[data-ui='prism'] .logo-cube {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  box-shadow: none;
+  animation: none;
+}
+:root[data-ui='prism'] .logo-text { display: none; }
+:root[data-ui='prism'] .sidebar nav {
+  display: flex;
+  flex-direction: row;
+  gap: 3px;
+  width: auto;
+  min-width: 0;
+}
+:root[data-ui='prism'] .nav-btn {
+  width: auto;
+  padding: 7px 10px;
+  gap: 6px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: #d1d1d1;
+  font: 500 11px 'Inter', sans-serif;
+  white-space: nowrap;
+  box-shadow: none;
+}
+:root[data-ui='prism'] .nav-btn .ico {
+  width: auto;
+  font-size: 14px;
+  line-height: 1;
+}
+:root[data-ui='prism'] .nav-btn:hover {
+  border-color: #484848;
+  background: #353535;
+  color: #fff;
+}
+:root[data-ui='prism'] .nav-btn.active {
+  border-color: #4a4a4a;
+  background: #373737;
+  color: #fff;
+  box-shadow: inset 0 -2px #4f9bd8;
+}
+:root[data-ui='prism'] .account {
+  flex: 0 1 190px;
+  min-width: 0;
+  margin: 0 0 0 auto;
+  padding: 4px 7px;
+  gap: 7px;
+  border: 1px solid #414141;
+  border-radius: 4px;
+  background: #252525;
+}
+:root[data-ui='prism'] .avatar {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border-radius: 3px;
+  background: #3b454b;
+  box-shadow: none;
+}
+:root[data-ui='prism'] .acc-name {
+  overflow: hidden;
+  max-width: 116px;
+  color: #e7e7e7;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:root[data-ui='prism'] .acc-mode {
+  font-size: 9px;
+  letter-spacing: .04em;
+}
+:root[data-ui='prism'] .content {
+  display: contents;
+}
 :root[data-ui='prism'] .content main {
-  padding: 18px 22px;
-  background: #25292c;
-  color: #d9dfe3;
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+  min-height: 0;
+  padding: 12px 14px 18px;
+  overflow-y: auto;
+  background: #202020;
+  color: #e6e6e6;
+}
+:root[data-ui='prism'] #page-play {
+  max-width: none;
 }
 :root[data-ui='prism'] #page-play > h1,
 :root[data-ui='prism'] #page-play > .greet,
 :root[data-ui='prism'] #launcher-banner {
   display: none;
 }
+:root[data-ui='prism'] #page-play .home-extra,
+:root[data-ui='prism'] #page-play .library-help {
+  display: none;
+}
+:root[data-ui='prism'] .library-wrap {
+  display: block;
+  min-width: 0;
+}
 :root[data-ui='prism'] .library-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 7px;
   margin: 0 0 7px;
   padding: 0 0 8px;
-  border-bottom: 1px solid #41464b;
-  gap: 8px;
+  border-bottom: 1px solid #414141;
+}
+:root[data-ui='prism'] .library-toolbar-heading {
+  gap: 7px;
+  min-width: 0;
 }
 :root[data-ui='prism'] .library-toolbar-title {
-  font-size: 14px;
+  color: #eee;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0;
-  color: #e4e8eb;
 }
-:root[data-ui='prism'] .library-count { color: #9da8af; }
-:root[data-ui='prism'] .library-toolbar-actions { gap: 5px; }
+:root[data-ui='prism'] .library-count {
+  margin: 0;
+  color: #a8a8a8;
+  font-size: 10px;
+}
+:root[data-ui='prism'] .library-toolbar-actions {
+  flex: 1 1 400px;
+  min-width: 0;
+  justify-content: flex-end;
+  gap: 5px;
+}
 :root[data-ui='prism'] .library-toolbar-actions > button {
-  padding: 6px 9px;
-  border: 1px solid #464d52;
+  padding: 6px 8px;
+  border: 1px solid #484848;
   border-radius: 4px;
-  background: #303539;
-  color: #d7dde1;
-  font-size: 11px;
+  background: #303030;
+  color: #dedede;
+  font-size: 10px;
+  line-height: 1.25;
   box-shadow: none;
 }
 :root[data-ui='prism'] .library-toolbar-actions > button:hover {
-  background: #3b4247;
-  border-color: #66727a;
+  border-color: #686868;
+  background: #393939;
   filter: none;
 }
+:root[data-ui='prism'] .library-toolbar-actions > #library-add {
+  border-color: #4d88b5;
+  background: #315b76;
+  color: #f1f7fb;
+}
 :root[data-ui='prism'] .library-search {
-  max-width: 250px;
+  flex: 1 1 130px;
+  max-width: 240px;
+  min-width: 90px;
+  gap: 6px;
+  padding: 0 8px;
+  border-color: #444;
   border-radius: 4px;
-  border-color: #464d52;
-  background: #1d2124;
+  background: #1b1b1b;
+}
+:root[data-ui='prism'] .library-search > span {
+  font-size: 17px;
 }
 :root[data-ui='prism'] .library-search input {
-  color: #e0e5e8;
-  font-size: 12px;
+  min-width: 0;
+  padding: 7px 0;
+  color: #e2e2e2;
+  font: 11px 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .library-search input::placeholder {
+  color: #999;
+}
+:root[data-ui='prism'] #prism-library-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 0 0 8px;
+  border-bottom: 1px solid #393939;
+}
+:root[data-ui='prism'] #prism-library-tools label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #bdbdbd;
+  font-size: 10px;
+}
+:root[data-ui='prism'] #prism-library-tools select {
+  width: auto;
+  min-width: 116px;
+  padding: 5px 7px;
+  border: 1px solid #474747;
+  border-radius: 3px;
+  background: #292929;
+  color: #ddd;
+  font-size: 10px;
 }
 :root[data-ui='prism'] #library {
-  gap: 4px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  align-content: start;
+  justify-content: start;
+  gap: 3px 2px;
+  min-width: 0;
+}
+:root[data-ui='prism'] #library .library-group-heading {
+  grid-column: 1 / -1;
+  margin: 8px 0 1px;
+  padding: 4px 3px;
+  border: 0;
+  border-bottom: 1px solid #3f3f3f;
+  color: #b5b5b5;
+  font: 600 10px 'Inter', sans-serif;
+  letter-spacing: .025em;
+  text-transform: none;
 }
 :root[data-ui='prism'] #library .inst-card {
-  min-height: 54px;
-  flex-direction: row;
+  position: relative;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 7px 48px 7px 8px;
-  border: 1px solid #3b4146;
-  border-radius: 4px;
-  background: #2b3034;
+  justify-content: flex-start;
+  gap: 2px;
+  min-width: 0;
+  min-height: 92px;
+  padding: 4px 2px 3px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: #e7e7e7;
+  text-align: center;
   box-shadow: none;
   transform: none;
 }
 :root[data-ui='prism'] #library .inst-card:hover,
 :root[data-ui='prism'] #library .inst-card:focus-visible {
-  border-color: #687780;
-  background: #343b40;
+  border-color: #414141;
+  background: #2a2a2a;
+  outline: none;
 }
 :root[data-ui='prism'] #library .inst-card.active {
-  border-color: #7d9eb1;
-  background: #35434b;
+  border-color: transparent;
+  background: transparent;
 }
 :root[data-ui='prism'] #library .inst-icon {
-  width: 36px;
-  height: 36px;
-  flex: 0 0 36px;
-  border-radius: 3px;
-  font-size: 15px;
-  background: #3c454b;
-  color: #dce5e9;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  margin: 0 auto;
+  border: 1px solid #3e3e3e;
+  border-radius: 4px;
+  background: #363636;
+  color: #e6e6e6;
+  font: 600 15px 'Inter', sans-serif;
   box-shadow: none;
 }
+:root[data-ui='prism'] #library .inst-card:hover .inst-icon,
+:root[data-ui='prism'] #library .inst-card:focus-visible .inst-icon {
+  border-color: #5b5b5b;
+  background: #3d3d3d;
+}
+:root[data-ui='prism'] #library .inst-card.active .inst-icon {
+  border-color: #398bd0;
+  background: #287ec3;
+  color: #fff;
+}
 :root[data-ui='prism'] #library .inst-name {
-  flex: 1;
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
-  font-size: 12px;
+  padding: 4px 2px 3px;
+  overflow: hidden;
+  background: #191919;
+  color: #ddd;
+  font-size: 10px;
   font-weight: 500;
-  color: #e1e6e9;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+:root[data-ui='prism'] #library .inst-card.active .inst-name {
+  background: #267cc1;
+  color: #fff;
 }
 :root[data-ui='prism'] #library .chip {
   align-self: center;
+  max-width: 100%;
   margin: 0;
-  padding: 2px 5px;
-  border: 1px solid #454f55;
+  padding: 1px 2px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: #a3a3a3;
+  font: 9px 'Inter', sans-serif;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:root[data-ui='prism'] #library .inst-play,
+:root[data-ui='prism'] #library .inst-more {
+  top: 2px;
+  width: 23px;
+  height: 23px;
+  padding: 0;
+  border: 1px solid #4a4a4a;
   border-radius: 3px;
-  background: #252b2f;
-  color: #aebbc2;
-  font: 10px 'Inter', sans-serif;
+  background: #252525;
+  color: #e6e6e6;
+  font-size: 12px;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: none;
 }
 :root[data-ui='prism'] #library .inst-play {
-  top: 50%;
-  right: 8px;
-  width: 30px;
-  height: 30px;
-  transform: translateY(-50%);
-  border: 1px solid #4d626e;
-  border-radius: 4px;
-  background: #34444c;
-  color: #dce7ec;
-  box-shadow: none;
+  right: 27px;
+}
+:root[data-ui='prism'] #library .inst-more {
+  right: 2px;
+}
+:root[data-ui='prism'] #library .inst-card:hover .inst-play,
+:root[data-ui='prism'] #library .inst-card:hover .inst-more,
+:root[data-ui='prism'] #library .inst-card:focus-within .inst-play,
+:root[data-ui='prism'] #library .inst-card:focus-within .inst-more,
+:root[data-ui='prism'] #library .inst-card.active .inst-play,
+:root[data-ui='prism'] #library .inst-card.active .inst-more {
+  opacity: 1;
+  pointer-events: auto;
 }
 :root[data-ui='prism'] #library .inst-card.add {
-  min-height: 42px;
+  align-items: center;
   justify-content: flex-start;
-  border-style: dashed;
+  min-height: 92px;
+  padding-top: 4px;
+  border: 1px dashed #434343;
   background: transparent;
+  color: #bdbdbd;
+  font-size: 10px;
 }
-:root[data-ui='prism'] #library .inst-card.add .inst-icon { display: none; }
-:root[data-ui='prism'] .library-group-heading {
-  margin-top: 9px;
-  padding: 5px 2px;
-  border-color: #41484d;
-  color: #aebbc2;
-  font: 600 10px 'Inter', sans-serif;
-  letter-spacing: .04em;
+:root[data-ui='prism'] #library .inst-card.add .inst-icon {
+  display: grid;
+  border-style: dashed;
+  background: #292929;
+  color: #bdbdbd;
 }
 :root[data-ui='prism'] .playbar {
-  background: #202427;
-  border-left-color: #41464b;
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  gap: 10px;
+  width: auto;
+  min-width: 0;
+  margin: 0;
+  padding: 14px 12px;
+  overflow-y: auto;
+  border: 0;
+  border-left: 1px solid #414141;
+  border-radius: 0;
+  background: #252525;
+}
+:root[data-ui='prism'] .play-ui {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  gap: 10px;
+  width: 100%;
 }
 :root[data-ui='prism'] .play-ui #play-btn {
-  border: 1px solid #55717f;
+  order: 1;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 12px 10px;
+  border: 1px solid #4f86aa;
   border-radius: 4px;
-  background: #344a55;
-  color: #e3edf1;
+  background: #315c77;
+  color: #f0f6fa;
+  font-size: 13px;
   box-shadow: none;
-  font-size: 14px;
 }
 :root[data-ui='prism'] .play-ui #play-btn::before { display: none; }
-:root[data-ui='prism'] .play-ui #play-btn:hover { background: #405b67; filter: none; }
+:root[data-ui='prism'] .play-ui #play-btn:hover {
+  background: #3a6c8b;
+  filter: none;
+}
+:root[data-ui='prism'] .pb-selects {
+  order: 2;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: 0;
+  gap: 6px;
+}
 :root[data-ui='prism'] .pb-selects select,
 :root[data-ui='prism'] #tl-nick {
-  border: 1px solid #464d52;
-  border-radius: 4px;
-  background: #1d2124;
-  color: #dce2e6;
+  width: 100%;
+  min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid #464646;
+  border-radius: 3px;
+  background: #1c1c1c;
+  color: #ddd;
+  font-size: 11px;
+}
+:root[data-ui='prism'] .play-ui .pb-info {
+  order: 3;
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  gap: 6px;
+  min-width: 0;
+}
+:root[data-ui='prism'] #play-status {
+  order: 1;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #aaa;
+  font-size: 10px;
 }
 :root[data-ui='prism'] .progress {
+  order: 2;
+  width: 100%;
+  max-width: none;
   height: 5px;
+  margin: 0;
   border-radius: 2px;
-  background: #3a4145;
+  background: #3b3b3b;
 }
-:root[data-ui='prism'] #progress-bar { border-radius: 2px; }
-:root[data-ui='prism'] .account {
-  border-color: #41484d;
-  border-radius: 4px;
-  background: #252a2e;
+:root[data-ui='prism'] #progress-bar {
+  border-radius: 2px;
 }
-:root[data-ui='prism'] .avatar {
+:root[data-ui='prism'] #analyze-crash {
+  order: 3;
+  align-self: stretch;
+  padding: 7px 8px;
   border-radius: 3px;
-  background: #3c454b;
+  font-size: 10px;
+}
+:root[data-ui='prism'] #update-banner {
+  border-radius: 4px;
+  font-size: 11px;
+}
+:root[data-ui='prism'] .panel,
+:root[data-ui='prism'] .create-instance-panel {
+  border: 1px solid #454545;
+  border-radius: 4px;
+  background: #292929;
   box-shadow: none;
 }
-@media (max-width: 900px) {
-  :root[data-ui='prism'] .layout { grid-template-columns: minmax(0, 1fr) 220px; }
-  :root[data-ui='prism'] .content main { padding: 14px; }
-  :root[data-ui='prism'] .library-toolbar-actions { flex-basis: 100%; justify-content: flex-start; flex-wrap: wrap; }
+:root[data-ui='prism'] .inst-menu {
+  border-color: #4a4a4a;
+  border-radius: 4px;
+  background: #242424;
+  box-shadow: 0 5px 16px #0008;
 }
-@media (max-width: 680px) {
-  :root[data-ui='prism'] .layout { display: flex; flex-direction: column; }
-  :root[data-ui='prism'] .sidebar { flex-wrap: wrap; }
-  :root[data-ui='prism'] .content { display: flex; min-height: 0; }
+:root[data-ui='prism'] .inst-menu button {
+  border-radius: 3px;
+  font-size: 11px;
+}
+:root[data-ui='prism'] .inst-menu button:hover {
+  background: #363636;
+}
+@media (max-width: 980px) {
+  :root[data-ui='prism'] .layout {
+    grid-template-columns: minmax(0, 1fr) 226px;
+  }
+  :root[data-ui='prism'] .content main {
+    padding: 10px;
+  }
+  :root[data-ui='prism'] .library-toolbar-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}
+@media (max-width: 740px) {
+  :root[data-ui='prism'] .layout {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    min-height: 0;
+  }
+  :root[data-ui='prism'] .sidebar {
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px 8px;
+  }
+  :root[data-ui='prism'] .sidebar nav {
+    flex: 1 1 auto;
+    overflow-x: auto;
+  }
+  :root[data-ui='prism'] .nav-btn {
+    padding: 6px 8px;
+  }
+  :root[data-ui='prism'] .account {
+    flex: 0 1 150px;
+    margin-left: auto;
+  }
+  :root[data-ui='prism'] .content {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: auto;
+  }
+  :root[data-ui='prism'] .content main {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
   :root[data-ui='prism'] .playbar {
-    border-left: 0;
-    border-top: 1px solid #41464b;
+    flex: 0 0 auto;
     max-height: 34vh;
+    padding: 10px;
+    border-top: 1px solid #414141;
+    border-left: 0;
+  }
+  :root[data-ui='prism'] .play-ui {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+  }
+  :root[data-ui='prism'] .play-ui #play-btn {
+    grid-column: 1 / -1;
+  }
+  :root[data-ui='prism'] .pb-selects {
+    flex-direction: row;
+  }
+  :root[data-ui='prism'] .pb-selects select {
+    flex: 1 1 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-ui='prism'] #library .inst-card,
+  :root[data-ui='prism'] #library .inst-icon {
+    transition: none;
   }
 }

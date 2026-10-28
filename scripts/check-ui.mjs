@@ -577,7 +577,9 @@ check(html.includes('id="library-search-control"')
 check(html.includes('id="nav-settings-button" class="nav-btn" data-page="settings"')
     && js.includes("const settingsButton = $('nav-settings-button')")
     && js.includes("prismToolbarHome['nav-settings-button']")
-    && css.includes("Prism/Pinecone pass 20"),
+    && css.includes("Prism/Pinecone pass 20")
+    && css.includes(":root[data-ui='prism'] .sidebar #nav-settings-button")
+    && css.includes("width: auto;"),
   'Prism Parameters button must move into the top toolbar and return to the original navigation slot when switching layouts');
 
 check(html.includes('aria-controls="prism-folders-menu"')

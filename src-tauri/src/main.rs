@@ -113,6 +113,7 @@ fn main() {
             instances::duplicate_instance,
             instances::export_instance,
             instances::import_instance,
+            instances::pick_local_path,
             instances::delete_instance,
             instances::get_active_instance,
             instances::set_active_instance,

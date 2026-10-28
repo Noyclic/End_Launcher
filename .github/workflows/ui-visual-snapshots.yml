@@ -94,7 +94,7 @@ jobs:
             localStorage.setItem('el-ui-style-v2', 'prism');
           });
 
-          await page.goto('http://127.0.0.1:4173/index.html', {
+          await page.goto('http://127.0.0.1:4173/index.html?ui-test=1', {
             waitUntil: 'networkidle',
             timeout: 30000,
           });
@@ -103,11 +103,11 @@ jobs:
           // Hide onboarding only; use the real application functions for page/style state.
           await page.evaluate(async () => {
             document.getElementById('welcome-wizard')?.setAttribute('hidden', '');
-            if (typeof window.chooseUi !== 'function' || typeof window.goPage !== 'function') {
-              throw new Error('Main UI controls are not exposed by the loaded application script.');
+            if (typeof window.__EL_TEST__?.chooseUi !== 'function' || typeof window.__EL_TEST__?.goPage !== 'function') {
+              throw new Error('Test bridge was not enabled by ?ui-test=1.');
             }
-            await window.chooseUi('prism');
-            window.goPage('play');
+            await window.__EL_TEST__.chooseUi('prism');
+            window.__EL_TEST__.goPage('play');
           });
           await page.waitForTimeout(400);
 
@@ -148,8 +148,8 @@ jobs:
 
           await page.setViewportSize({ width: 1440, height: 900 });
           await page.evaluate(async () => {
-            await window.chooseUi('end');
-            window.goPage('play');
+            await window.__EL_TEST__.chooseUi('end');
+            window.__EL_TEST__.goPage('play');
           });
           await page.waitForTimeout(300);
           const endState = await page.evaluate(() => ({

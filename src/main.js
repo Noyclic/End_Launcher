@@ -2461,6 +2461,11 @@ async function chooseUi(mode) {
     return false;
   }
 }
+
+// Test-only bridge: exposed only when the screenshot workflow explicitly opts in via ?ui-test=1.
+if (new URLSearchParams(window.location.search).get('ui-test') === '1') {
+  window.__EL_TEST__ = Object.freeze({ chooseUi, goPage });
+}
 $('ui-restart')?.addEventListener('click', () => {
   const status = $('ui-restart-status');
   if (status) status.textContent = 'Перезагружаю интерфейс…';

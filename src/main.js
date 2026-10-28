@@ -636,6 +636,91 @@ let officialInstanceSort = (() => {
   try { return localStorage.getItem('el-official-instance-sort') || 'name'; } catch { return 'name'; }
 })();
 const naturalCompare = (a, b) => String(a ?? '').localeCompare(String(b ?? ''), undefined, { numeric: true, sensitivity: 'base' });
+const PRISM_INSTANCE_GROUPS_STORE = 'end-launcher-prism-instance-groups-v1';
+let prismInstanceGroups = (() => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(PRISM_INSTANCE_GROUPS_STORE) || '{}');
+    if (!stored || typeof stored !== 'object' || Array.isArray(stored)) return {};
+    return Object.fromEntries(Object.entries(stored)
+      .filter(([id, group]) => id && typeof group === 'string' && group.trim())
+      .map(([id, group]) => [String(id), group.trim().slice(0, 32)]));
+  } catch { return {}; }
+})();
+function savePrismInstanceGroup(inst, rawGroup) {
+  if (!inst) return false;
+  const group = String(rawGroup || '').trim().slice(0, 32);
+  const next = { ...prismInstanceGroups };
+  if (!group || group.toLocaleLowerCase() === 'без группы') delete next[String(inst.id)];
+  else next[String(inst.id)] = group;
+  try {
+    localStorage.setItem(PRISM_INSTANCE_GROUPS_STORE, JSON.stringify(next));
+  } catch {
+    showToast('Не удалось сохранить группу: локальное хранилище недоступно.', false);
+    return false;
+  }
+  prismInstanceGroups = next;
+  return true;
+}
+function openPrismGroupEditor(inst, button, actions) {
+  const existing = actions.querySelector('.prism-group-editor');
+  if (existing) {
+    existing.remove();
+    return;
+  }
+  const editor = document.createElement('div');
+  editor.className = 'prism-group-editor';
+  const select = document.createElement('select');
+  select.setAttribute('aria-label', 'Группа экземпляра');
+  const noGroup = document.createElement('option');
+  noGroup.value = '';
+  noGroup.textContent = 'Без группы';
+  select.appendChild(noGroup);
+  const currentGroups = [...new Set(Object.values(prismInstanceGroups).filter(Boolean))]
+    .sort((a, b) => naturalCompare(a, b));
+  for (const group of currentGroups) {
+    const option = document.createElement('option');
+    option.value = group;
+    option.textContent = group;
+    select.appendChild(option);
+  }
+  const createGroup = document.createElement('option');
+  createGroup.value = '__new__';
+  createGroup.textContent = '＋ Новая группа…';
+  select.appendChild(createGroup);
+  select.value = prismInstanceGroups[String(inst.id)] || '';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.maxLength = 32;
+  input.placeholder = 'Название группы';
+  input.hidden = true;
+  select.addEventListener('change', () => {
+    input.hidden = select.value !== '__new__';
+    if (!input.hidden) input.focus();
+  });
+  const buttons = document.createElement('div');
+  buttons.className = 'prism-group-editor-buttons';
+  const save = document.createElement('button');
+  save.type = 'button';
+  save.textContent = 'Сохранить';
+  save.addEventListener('click', () => {
+    const group = select.value === '__new__' ? input.value.trim() : select.value;
+    if (select.value === '__new__' && !group) {
+      showToast('Введи название новой группы.', false);
+      input.focus();
+      return;
+    }
+    if (!savePrismInstanceGroup(inst, group)) return;
+    editor.remove();
+    renderLibrary();
+  });
+  const cancel = document.createElement('button');
+  cancel.type = 'button';
+  cancel.textContent = 'Отмена';
+  cancel.addEventListener('click', () => editor.remove());
+  buttons.append(save, cancel);
+  editor.append(select, input, buttons);
+  button.insertAdjacentElement('afterend', editor);
+}
 function toggleFavoriteInstance(id) {
   const key = String(id);
   const wasFavorite = favoriteInstanceIds.has(key);
@@ -872,11 +957,13 @@ function renderLibrary() {
   const nameCompare = (a, b) => naturalCompare(a.name, b.name);
   const versionCompare = (a, b) => naturalCompare(b.version, a.version) || nameCompare(a, b);
   const loaderCompare = (a, b) => naturalCompare(LOADER_NAME[a.loader] || a.loader, LOADER_NAME[b.loader] || b.loader) || nameCompare(a, b);
-  const prismGroupKey = (inst) => prismLibraryGroup === 'loader'
-    ? (LOADER_NAME[inst.loader] || inst.loader || 'Другие')
-    : `Minecraft ${inst.version || 'неизвестно'}`;
+  const prismGroupKey = (inst) => {
+    if (prismLibraryGroup === 'loader') return LOADER_NAME[inst.loader] || inst.loader || 'Другие';
+    if (prismLibraryGroup === 'version') return `Minecraft ${inst.version || 'неизвестно'}`;
+    return prismInstanceGroups[String(inst.id)] || 'Без группы';
+  };
   visibleInstances.sort((a, b) => {
-    if (currentUi === 'prism' && prismLibraryGroup !== 'none') {
+    if (currentUi === 'prism') {
       const groupComparison = naturalCompare(prismGroupKey(a), prismGroupKey(b));
       if (groupComparison) return groupComparison;
     }
@@ -902,10 +989,10 @@ function renderLibrary() {
   let lastGroup = null;
   for (const inst of visibleInstances) {
     if (currentUi === 'prism') {
-      const groupLabel = prismLibraryGroup === 'none' ? 'Без группы' : prismGroupKey(inst);
+      const groupLabel = prismGroupKey(inst);
       if (groupLabel !== lastGroup) {
         const heading = mk('div', 'library-group-heading', groupLabel);
-        heading.dataset.group = prismLibraryGroup;
+        heading.dataset.group = prismLibraryGroup === 'none' ? 'custom' : prismLibraryGroup;
         box.appendChild(heading);
         lastGroup = groupLabel;
       }

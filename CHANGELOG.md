@@ -1,6 +1,6 @@
 # Changelog
 
-## Prism/Pinecone reference pass 9
+## Prism/Pinecone reference pass 10
 
 - Added per-instance play-time history for the Prism-inspired status bar: last session start, last session duration, and accumulated time are stored locally.
 - The time row updates while the selected instance is running and finalizes its session when the game-exit event arrives; no values are fabricated for instances that have not yet been played.

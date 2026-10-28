@@ -1,5 +1,12 @@
 # Changelog
 
+## Prism/Pinecone — toolbar glyph and context-menu polish
+
+- Replaced the generic Settings gear in Prism mode with a compact CSS-drawn list/parameters glyph, keeping the same Settings navigation handler and restoring the regular gear in all other layouts.
+- The right-click menu on empty library space now restores focus on Escape and before executing any of its commands; this also preserves the expected return-focus path for the create-instance dialog.
+- Updated the toolbar-icon and context-menu regression checks to reflect the layered Help/Update pseudo-elements and focus-aware menu close helper.
+
+
 ## Prism/Pinecone — context-menu focus refinement
 
 - The empty-library context menu now restores focus to the clicked background region on Escape and transfers focus into the creation dialog through the Add Instance button path.

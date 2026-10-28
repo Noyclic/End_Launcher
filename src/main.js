@@ -1906,9 +1906,9 @@ function ensurePrismFoldersMenu(sidebar) {
     prismFoldersMenu.setAttribute('aria-label', 'Папки лаунчера');
 
     const choices = [
-      { action: 'instance', icon: '▣', label: 'Папка экземпляра', title: 'Открыть папку выбранного экземпляра' },
-      { action: 'mods', icon: '▧', label: 'Папка модов', title: 'Открыть общую папку модов' },
-      { action: 'launcher', icon: '▰', label: 'Папка лаунчера', title: 'Открыть папку End Launcher' },
+      { action: 'launcher', icon: '▰', label: 'Папка лаунчера', title: 'Открыть папку конфигурации End Launcher' },
+      { action: 'instances', icon: '▣', label: 'Папка экземпляров', title: 'Открыть каталог всех сборок Minecraft' },
+      { action: 'mods', icon: '▧', label: 'Общие моды', title: 'Открыть общую папку модов' },
     ];
     for (const choice of choices) {
       const item = document.createElement('button');
@@ -1927,22 +1927,17 @@ function ensurePrismFoldersMenu(sidebar) {
       item.addEventListener('click', async (event) => {
         event.stopPropagation();
         const action = item.dataset.folderAction;
-        const selected = instances.find((entry) => String(entry.id) === String(activeId));
         closePrismFoldersMenu();
         try {
-          if (action === 'instance') {
-            if (!selected) {
-              showToast('Сначала выбери сборку.', false);
-              return;
-            }
-            await invoke('open_instance_folder', { id: selected.id });
+          if (action === 'launcher') {
+            await invoke('open_launcher_folder');
+          } else if (action === 'instances') {
+            await invoke('open_instances_folder');
           } else if (action === 'mods') {
             await invoke('open_mods_folder');
-          } else if (action === 'launcher') {
-            await invoke('open_launcher_folder');
           }
         } catch (error) {
-          const label = action === 'instance' ? 'папку сборки' : action === 'mods' ? 'папку модов' : 'папку лаунчера';
+          const label = action === 'instances' ? 'папку экземпляров' : action === 'mods' ? 'общую папку модов' : 'папку лаунчера';
           showToast('Не удалось открыть ' + label + ': ' + String(error), false);
         }
       });

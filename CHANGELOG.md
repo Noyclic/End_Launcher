@@ -1,5 +1,11 @@
 # Changelog
 
+## Prism/Pinecone reference pass 11
+
+- The per-instance play-time tracker now finalizes and saves an active session on window/page close too, so a launcher exit before the Java process exit event does not discard the session accumulated so far.
+- Added a regression assertion for this close-path finalizer.
+
+
 ## Prism/Pinecone reference pass 10
 
 - Added per-instance play-time history for the Prism-inspired status bar: last session start, last session duration, and accumulated time are stored locally.

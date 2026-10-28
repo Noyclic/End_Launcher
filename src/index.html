@@ -156,27 +156,64 @@
             </div>
             <div id="new-instance" class="create-instance-modal" style="display:none" aria-hidden="true">
               <div class="panel create-instance-panel" role="dialog" aria-labelledby="create-instance-title" tabindex="-1">
-              <div class="create-instance-heading">
-                <div class="create-instance-mark" aria-hidden="true">＋</div>
-                <div><h2 id="create-instance-title">Новая сборка</h2><p class="dim small">Выбери имя, версию Minecraft и загрузчик. Настройки можно изменить позже.</p></div>
-              </div>
-              <div class="create-instance-fields">
-                <label class="create-field"><span>Название</span><input id="ni-name" placeholder="Например, Vanilla 1.21" maxlength="40" autocomplete="off" /></label>
-                <label class="create-field"><span>Версия Minecraft</span><select id="ni-version" title="Версия игры"></select></label>
-                <label class="create-field"><span>Загрузчик модов</span><select id="ni-loader" data-seg title="Загрузчик">
-                  <option value="vanilla">Vanilla</option>
-                  <option value="fabric">Fabric</option>
-                  <option value="quilt">Quilt</option>
-                  <option value="forge">Forge</option>
-                  <option value="neoforge">NeoForge</option>
-                </select></label>
-              </div>
-              <p class="create-instance-note dim small">Vanilla — без модов · Fabric — лёгкие моды и оптимизация · Forge / NeoForge — моды, рассчитанные на эти загрузчики.</p>
-              <div class="row create-instance-actions">
-                <button id="ni-create">＋ Создать сборку</button>
-                <button id="ni-cancel" class="ghost">Отмена</button>
-              </div>
-              <p class="mono small" id="ni-msg"></p>
+                <div class="create-instance-layout">
+                  <nav class="create-instance-sidebar" role="tablist" aria-label="Способ создания экземпляра">
+                    <button class="active" type="button" role="tab" aria-selected="true" data-create-view="minecraft">▣ <span>Minecraft</span></button>
+                    <button type="button" role="tab" aria-selected="false" data-create-view="import">⇩ <span>Импорт</span></button>
+                    <button type="button" role="tab" aria-selected="false" data-create-view="modrinth">M <span>Modrinth</span></button>
+                    <button type="button" role="tab" aria-selected="false" data-create-view="curseforge">C <span>CurseForge</span></button>
+                  </nav>
+                  <div class="create-instance-workspace">
+                    <div class="create-instance-heading">
+                      <div class="create-instance-mark" aria-hidden="true">＋</div>
+                      <div><h2 id="create-instance-title">Добавить экземпляр</h2><p class="dim small" id="ni-description">Создай отдельную установку Minecraft с выбранной версией и загрузчиком.</p></div>
+                      <button id="ni-cancel" class="ghost create-instance-close" type="button" aria-label="Закрыть окно">×</button>
+                    </div>
+                    <div class="create-instance-mode" data-create-panel="minecraft">
+                      <div class="create-instance-fields">
+                        <label class="create-field"><span>Название экземпляра</span><input id="ni-name" placeholder="Например, Survival 1.21" maxlength="40" autocomplete="off" /></label>
+                        <label class="create-field"><span>Версия Minecraft</span><select id="ni-version" title="Версия игры"></select></label>
+                        <label class="create-field"><span>Загрузчик модов</span><select id="ni-loader" data-seg title="Загрузчик">
+                          <option value="vanilla">Vanilla</option>
+                          <option value="fabric">Fabric</option>
+                          <option value="quilt">Quilt</option>
+                          <option value="forge">Forge</option>
+                          <option value="neoforge">NeoForge</option>
+                        </select></label>
+                      </div>
+                      <p class="create-instance-note dim small">Vanilla — чистая игра; Fabric и Quilt — лёгкие моды и оптимизация; Forge и NeoForge — модпаки и моды, рассчитанные на эти загрузчики.</p>
+                      <div class="row create-instance-actions">
+                        <button id="ni-create" type="button">＋ Создать экземпляр</button>
+                      </div>
+                    </div>
+                    <div class="create-instance-mode" data-create-panel="import" hidden>
+                      <div class="create-provider-card">
+                        <div class="create-provider-symbol">⇩</div>
+                        <h3>Импорт готовой сборки</h3>
+                        <p>Поддерживаются архивы <code>.mrpack</code> и <code>.zip</code>, а также папки из Prism, MultiMC и других лаунчеров. Исходные файлы не изменяются.</p>
+                        <p class="dim small">Нажми кнопку ниже, затем перетащи архив или папку прямо в окно End Launcher. Импорт начнётся автоматически.</p>
+                        <button id="ni-import-start" type="button">Выбрать способ импорта</button>
+                      </div>
+                    </div>
+                    <div class="create-instance-mode" data-create-panel="modrinth" hidden>
+                      <div class="create-provider-card">
+                        <div class="create-provider-symbol">M</div>
+                        <h3>Модпаки Modrinth</h3>
+                        <p>Открой каталог модпаков Modrinth, скачай файл <code>.mrpack</code>, а затем импортируй его через эту же вкладку.</p>
+                        <button id="ni-open-modrinth" type="button">Открыть каталог Modrinth ↗</button>
+                      </div>
+                    </div>
+                    <div class="create-instance-mode" data-create-panel="curseforge" hidden>
+                      <div class="create-provider-card">
+                        <div class="create-provider-symbol">C</div>
+                        <h3>Модпаки CurseForge</h3>
+                        <p>Перейди в каталог CurseForge. Поддерживаемый экспортированный ZIP можно импортировать через вкладку «Импорт».</p>
+                        <button id="ni-open-curseforge" type="button">Открыть каталог CurseForge ↗</button>
+                      </div>
+                    </div>
+                    <p class="mono small" id="ni-msg" role="status" aria-live="polite"></p>
+                  </div>
+                </div>
               </div>
             </div>
             <div id="empty-hero" class="empty-hero" style="display:none">
@@ -319,6 +356,14 @@
 
         <section class="page" id="page-settings">
           <h1>НАСТРОЙКИ</h1>
+          <div id="prism-settings-tabs" class="prism-settings-tabs" role="tablist" aria-label="Разделы параметров" hidden>
+            <button type="button" role="tab" data-prism-settings-tab="general" aria-selected="true" class="active">Общие</button>
+            <button type="button" role="tab" data-prism-settings-tab="java" aria-selected="false">Java</button>
+            <button type="button" role="tab" data-prism-settings-tab="appearance" aria-selected="false">Внешний вид</button>
+            <button type="button" role="tab" data-prism-settings-tab="ai" aria-selected="false">ИИ</button>
+            <button type="button" role="tab" data-prism-settings-tab="security" aria-selected="false">Безопасность</button>
+            <button type="button" role="tab" data-prism-settings-tab="diagnostics" aria-selected="false">Диагностика</button>
+          </div>
           <div class="customize-launcher-card"><div><strong>🎨 Измените на свой вкус</strong><p class="dim small">Перетаскивайте элементы, добавляйте GIF, картинки, мемы, фон и эффекты.</p></div><button id="open-customizer" class="big-btn">ОТКРЫТЬ КАСТОМИЗАЦИЮ</button></div>
           <section class="catpack-settings panel" id="catpack-settings" aria-labelledby="catpack-heading">
             <div class="catpack-heading-row"><div><h2 id="catpack-heading" class="mono dim">КОТИК НА ФОНЕ · CATPACK</h2><p class="dim small">Котик появляется за списком сборок, как в Prism Launcher. Поддерживаются PNG, JPG, WebP и анимированные GIF.</p></div><button id="catpack-toggle" class="ghost" type="button" aria-pressed="false">Показать котика</button></div>

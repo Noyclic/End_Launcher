@@ -566,6 +566,59 @@ function toggleMenu(card, inst) {
     menu.appendChild(b);
   };
 
+  if (currentUi === 'prism') {
+    const runRailAction = async (actionId) => {
+      await setActive(inst.id);
+      const action = $('prism-quick-actions')?.querySelector(`[data-action="${actionId}"]`);
+      if (!action) throw new Error('Действие недоступно в панели экземпляра.');
+      action.click();
+    };
+    item('✎ Переименовать', () => beginRenameInstance(inst, card));
+    item(prismInstanceIcons[String(inst.id)] ? '▧ Сменить иконку…' : '▧ Изменить иконку…', () => choosePrismInstanceIcon(inst));
+    item('▶ Запустить', async () => { await setActive(inst.id); playBtn.click(); });
+    if (gameRunning && String(runningInstanceId) === String(inst.id)) {
+      item('× Остановить', async () => invoke('stop_instance', { id: String(inst.id) }));
+    }
+    item('▤ Изменить…', () => runRailAction('edit'));
+    item('▤ Изменить группу…', () => runRailAction('group'));
+    item('📂 Папка', () => invoke('open_instance_folder', { id: inst.id }));
+    item('⇩ Экспортировать…', async () => {
+      const path = await invoke('export_instance', { id: inst.id });
+      showToast(`Архив создан: ${path}`);
+    });
+    item('⧉ Копировать…', async () => {
+      const created = await invoke('duplicate_instance', { id: inst.id });
+      await loadInstances();
+      await setActive(created.id);
+      showToast(`Создана копия «${created.name}»`);
+    });
+    let armedDelete = false;
+    const deleteItem = mk('button', '', '▤ Удалить');
+    deleteItem.addEventListener('click', async (event) => {
+      event.stopPropagation();
+      if (!armedDelete) {
+        armedDelete = true;
+        deleteItem.textContent = '⚠ Ещё раз — удалить';
+        deleteItem.setAttribute('aria-label', `Подтвердить удаление ${inst.name}`);
+        return;
+      }
+      closeMenus();
+      try {
+        await invoke('delete_instance', { id: inst.id });
+        await loadInstances();
+      } catch (error) {
+        showToast('Не удалось удалить экземпляр: ' + String(error), false);
+      }
+    });
+    menu.appendChild(deleteItem);
+    item('↗ Создать ярлык', async () => {
+      const path = await invoke('create_instance_shortcut', { id: String(inst.id) });
+      showToast(`Ярлык создан: ${path}`);
+    });
+    card.appendChild(menu);
+    return;
+  }
+
   item('🧩 Моды', async () => {
     await setActive(inst.id);
     refreshInstalled();

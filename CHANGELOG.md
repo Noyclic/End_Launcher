@@ -1,5 +1,13 @@
 # Changelog
 
+## Prism/Pinecone reference pass 17
+
+- Added a real “Create Shortcut” action to the selected-instance rail. It creates a Windows .lnk, Linux .desktop, or macOS .command entry on the desktop and starts End Launcher with the target instance ID.
+- Added startup argument handling so opening the shortcut selects and launches that exact instance rather than just opening the default library.
+- Hid the separate Rename row in Prism mode because the reference uses Edit for instance details and has a Create Shortcut action in that position.
+- Added UI regression coverage for native registration, shortcut invocation, startup target selection and the Prism action order.
+
+
 ## Prism/Pinecone reference pass 16
 
 - Added a real Stop action to the Prism right rail. It calls a registered Rust command and targets the process started for the specific running instance.

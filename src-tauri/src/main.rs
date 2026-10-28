@@ -105,6 +105,7 @@ fn main() {
             java::install_forge,
             java::list_installed_versions,
             java::launch_instance,
+            java::stop_instance,
             instances::list_instances,
             instances::create_instance,
             instances::rename_instance,

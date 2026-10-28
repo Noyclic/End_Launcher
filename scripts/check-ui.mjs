@@ -493,6 +493,18 @@ check(html.includes('id="stop-btn"')
       && css.includes(":root[data-ui='prism'] .play-ui #stop-btn"),
   'Prism Stop row must invoke the registered Rust process controller and report intentional stops separately from crashes');
 
+check(js.includes("addAction('shortcut', '↗ Создать ярлык'")
+      && js.includes("invoke('create_instance_shortcut', { id: String(inst.id) })")
+      && js.includes("invoke('get_startup_instance')")
+      && js.includes("playBtn.click();")
+      && rustInstances.includes("pub fn create_instance_shortcut(id: String)")
+      && rustInstances.includes("pub fn get_startup_instance() -> Option<String>")
+      && rustMain.includes("instances::create_instance_shortcut,")
+      && rustMain.includes("instances::get_startup_instance,")
+      && css.includes("[data-action='shortcut']")
+      && css.includes("[data-action='rename'] {\n  display: none !important;"),
+  'Prism Create Shortcut must create a desktop entry, launch the intended instance, and replace the redundant Rename row');
+
 check(js.includes('function syncPrismSelectedInstance()')
     && js.includes('function syncPrismQuickActions()')
     && js.includes("addAction('folder', '📂 Папка'")

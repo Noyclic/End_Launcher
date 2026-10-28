@@ -1,5 +1,13 @@
 # Changelog
 
+## Prism/Pinecone reference pass 3
+
+- Added a live selected-instance preview to the right action rail (instance name and Minecraft version), updated whenever the selected instance changes.
+- Added project-generated pixel-style icons for vanilla, Fabric, Forge and NeoForge instances while keeping the styling scoped to Prism mode.
+- Matched the reference's 38 px toolbar row and lime selected-instance name strip.
+- Visual comparison and runtime interaction testing are still required; this pass is not marked final.
+
+
 ## Prism/Pinecone reference pass 2
 
 - Moved the existing Add Instance and Open Folder buttons into the compact top action strip for Prism mode, preserving their original DOM IDs and event handlers.

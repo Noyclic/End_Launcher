@@ -675,8 +675,9 @@ check(css.lastIndexOf("/* Prism/Pinecone pass 14")
       > css.lastIndexOf("/* Prism/Pinecone pass 13")
       && css.includes("gap: 18px;")
       && css.includes("color: #91d47b;")
-      && css.lastIndexOf("[data-action='delete']") < css.lastIndexOf("[data-action='rename']"),
-  'Prism launch row should stay unboxed, use the green launch glyph, and match selected-instance spacing/action order');
+      && css.lastIndexOf("[data-action='delete'] { order: 6; }")
+         < css.lastIndexOf("[data-action='shortcut'] { order: 7; }"),
+  'Prism launch row should stay unboxed, use the green launch glyph, and keep Delete before Create Shortcut');
 
 check(css.includes("/* Prism/Pinecone pass 15")
       && css.includes(":root[data-ui='prism'] .sidebar #account-box::after")

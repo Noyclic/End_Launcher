@@ -745,4 +745,12 @@ check(js.includes('function openPrismEmptyContextMenu(event)')
     && js.includes("target?.closest('.inst-card, button, input, select, textarea, a, [role=\"dialog\"], .inst-menu, .prism-folders-menu, .prism-toolbar-overflow')"),
   'Prism empty-library right-click menu must offer create/import/refresh, avoid intercepting cards or controls, and close on Escape');
 
+
+check(css.includes("/* Prism/Pinecone pass 29")
+    && css.includes(":root[data-ui='prism'] .sidebar #nav-settings-button .ico::before")
+    && css.includes("box-shadow: 0 3px #d4dadd, 0 6px #d4dadd;")
+    && css.includes(":root[data-ui='prism'] .sidebar #nav-settings-button .ico::after")
+    && css.includes("box-shadow: 5px 3px #91d47b, 2px 6px #91d47b;"),
+  'Prism Parameters command must use a compact project-owned settings/list glyph while retaining its navigation handler');
+
 console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags.');

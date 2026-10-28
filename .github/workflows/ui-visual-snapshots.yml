@@ -290,6 +290,7 @@ jobs:
             visible: getComputedStyle(document.getElementById('new-instance')).display !== 'none',
             title: document.getElementById('create-instance-title')?.textContent,
             sidebarButtons: document.querySelectorAll('[data-create-view]').length,
+            overlayRect: (() => { const r = document.getElementById('new-instance').getBoundingClientRect(); return { left: r.left, top: r.top, width: r.width, height: r.height }; })(),
             minecraftPanelVisible: !document.querySelector('[data-create-panel="minecraft"]')?.hidden,
             importPanelHidden: !!document.querySelector('[data-create-panel="import"]')?.hidden,
             versionOptions: document.getElementById('ni-version')?.options.length || 0,
@@ -297,7 +298,10 @@ jobs:
           console.log('PRISM CREATE WIZARD ASSERTIONS:', JSON.stringify(wizardState));
           if (!wizardState.visible || wizardState.title !== 'Добавить экземпляр'
               || wizardState.sidebarButtons !== 4 || !wizardState.minecraftPanelVisible
-              || !wizardState.importPanelHidden || wizardState.versionOptions < 1) {
+              || !wizardState.importPanelHidden || wizardState.versionOptions < 1
+              || Math.abs(wizardState.overlayRect.left) > 1 || Math.abs(wizardState.overlayRect.top) > 1
+              || Math.abs(wizardState.overlayRect.width - 1440) > 2
+              || Math.abs(wizardState.overlayRect.height - 900) > 2) {
             throw new Error('Prism Add Instance wizard did not initialize its in-app tabs and version choices.');
           }
           await page.screenshot({ path: 'artifacts/ui/prism-add-instance.png', fullPage: true });
@@ -338,6 +342,7 @@ jobs:
               || !settingsVisible.javaHidden) {
             throw new Error('Prism Parameters did not switch to the tabbed in-app settings page.');
           }
+          await page.waitForTimeout(500); // Wait for the application page transition animation before capturing.
           await page.screenshot({ path: 'artifacts/ui/prism-settings-general.png', fullPage: true });
           await page.locator('[data-prism-settings-tab="java"]').click();
           const javaState = await page.evaluate(() => ({

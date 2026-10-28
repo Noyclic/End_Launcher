@@ -1,5 +1,11 @@
 # Changelog
 
+## Prism/Pinecone reference pass 5
+
+- Made the Folders menu and the general toolbar overflow menu mutually exclusive so they cannot obscure one another.
+- Added a regression assertion for this interaction.
+
+
 ## Prism/Pinecone reference pass 4
 
 - Prevented the relocated Settings control from inheriting the old full-width sidebar navigation width; it now sizes to its icon and label.

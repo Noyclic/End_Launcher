@@ -637,6 +637,31 @@ let officialInstanceSort = (() => {
 })();
 const naturalCompare = (a, b) => String(a ?? '').localeCompare(String(b ?? ''), undefined, { numeric: true, sensitivity: 'base' });
 
+const PRISM_COLLAPSED_GROUPS_STORE = 'end-launcher-prism-collapsed-groups-v1';
+let prismCollapsedGroups = (() => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(PRISM_COLLAPSED_GROUPS_STORE) || '[]');
+    return new Set(Array.isArray(stored) ? stored.filter((group) => typeof group === 'string').slice(0, 200) : []);
+  } catch { return new Set(); }
+})();
+function togglePrismGroup(groupLabel, heading) {
+  const key = String(groupLabel || 'Без группы').slice(0, 64);
+  const next = new Set(prismCollapsedGroups);
+  if (next.has(key)) next.delete(key);
+  else next.add(key);
+  try {
+    localStorage.setItem(PRISM_COLLAPSED_GROUPS_STORE, JSON.stringify([...next].slice(0, 200)));
+  } catch {
+    showToast('Не удалось сохранить свёрнутые группы: локальное хранилище недоступно.', false);
+    return;
+  }
+  prismCollapsedGroups = next;
+  renderLibrary();
+  const target = [...document.querySelectorAll('#library .library-group-heading')]
+    .find((element) => element.dataset.groupLabel === key);
+  target?.focus();
+}
+
 const PRISM_INSTANCE_ICONS_STORE = 'end-launcher-prism-instance-icons-v1';
 const PRISM_ICON_MAX_CHARS = 360_000;
 const PRISM_ICON_TOTAL_MAX_CHARS = 1_500_000;

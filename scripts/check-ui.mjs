@@ -588,7 +588,9 @@ check(html.includes('aria-controls="prism-folders-menu"')
     && js.includes("await invoke('open_instance_folder', { id: selected.id })")
     && js.includes("await invoke('open_mods_folder')")
     && js.includes("await invoke('open_launcher_folder')")
-    && js.includes("event.key !== 'Escape'") 
+    && js.includes("event.key !== 'Escape'")
+    && js.includes("closePrismFoldersMenu();\n      if (!prismOverflowPanel) return;")
+    && js.includes("if (prismOverflowPanel && !prismOverflowPanel.hidden)")
     && css.includes('.prism-folders-menu-item:focus-visible'),
   'Prism toolbar Folders menu must expose working instance/mods/launcher folder actions and keyboard dismissal');
 

@@ -968,7 +968,7 @@ check(js.includes('async function exportInstanceWithDialog(inst)')
 // Prism/Pinecone pass 43: duplicated instances inherit their launcher presentation metadata.
 check(js.includes('async function duplicatePrismInstance(inst)')
     && js.includes('savePrismInstanceGroup(created, group)')
-    && js.includes('nextIcons[targetId] = prismInstanceIcons[sourceId]')
+    && js.includes('[targetId]: prismInstanceIcons[sourceId]')
     && js.includes("localStorage.setItem(FAVORITES_STORE, JSON.stringify([...favoriteInstanceIds]))")
     && (js.match(/await duplicatePrismInstance\(inst\);/g) || []).length >= 3,
   'Prism duplicate actions must preserve custom group/icon/favorite metadata and share one tested code path');

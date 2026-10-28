@@ -1976,11 +1976,20 @@ function syncPrismOverflow(mode) {
   prismOverflowPanel.hidden = true;
   prismOverflowToggle?.setAttribute('aria-expanded', 'false');
 }
+function closePrismOverflow({ restoreFocus = false } = {}) {
+  if (prismOverflowPanel) prismOverflowPanel.hidden = true;
+  prismOverflowToggle?.setAttribute('aria-expanded', 'false');
+  if (restoreFocus) prismOverflowToggle?.focus();
+}
 document.addEventListener('click', (event) => {
   if (currentUi !== 'prism' || !prismOverflowPanel || prismOverflowPanel.hidden) return;
   if (prismOverflowPanel.contains(event.target) || prismOverflowToggle?.contains(event.target)) return;
-  prismOverflowPanel.hidden = true;
-  prismOverflowToggle?.setAttribute('aria-expanded', 'false');
+  closePrismOverflow();
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape' || currentUi !== 'prism' || !prismOverflowPanel || prismOverflowPanel.hidden) return;
+  event.preventDefault();
+  closePrismOverflow({ restoreFocus: true });
 });
 function syncPrismToolbar(mode) {
   const sidebar = document.querySelector('.sidebar');
@@ -2161,7 +2170,7 @@ document.addEventListener('keydown', (event) => {
   event.preventDefault();
   closePrismFoldersMenu({ restoreFocus: true });
 });
-window.addEventListener('resize', () => closePrismFoldersMenu());
+window.addEventListener('resize', () => { closePrismFoldersMenu(); closePrismOverflow(); });
 
 function applyUi(mode) {
   if (!UI_STYLES[mode]) mode = 'end';

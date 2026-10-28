@@ -1228,13 +1228,28 @@ function renderLibrary() {
   const shownCount = visibleInstances.length;
   let lastGroup = null;
   for (const inst of visibleInstances) {
+    let currentGroupLabel = '';
     if (currentUi === 'prism') {
-      const groupLabel = prismGroupKey(inst);
-      if (groupLabel !== lastGroup) {
-        const heading = mk('div', 'library-group-heading', groupLabel);
+      currentGroupLabel = prismGroupKey(inst);
+      if (currentGroupLabel !== lastGroup) {
+        const heading = mk('div', 'library-group-heading', currentGroupLabel);
         heading.dataset.group = prismLibraryGroup === 'none' ? 'custom' : prismLibraryGroup;
+        heading.dataset.groupLabel = currentGroupLabel;
+        const collapsed = prismCollapsedGroups.has(currentGroupLabel);
+        heading.dataset.collapsed = String(collapsed);
+        heading.tabIndex = 0;
+        heading.setAttribute('role', 'button');
+        heading.setAttribute('aria-expanded', String(!collapsed));
+        heading.setAttribute('aria-label', `${currentGroupLabel}, ${collapsed ? 'развернуть группу' : 'свернуть группу'}`);
+        heading.addEventListener('click', () => togglePrismGroup(currentGroupLabel, heading));
+        heading.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            togglePrismGroup(currentGroupLabel, heading);
+          }
+        });
         box.appendChild(heading);
-        lastGroup = groupLabel;
+        lastGroup = currentGroupLabel;
       }
     }
     const searchable = `${inst.name} ${inst.version} ${LOADER_NAME[inst.loader] || inst.loader}`.toLocaleLowerCase();
@@ -1242,6 +1257,10 @@ function renderLibrary() {
     const card = mk('div', 'inst-card' + (inst.id === activeId ? ' active' : '') + (isFavorite ? ' is-favorite' : ''));
     card.dataset.instanceId = String(inst.id);
     card.dataset.loader = String(inst.loader || 'vanilla').toLowerCase();
+    if (currentUi === 'prism') {
+      card.dataset.groupLabel = currentGroupLabel;
+      card.hidden = prismCollapsedGroups.has(currentGroupLabel) && !query;
+    }
     card.dataset.searchText = searchable;
     card.style.setProperty('--i', Math.min(ci++, 10));
     card.tabIndex = 0;

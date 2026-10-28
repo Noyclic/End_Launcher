@@ -1714,11 +1714,20 @@ async function loadReleases() {
 
 // ── создание сборки ──
 let createInstanceReturnFocus = null;
+const createInstanceWrapper = $('new-instance');
+const createInstanceHomeMarker = document.createComment('new-instance-original-position');
+if (createInstanceWrapper?.parentNode) createInstanceWrapper.parentNode.insertBefore(createInstanceHomeMarker, createInstanceWrapper);
+function restoreNewInstanceLocation() {
+  if (createInstanceHomeMarker.parentNode && createInstanceWrapper?.parentNode === document.body) {
+    createInstanceHomeMarker.parentNode.insertBefore(createInstanceWrapper, createInstanceHomeMarker.nextSibling);
+  }
+}
 function closeNewInstance() {
   const wrapper = $('new-instance');
   wrapper.style.display = 'none';
   wrapper.setAttribute('aria-hidden', 'true');
   wrapper.querySelector('[role="dialog"]')?.removeAttribute('aria-modal');
+  restoreNewInstanceLocation();
   if (createInstanceReturnFocus && typeof createInstanceReturnFocus.focus === 'function') createInstanceReturnFocus.focus();
   createInstanceReturnFocus = null;
 }
@@ -1776,6 +1785,10 @@ $('ni-open-curseforge')?.addEventListener('click', async () => {
 async function openNewInstance() {
   const wrapper = $('new-instance');
   createInstanceReturnFocus = document.activeElement;
+  // A fixed dialog nested in the scrolling library can become fixed to that ancestor.
+  // Move it to body in Prism mode so the overlay spans the full app window and action rail.
+  if (currentUi === 'prism' && wrapper.parentElement !== document.body) document.body.appendChild(wrapper);
+  else if (currentUi !== 'prism') restoreNewInstanceLocation();
   wrapper.style.display = '';
   wrapper.setAttribute('aria-hidden', 'false');
   const dialog = wrapper.querySelector('[role="dialog"]');

@@ -1152,6 +1152,10 @@ function syncPrismQuickActions() {
       actions.dataset.armedDeleteId = '';
       await loadInstances();
     });
+    addAction('shortcut', '↗ Создать ярлык', async (inst) => {
+      const path = await invoke('create_instance_shortcut', { id: String(inst.id) });
+      showToast(`Ярлык создан: ${path}`);
+    });
   }
   const selectedId = String(activeId ?? '');
   if (actions.dataset.instanceId !== selectedId) {

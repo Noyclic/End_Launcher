@@ -1,5 +1,11 @@
 # Changelog
 
+## Prism/Pinecone reference pass 13
+
+- Reordered the selected-instance action rail so Edit, Change Group, Folder, Export, Copy, Rename, and Delete appear before End Launcher-specific extras such as Mods and custom icons.
+- The actions still use the existing handlers; this is ordering and layout only.
+
+
 ## Prism/Pinecone reference pass 12
 
 - The project-owned mark now acts as an accessible “Open instance library” navigation shortcut in Prism mode. This keeps the reference toolbar compact without trapping users on Settings or the AI page after the main Play shortcut is hidden.

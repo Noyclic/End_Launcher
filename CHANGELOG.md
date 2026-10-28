@@ -1,5 +1,12 @@
 # Changelog
 
+## Prism/Pinecone reference pass 15
+
+- Removed the persistent card-like outline behind the account selector, added a subtle dropdown cue, and retained a clear hover/focus state.
+- Moved the toolbar overflow trigger into the otherwise empty area before the account selector, keeping the core Prism toolbar less cluttered.
+- Added a regression check for account-selector and overflow placement.
+
+
 ## Prism/Pinecone reference pass 14
 
 - Removed the filled blue treatment from the main Prism launch action to match the reference's compact, unboxed action row.

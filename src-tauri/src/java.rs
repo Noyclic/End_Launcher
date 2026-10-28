@@ -5,6 +5,9 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+use std::collections::HashMap;
+use std::sync::{mpsc, Mutex, OnceLock};
+use std::time::Duration;
 use tauri::{AppHandle, Emitter};
 
 use crate::mc;
@@ -324,6 +327,25 @@ pub async fn install_forge(app: AppHandle, game_version: String, neo: bool) -> R
 struct GameExit {
     code: Option<i32>,
     log_tail: String,
+    stopped: bool,
+}
+
+static GAME_STOP_SENDERS: OnceLock<Mutex<HashMap<String, mpsc::Sender<()>>>> = OnceLock::new();
+
+fn game_stop_senders() -> &'static Mutex<HashMap<String, mpsc::Sender<()>>> {
+    GAME_STOP_SENDERS.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+/// Stop only the Java process launched for the requested instance.
+#[tauri::command]
+pub fn stop_instance(id: String) -> Result<(), String> {
+    let sender = game_stop_senders()
+        .lock()
+        .map_err(|_| "не удалось получить список запущенных игр".to_string())?
+        .get(&id)
+        .cloned()
+        .ok_or_else(|| "Для выбранной сборки нет запущенной игры".to_string())?;
+    sender.send(()).map_err(|_| "Процесс игры уже завершился".to_string())
 }
 
 fn tail_chars(s: &str, n: usize) -> String {
@@ -346,13 +368,13 @@ pub async fn launch_instance(app: AppHandle, id: String) -> Result<(), String> {
         }
         _ => inst.version.clone(),
     };
-    launch_profile(app, profile, crate::instances::instance_dir(&inst.id)).await
+    launch_profile(app, profile, crate::instances::instance_dir(&inst.id), inst.id.clone()).await
 }
 
 /// Запуск профиля версии: докачать всё недостающее -> собрать аргументы -> стартовать процесс.
 /// Вывод игры пишется в <папка сборки>/logs/launcher-latest.log; по завершении фронт получает
 /// событие "game-exit" (код выхода + хвост лога — его можно отдать ИИ-помощнику).
-async fn launch_profile(app: AppHandle, id: String, game_dir: PathBuf) -> Result<(), String> {
+async fn launch_profile(app: AppHandle, id: String, game_dir: PathBuf, instance_key: String) -> Result<(), String> {
     let cfg = crate::config::settings();
     // сессия: Microsoft-аккаунт (токен при необходимости обновится) или офлайн-ник
     let session = crate::auth::active_session().await?;
@@ -390,13 +412,42 @@ async fn launch_profile(app: AppHandle, id: String, game_dir: PathBuf) -> Result
         .spawn()
         .map_err(|e| format!("не удалось запустить Java ({}): {e}", prep.java.display()))?;
 
+    let (stop_tx, stop_rx) = mpsc::channel::<()>();
+    game_stop_senders()
+        .lock()
+        .map_err(|_| "не удалось зарегистрировать игровой процесс".to_string())?
+        .insert(instance_key.clone(), stop_tx);
+
     let app2 = app.clone();
     std::thread::spawn(move || {
-        let code = child.wait().ok().and_then(|s| s.code());
+        let mut stopped = false;
+        let status = loop {
+            match child.try_wait() {
+                Ok(Some(status)) => break Some(status),
+                Ok(None) => match stop_rx.recv_timeout(Duration::from_millis(200)) {
+                    Ok(()) => {
+                        stopped = true;
+                        let _ = child.kill();
+                        break child.wait().ok();
+                    }
+                    Err(mpsc::RecvTimeoutError::Timeout) => continue,
+                    Err(mpsc::RecvTimeoutError::Disconnected) => break child.wait().ok(),
+                },
+                Err(_) => break None,
+            }
+        };
+        let code = status.and_then(|s| s.code());
+        if let Ok(mut senders) = game_stop_senders().lock() {
+            senders.remove(&instance_key);
+        }
         let text = std::fs::read(&log_path)
             .map(|b| String::from_utf8_lossy(&b).to_string())
             .unwrap_or_default();
-        let _ = app2.emit("game-exit", GameExit { code, log_tail: tail_chars(&text, 12000) });
+        let _ = app2.emit("game-exit", GameExit {
+            code,
+            log_tail: tail_chars(&text, 12000),
+            stopped,
+        });
     });
     Ok(())
 }

@@ -5366,3 +5366,51 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   padding: 5px 4px;
   font-size: 10px;
 }
+
+
+/* Prism group editor — compact, persistent per-instance assignment. */
+:root[data-ui='prism'] .play-ui .prism-group-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  min-width: 0;
+  margin: 2px 0 4px;
+  padding: 6px;
+  border: 1px solid #454545;
+  border-radius: 3px;
+  background: #252525;
+}
+:root[data-ui='prism'] .play-ui .prism-group-editor select,
+:root[data-ui='prism'] .play-ui .prism-group-editor input {
+  width: 100%;
+  min-width: 0;
+  padding: 5px 6px;
+  border: 1px solid #4a4a4a;
+  border-radius: 3px;
+  background: #1c1c1c;
+  color: #ddd;
+  font: 10px 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .play-ui .prism-group-editor input[hidden] {
+  display: none !important;
+}
+:root[data-ui='prism'] .play-ui .prism-group-editor-buttons {
+  display: flex;
+  gap: 4px;
+}
+:root[data-ui='prism'] .play-ui .prism-group-editor-buttons button {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 24px;
+  padding: 4px 3px;
+  border: 1px solid #484848;
+  border-radius: 3px;
+  background: #333;
+  color: #e6e6e6;
+  font: 10px 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .play-ui .prism-group-editor-buttons button:first-child {
+  border-color: #4c7741;
+  background: #385b30;
+}

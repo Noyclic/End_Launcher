@@ -5747,3 +5747,24 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   opacity: .6;
   cursor: progress;
 }
+
+
+/* Prism/Pinecone pass 10 — native-style collapsible groups with clear keyboard focus. */
+:root[data-ui='prism'] #library .library-group-heading {
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+}
+:root[data-ui='prism'] #library .library-group-heading:focus-visible {
+  border-radius: 2px;
+  outline: 1px solid #7a9c65;
+  outline-offset: 1px;
+  background: #2c302b;
+}
+:root[data-ui='prism'] #library .library-group-heading[data-collapsed='true']::before {
+  content: '›';
+  margin-right: 7px;
+}
+:root[data-ui='prism'] #library .inst-card[hidden] {
+  display: none !important;
+}

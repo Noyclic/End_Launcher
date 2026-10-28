@@ -384,3 +384,127 @@
   content: 'P2P';
   font: inherit;
 }
+
+
+/* Prism/Pinecone pass 39 — functional instance chooser and segmented settings workspace. */
+:root[data-ui='prism'] #page-settings { max-width: 980px; }
+:root[data-ui='prism'] #page-settings > h1 { margin: 0 0 14px; font: 500 22px/1.25 'Inter', sans-serif; letter-spacing: 0; color: #ededed; }
+:root[data-ui='prism'] #page-settings > h2 { color: #c6c6c6; font: 600 12px/1.4 'Inter', sans-serif; letter-spacing: 0; }
+:root[data-ui='prism'] #page-settings [data-prism-settings-section][hidden] { display: none !important; }
+:root[data-ui='prism'] #page-settings .prism-settings-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin: 0 0 18px;
+  padding: 0 0 8px;
+  border-bottom: 1px solid #414141;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-tabs[hidden] { display: none !important; }
+:root[data-ui='prism'] #page-settings .prism-settings-tabs button {
+  min-height: 30px;
+  padding: 6px 13px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: #c8c8c8;
+  font: 500 12px/1.2 'Inter', sans-serif;
+  box-shadow: none;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-tabs button:hover { background: #343434; filter: none; }
+:root[data-ui='prism'] #page-settings .prism-settings-tabs button.active {
+  border-color: #4a4a4a;
+  background: #333;
+  color: #91d47b;
+}
+:root[data-ui='prism'] #page-settings .catpack-settings,
+:root[data-ui='prism'] #page-settings .security-card,
+:root[data-ui='prism'] #page-settings .settings-ai-tab,
+:root[data-ui='prism'] #page-settings .customize-launcher-card {
+  margin: 10px 0 16px;
+  padding: 14px;
+  border: 1px solid #414141;
+  border-radius: 3px;
+  background: #292929;
+  box-shadow: none;
+}
+:root[data-ui='prism'] #page-settings .row { gap: 8px; flex-wrap: wrap; }
+:root[data-ui='prism'] #page-settings input,
+:root[data-ui='prism'] #page-settings select {
+  min-height: 30px;
+  border-radius: 3px;
+  border-color: #4a4a4a;
+  background: #202020;
+  color: #e4e4e4;
+  font: 12px 'Inter', sans-serif;
+}
+:root[data-ui='prism'] #page-settings button { border-radius: 3px; font-size: 12px; }
+:root[data-ui='prism'] #page-settings .themes { grid-template-columns: repeat(auto-fill, minmax(126px, 1fr)); }
+
+/* The create dialog has its own left-hand command list just like a desktop instance wizard. */
+:root[data-ui='prism'] .create-instance-panel {
+  width: min(800px, 100%);
+  padding: 0;
+  overflow: hidden;
+  border-color: #494949;
+  border-radius: 4px;
+  background: #292929;
+  color: #e4e4e4;
+}
+.create-instance-layout { display: grid; grid-template-columns: 174px minmax(0, 1fr); min-height: 350px; }
+.create-instance-sidebar { display: none; }
+.create-instance-workspace { min-width: 0; padding: 18px; overflow: auto; }
+.create-instance-close { margin-left: auto; align-self: flex-start; min-width: 28px; padding: 2px 8px !important; font-size: 20px !important; line-height: 1.1; }
+.create-instance-mode[hidden] { display: none !important; }
+.create-provider-card { border: 1px solid #414141; background: #242424; padding: 18px; border-radius: 3px; }
+.create-provider-card h3 { margin: 0 0 8px; font-size: 16px; font-weight: 600; }
+.create-provider-card p { margin: 8px 0 14px; max-width: 560px; color: #b9b9b9; font-size: 12px; line-height: 1.55; }
+.create-provider-symbol { display: grid; place-items: center; width: 38px; height: 38px; margin-bottom: 12px; border: 1px solid #4a4a4a; border-radius: 3px; background: #303030; color: #91d47b; font-size: 18px; font-weight: 700; }
+:root[data-ui='prism'] .create-instance-panel .create-instance-heading { align-items: flex-start; gap: 11px; margin-bottom: 18px; }
+:root[data-ui='prism'] .create-instance-panel .create-instance-heading h2 { color: #ededed; font: 500 18px/1.3 'Inter', sans-serif; letter-spacing: 0; }
+:root[data-ui='prism'] .create-instance-panel .create-instance-heading p { color: #b5b5b5; font-size: 11px; }
+:root[data-ui='prism'] .create-instance-panel .create-instance-mark { border-radius: 3px; background: #343434; color: #91d47b; }
+:root[data-ui='prism'] .create-instance-panel .create-instance-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+:root[data-ui='prism'] .create-instance-panel .create-field:first-child { grid-column: 1 / -1; }
+:root[data-ui='prism'] .create-instance-panel .create-field { gap: 6px; color: #c2c2c2; font-size: 12px; }
+:root[data-ui='prism'] .create-instance-panel .create-instance-note { margin: 12px 0; color: #aaa; }
+:root[data-ui='prism'] .create-instance-panel .create-instance-actions { margin-top: 18px; }
+:root[data-ui='prism'] .create-instance-panel #ni-create { min-width: 180px; min-height: 32px; border: 1px solid #6a9b58; background: #91d47b; color: #142012; }
+:root[data-ui='prism'] .create-instance-panel #ni-create:hover { background: #a2e18d; filter: none; }
+:root[data-ui='prism'] .create-instance-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 8px;
+  border-right: 1px solid #414141;
+  background: #222;
+}
+:root[data-ui='prism'] .create-instance-sidebar button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 34px;
+  padding: 7px 9px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: #ccc;
+  text-align: left;
+  font: 500 12px/1.2 'Inter', sans-serif;
+  box-shadow: none;
+}
+:root[data-ui='prism'] .create-instance-sidebar button > span { overflow: hidden; text-overflow: ellipsis; }
+:root[data-ui='prism'] .create-instance-sidebar button:hover { background: #303030; filter: none; }
+:root[data-ui='prism'] .create-instance-sidebar button.active { border-color: #454545; background: #343434; color: #91d47b; }
+:root[data-ui='prism'] .create-instance-sidebar button:focus-visible,
+:root[data-ui='prism'] .create-instance-panel :is(button,input,select):focus-visible { outline: 2px solid #91d47b; outline-offset: 2px; }
+:root[data-ui='prism'] .create-instance-sidebar button[aria-selected='true']::before { content: ''; position: absolute; }
+@media (max-width: 620px) {
+  :root[data-ui='prism'] .create-instance-modal { padding: 10px; }
+  .create-instance-layout { grid-template-columns: minmax(0, 1fr); }
+  :root[data-ui='prism'] .create-instance-sidebar { flex-direction: row; flex-wrap: wrap; border-right: 0; border-bottom: 1px solid #414141; }
+  :root[data-ui='prism'] .create-instance-sidebar button { flex: 1 1 105px; width: auto; }
+  .create-instance-workspace { padding: 13px; }
+  :root[data-ui='prism'] .create-instance-panel .create-instance-fields { grid-template-columns: minmax(0, 1fr); }
+  :root[data-ui='prism'] .create-instance-panel .create-field:first-child { grid-column: auto; }
+}

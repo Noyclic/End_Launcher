@@ -493,6 +493,16 @@ check(html.includes('id="prism-status-bar"')
     && css.includes('grid-template-rows: 38px minmax(0, 1fr) 56px')
     && js.includes("statusBar.hidden = currentUi !== 'prism'"),
   'Prism layout must include a hidden-by-default, responsive two-row status bar');
+check(html.includes('id="library-search-control"')
+    && html.includes('id="prism-help"')
+    && html.includes('id="prism-update"')
+    && js.includes('function syncPrismOverflow(mode)')
+    && js.includes('function restorePrismOverflow()')
+    && js.includes("README.ru.md")
+    && js.includes("button.textContent = 'Проверка…'")
+    && css.includes('.sidebar .prism-toolbar-overflow[hidden]')
+    && css.includes(':root:not([data-ui=\'prism\']) .prism-header-action'),
+  'Prism toolbar must keep help/update available while hiding advanced tools in an accessible overflow panel');
 check(js.indexOf("addAction('group', '▤ Изменить группу…'") < js.indexOf("addAction('folder', '📂 Папка'")
     && js.indexOf("addAction('folder', '📂 Папка'") < js.indexOf("addAction('export', '⇩ Экспортировать…'"),
   'Prism instance action rail should follow the reference order: group management before folder and export');

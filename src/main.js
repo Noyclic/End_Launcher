@@ -635,6 +635,8 @@ function toggleMenu(card, inst) {
   menu.addEventListener('click', (e) => e.stopPropagation());
   const item = (label, fn) => {
     const b = mk('button', '', label);
+    b.type = 'button';
+    b.setAttribute('role', 'menuitem');
     b.addEventListener('click', async (e) => {
       e.stopPropagation();
       closeMenus();
@@ -708,7 +710,6 @@ function toggleMenu(card, inst) {
       goPage('mods');
     });
     card.appendChild(menu);
-    menu.querySelector('button')?.setAttribute('role', 'menuitem');
     menu.querySelector('button')?.focus();
     return;
   }
@@ -944,7 +945,11 @@ async function duplicatePrismInstance(inst) {
   }
   if (favoriteInstanceIds.has(sourceId)) {
     favoriteInstanceIds.add(targetId);
-    saveFavoriteInstances();
+    try { localStorage.setItem(FAVORITES_STORE, JSON.stringify([...favoriteInstanceIds])); }
+    catch {
+      favoriteInstanceIds.delete(targetId);
+      showToast('Копия создана, но избранное не удалось сохранить.', false);
+    }
   }
   await loadInstances();
   await setActive(created.id);

@@ -821,22 +821,22 @@ function syncPrismQuickActions() {
         .find((element) => element.dataset.instanceId === String(inst.id));
       beginRenameInstance(inst, card);
     });
-    let armedForDelete = null;
     addAction('delete', '▤ Удалить', async (inst, button) => {
       const id = String(inst.id);
-      if (armedForDelete !== id) {
-        armedForDelete = id;
+      if (actions.dataset.armedDeleteId !== id) {
+        actions.dataset.armedDeleteId = id;
         button.textContent = '⚠ Нажми ещё раз — удалить';
         return;
       }
       await invoke('delete_instance', { id: inst.id });
-      armedForDelete = null;
+      actions.dataset.armedDeleteId = '';
       await loadInstances();
     });
   }
   const selectedId = String(activeId ?? '');
   if (actions.dataset.instanceId !== selectedId) {
     actions.dataset.instanceId = selectedId;
+    actions.dataset.armedDeleteId = '';
     const deleteButton = actions.querySelector('[data-action="delete"]');
     if (deleteButton) deleteButton.textContent = '▤ Удалить';
   }

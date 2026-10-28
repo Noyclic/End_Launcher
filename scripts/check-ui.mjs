@@ -580,7 +580,9 @@ check(html.includes('id="library-search-control"')
     && css.includes(":root[data-ui='prism'] .sidebar #prism-help::before")
     && css.includes("content: '?';")
     && css.includes(":root[data-ui='prism'] .sidebar #prism-update::before")
-    && css.includes("content: '☁↓';")
+    && css.includes("content: '☁';")
+    && css.includes(":root[data-ui='prism'] .sidebar #prism-update::after")
+    && css.includes("content: '↓';")
     && css.includes('.sidebar .prism-toolbar-overflow[hidden]')
     && css.includes(':root:not([data-ui=\'prism\']) .prism-header-action'),
   'Prism toolbar must keep help/update available while hiding advanced tools in an accessible overflow panel');

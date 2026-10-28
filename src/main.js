@@ -851,14 +851,41 @@ async function loadReleases() {
 }
 
 // ── создание сборки ──
+let createInstanceReturnFocus = null;
+function closeNewInstance() {
+  const wrapper = $('new-instance');
+  wrapper.style.display = 'none';
+  wrapper.setAttribute('aria-hidden', 'true');
+  wrapper.querySelector('[role="dialog"]')?.removeAttribute('aria-modal');
+  if (createInstanceReturnFocus && typeof createInstanceReturnFocus.focus === 'function') createInstanceReturnFocus.focus();
+  createInstanceReturnFocus = null;
+}
 async function openNewInstance() {
-  $('new-instance').style.display = '';
+  const wrapper = $('new-instance');
+  createInstanceReturnFocus = document.activeElement;
+  wrapper.style.display = '';
+  wrapper.setAttribute('aria-hidden', 'false');
+  const dialog = wrapper.querySelector('[role="dialog"]');
+  if (currentUi === 'prism') dialog?.setAttribute('aria-modal', 'true');
+  else dialog?.removeAttribute('aria-modal');
   $('ni-msg').textContent = '';
   const ids = await loadReleases();
   if (!ids.length) $('ni-msg').textContent = 'Не удалось получить список версий (нет интернета?)';
   $('ni-name').focus();
 }
-$('ni-cancel').addEventListener('click', () => { $('new-instance').style.display = 'none'; });
+$('ni-cancel').addEventListener('click', closeNewInstance);
+$('new-instance').addEventListener('click', (event) => {
+  if (currentUi === 'prism' && event.target === $('new-instance')) closeNewInstance();
+});
+document.addEventListener('keydown', (event) => {
+  const wrapper = $('new-instance');
+  if (!wrapper || wrapper.style.display === 'none' || currentUi !== 'prism') return;
+  if (event.key === 'Escape') {
+    closeNewInstance();
+    return;
+  }
+  trapModalFocus(event, wrapper.querySelector('[role="dialog"]'));
+});
 $('ni-create').addEventListener('click', async () => {
   const btn = $('ni-create');
   const name = $('ni-name').value.trim();
@@ -881,7 +908,7 @@ $('ni-create').addEventListener('click', async () => {
       version: $('ni-version').value,
       loader: $('ni-loader').value,
     });
-    $('new-instance').style.display = 'none';
+    closeNewInstance();
     $('ni-name').value = '';
     await loadInstances();
     showToast(`Сборка «${name}» создана`);

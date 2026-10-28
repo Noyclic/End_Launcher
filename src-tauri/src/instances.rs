@@ -1070,6 +1070,14 @@ pub fn open_launcher_folder() -> Result<(), String> {
     open_dir(&crate::config::config_dir())
 }
 
+/// Корневой игровой каталог: assets, libraries, versions и instances.
+#[tauri::command]
+pub fn open_game_folder() -> Result<(), String> {
+    let dir = crate::config::game_dir();
+    std::fs::create_dir_all(&dir).map_err(err)?;
+    open_dir(&dir)
+}
+
 #[cfg(test)]
 mod import_path_tests {
     use super::{allowed_import_file, allowed_import_root, excluded_import_root, normalized_archive_path, safe_relative};

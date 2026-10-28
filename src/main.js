@@ -1350,6 +1350,20 @@ function renderLibrary() {
       more,
     );
     card.addEventListener('click', () => setActive(inst.id));
+    card.addEventListener('contextmenu', (event) => {
+      if (currentUi !== 'prism') return;
+      event.preventDefault();
+      event.stopPropagation();
+      toggleMenu(card, inst);
+      const menu = card.querySelector('.inst-menu');
+      if (!menu) return;
+      menu.dataset.contextMenu = 'true';
+      const menuWidth = Math.min(230, Math.max(200, window.innerWidth - 16));
+      const estimatedHeight = Math.min(480, Math.max(300, window.innerHeight - 16));
+      menu.style.left = `${Math.max(8, Math.min(event.clientX, window.innerWidth - menuWidth - 8))}px`;
+      menu.style.top = `${Math.max(8, Math.min(event.clientY, window.innerHeight - estimatedHeight - 8))}px`;
+      menu.style.right = 'auto';
+    });
     card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActive(inst.id); } });
     box.appendChild(card);
   }

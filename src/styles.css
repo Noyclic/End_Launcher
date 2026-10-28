@@ -5582,7 +5582,8 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 }
 :root[data-ui='prism'] .sidebar .prism-toolbar-overflow > #library-view,
 :root[data-ui='prism'] .sidebar .prism-toolbar-overflow > #library-import,
-:root[data-ui='prism'] .sidebar .prism-toolbar-overflow > #layout-extras-toggle {
+:root[data-ui='prism'] .sidebar .prism-toolbar-overflow > #layout-extras-toggle,
+:root[data-ui='prism'] .sidebar .prism-toolbar-overflow > #nav-ai-button {
   min-height: 27px;
   padding: 5px 7px;
   border: 1px solid #484848;
@@ -5799,8 +5800,7 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 :root[data-ui='prism'] .sidebar .logo-text {
   display: none !important;
 }
-:root[data-ui='prism'] .sidebar .nav-btn[data-page='play'],
-:root[data-ui='prism'] .sidebar .nav-btn[data-page='ai'] {
+:root[data-ui='prism'] .sidebar .nav-btn[data-page='play'] {
   display: none !important;
 }
 :root[data-ui='prism'] .sidebar .nav-btn[data-page='settings'] {

@@ -1,5 +1,13 @@
 # Changelog
 
+## Prism/Pinecone reference pass 14
+
+- Removed the filled blue treatment from the main Prism launch action to match the reference's compact, unboxed action row.
+- Matched the green play glyph, selected-instance icon/name spacing, and right-rail action rhythm to the supplied PineconeMC screenshot.
+- Moved Delete ahead of the extra Rename option to keep the closest reference actions together.
+- Added a UI regression check for the launch-row treatment and action order. Build and screenshot review remain deferred to the agreed checkpoint.
+
+
 ## Prism/Pinecone reference pass 13
 
 - Reordered the selected-instance action rail so Edit, Change Group, Folder, Export, Copy, Rename, and Delete appear before End Launcher-specific extras such as Mods and custom icons.

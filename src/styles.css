@@ -5208,3 +5208,9 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
     margin-left: 0;
   }
 }
+
+
+/* The add action is in the toolbar in Prism, so avoid a duplicate add tile. */
+:root[data-ui='prism'] #library .inst-card.add {
+  display: none !important;
+}

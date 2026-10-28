@@ -589,11 +589,6 @@ function toggleMenu(card, inst) {
       item('× Остановить', async () => invoke('stop_instance', { id: String(inst.id) }));
     }
     item('▤ Изменить…', () => runRailAction('edit'));
-    item('🧩 Моды', async () => {
-      await setActive(inst.id);
-      refreshInstalled();
-      goPage('mods');
-    });
     item('▤ Изменить группу…', () => runRailAction('group'));
     item('📂 Папка', () => invoke('open_instance_folder', { id: inst.id }));
     item('⇩ Экспортировать…', async () => {
@@ -628,6 +623,12 @@ function toggleMenu(card, inst) {
     item('↗ Создать ярлык', async () => {
       const path = await invoke('create_instance_shortcut', { id: String(inst.id) });
       showToast(`Ярлык создан: ${path}`);
+    });
+    // Keep Prism's familiar command order intact; End Launcher-only tools follow it.
+    item('🧩 Моды', async () => {
+      await setActive(inst.id);
+      refreshInstalled();
+      goPage('mods');
     });
     card.appendChild(menu);
     return;

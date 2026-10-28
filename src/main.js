@@ -629,6 +629,9 @@ function toggleMenu(card, inst) {
   closeMenus();
   if (had) return;
   const menu = mk('div', 'inst-menu');
+  menu.setAttribute('role', 'menu');
+  menu.setAttribute('aria-label', `Действия экземпляра: ${inst.name || 'Minecraft'}`);
+  menu.addEventListener('contextmenu', (event) => event.preventDefault());
   menu.addEventListener('click', (e) => e.stopPropagation());
   const item = (label, fn) => {
     const b = mk('button', '', label);
@@ -665,15 +668,15 @@ function toggleMenu(card, inst) {
     item('▤ Изменить…', () => runRailAction('edit'));
     item('▤ Изменить группу…', () => runRailAction('group'));
     item('📂 Папка', () => invoke('open_instance_folder', { id: inst.id }));
+    item('🧩 Папка модов', async () => {
+      await setActive(inst.id);
+      await invoke('open_mods_folder');
+    });
     item('⇩ Экспортировать…', async () => {
-      const path = await invoke('export_instance', { id: inst.id });
-      showToast(`Архив создан: ${path}`);
+      await exportInstanceWithDialog(inst);
     });
     item('⧉ Копировать…', async () => {
-      const created = await invoke('duplicate_instance', { id: inst.id });
-      await loadInstances();
-      await setActive(created.id);
-      showToast(`Создана копия «${created.name}»`);
+      await duplicatePrismInstance(inst);
     });
     let armedDelete = false;
     const deleteItem = mk('button', '', '▤ Удалить');
@@ -705,6 +708,8 @@ function toggleMenu(card, inst) {
       goPage('mods');
     });
     card.appendChild(menu);
+    menu.querySelector('button')?.setAttribute('role', 'menuitem');
+    menu.querySelector('button')?.focus();
     return;
   }
 
@@ -720,10 +725,7 @@ function toggleMenu(card, inst) {
 
   item('⧉ Создать копию сборки', async () => {
     try {
-      const created = await invoke('duplicate_instance', { id: inst.id });
-      await loadInstances();
-      await setActive(created.id);
-      showToast(`Создана копия «${created.name}»`);
+      await duplicatePrismInstance(inst);
     } catch (e) { showToast(String(e), false); }
   });
 
@@ -923,6 +925,31 @@ function savePrismInstanceGroup(inst, rawGroup) {
   }
   prismInstanceGroups = next;
   return true;
+}
+
+/// Duplicate a Prism instance and carry over its launcher-only presentation metadata.
+/// Game files are copied by Rust; groups/icons/favorites are local launcher metadata.
+async function duplicatePrismInstance(inst) {
+  const created = await invoke('duplicate_instance', { id: inst.id });
+  if (!created?.id) throw new Error('Копия не была создана: лаунчер не вернул новый экземпляр.');
+  const sourceId = String(inst.id);
+  const targetId = String(created.id);
+  const group = prismInstanceGroups[sourceId];
+  if (group) savePrismInstanceGroup(created, group);
+  if (prismInstanceIcons[sourceId]) {
+    const nextIcons = { ...prismInstanceIcons, [targetId]: prismInstanceIcons[sourceId] };
+    if (savePrismInstanceIcons(nextIcons)) {
+      // Keep the just-created card visually consistent with the source instance.
+    }
+  }
+  if (favoriteInstanceIds.has(sourceId)) {
+    favoriteInstanceIds.add(targetId);
+    saveFavoriteInstances();
+  }
+  await loadInstances();
+  await setActive(created.id);
+  showToast(`Создана копия «${created.name}»${group ? ` в группе «${group}»` : ''}.`);
+  return created;
 }
 function openPrismInstanceEditor(inst, button, actions) {
   const current = document.getElementById('prism-instance-editor-modal');
@@ -1473,10 +1500,7 @@ function syncPrismQuickActions() {
       await exportInstanceWithDialog(inst);
     });
     addAction('duplicate', '⧉ Копировать…', async (inst) => {
-      const created = await invoke('duplicate_instance', { id: inst.id });
-      await loadInstances();
-      await setActive(created.id);
-      showToast(`Создана копия «${created.name}»`);
+      await duplicatePrismInstance(inst);
     });
     addAction('rename', '✎ Переименовать…', async (inst) => {
       const card = [...document.querySelectorAll('#library .inst-card[data-instance-id]')]

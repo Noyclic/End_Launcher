@@ -808,8 +808,8 @@ function renderLibrary() {
   const shownCount = visibleInstances.length;
   let lastGroup = null;
   for (const inst of visibleInstances) {
-    if (currentUi === 'prism' && prismLibraryGroup !== 'none') {
-      const groupLabel = prismGroupKey(inst);
+    if (currentUi === 'prism') {
+      const groupLabel = prismLibraryGroup === 'none' ? 'Без группы' : prismGroupKey(inst);
       if (groupLabel !== lastGroup) {
         const heading = mk('div', 'library-group-heading', groupLabel);
         heading.dataset.group = prismLibraryGroup;

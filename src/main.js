@@ -1187,7 +1187,6 @@ function finishPrismPlaySession() {
   const session = prismActivePlaySession;
   if (!session) return;
   const elapsed = Math.max(0, Math.min(Date.now() - session.startedAt, PRISM_PLAY_SESSION_MAX_MS));
-  const old = prismPlayStats[session.instanceId] || { totalMs: 0, lastPlayedAt: 0, lastSessionMs: 0 };
   prismPlayStats[session.instanceId] = {
     totalMs: (Number(session.baseTotalMs) || 0) + elapsed,
     lastPlayedAt: session.startedAt,

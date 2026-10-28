@@ -6282,3 +6282,39 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 :root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='duplicate'] { order: 5; }
 :root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='delete'] { order: 6; }
 :root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='shortcut'] { order: 7; }
+
+
+/* Prism/Pinecone pass 26 — status footer mirrors the reference: news link above, current instance state below. */
+:root[data-ui='prism'] .prism-status-news-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 0;
+  min-height: 20px;
+  padding: 2px 0 2px 8px;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: #91dba0;
+  font: 500 10px 'Inter', sans-serif;
+  line-height: 1.2;
+  white-space: nowrap;
+  box-shadow: none;
+}
+:root[data-ui='prism'] .prism-status-news-link::before {
+  content: '▣';
+  margin-right: 5px;
+  font-size: 12px;
+  line-height: 1;
+}
+:root[data-ui='prism'] .prism-status-news-link:hover {
+  color: #b0efbb;
+  text-decoration: underline;
+  background: transparent;
+  filter: none;
+}
+:root[data-ui='prism'] .prism-status-news-link:focus-visible {
+  outline: 1px solid #6ca878;
+  outline-offset: 2px;
+}

@@ -5878,3 +5878,49 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 :root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='mods'] { order: 8; }
 :root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='icon'] { order: 9; }
 :root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='reset-icon'] { order: 10; }
+
+
+/* Prism/Pinecone pass 14 — match the reference's unboxed launch row and vertical rail rhythm. */
+:root[data-ui='prism'] .playbar {
+  gap: 13px;
+  padding-top: 27px;
+}
+:root[data-ui='prism'] .prism-selected-instance {
+  gap: 18px;
+  margin-bottom: 1px;
+}
+:root[data-ui='prism'] .play-ui #play-btn {
+  justify-content: flex-start;
+  min-height: 25px;
+  padding: 4px 3px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: #dedede;
+  font-size: 11px;
+  font-weight: 500;
+  text-align: left;
+  box-shadow: none;
+}
+:root[data-ui='prism'] .play-ui #play-btn::before {
+  color: #91d47b;
+}
+:root[data-ui='prism'] .play-ui #play-btn:hover:not(:disabled) {
+  border-color: #484848;
+  background: #373737;
+  color: #fff;
+  filter: none;
+}
+:root[data-ui='prism'] .play-ui #play-btn:disabled {
+  opacity: .7;
+}
+:root[data-ui='prism'] .play-ui .prism-quick-actions {
+  gap: 2px;
+}
+:root[data-ui='prism'] .play-ui .prism-quick-actions button {
+  min-height: 25px;
+  padding: 4px 3px;
+  font-size: 10px;
+}
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='delete'] { order: 6; }
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='rename'] { order: 7; }

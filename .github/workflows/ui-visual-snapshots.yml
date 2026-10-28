@@ -140,12 +140,89 @@ jobs:
             throw new Error(`Prism page emitted ${pageErrors.length} JavaScript error(s).`);
           }
 
+          const prismGeometry = await page.evaluate(() => {
+            const card = document.querySelector('#library .inst-card.active:not(.add)');
+            const icon = card?.querySelector(':scope > .inst-icon');
+            const label = card?.querySelector(':scope > .inst-name');
+            const add = document.querySelector('.sidebar #library-add');
+            const sidebar = document.querySelector('.sidebar');
+            const cardRect = card?.getBoundingClientRect();
+            const iconRect = icon?.getBoundingClientRect();
+            const labelRect = label?.getBoundingClientRect();
+            return {
+              cardDisplay: card ? getComputedStyle(card).display : 'missing',
+              cardDirection: card ? getComputedStyle(card).flexDirection : 'missing',
+              labelBelowIcon: !!iconRect && !!labelRect && labelRect.top >= iconRect.bottom - 1,
+              labelInsideCard: !!cardRect && !!labelRect
+                && labelRect.left >= cardRect.left - 1 && labelRect.right <= cardRect.right + 1,
+              addAfterContent: add ? getComputedStyle(add, '::after').content : 'missing',
+              sidebarOverflow: !!sidebar && sidebar.scrollWidth > sidebar.clientWidth + 2,
+              documentOverflow: document.documentElement.scrollWidth > window.innerWidth + 2,
+            };
+          });
+          console.log('PRISM DESKTOP GEOMETRY:', JSON.stringify(prismGeometry));
+          if (prismGeometry.cardDisplay !== 'flex'
+              || prismGeometry.cardDirection !== 'column'
+              || !prismGeometry.labelBelowIcon
+              || !prismGeometry.labelInsideCard
+              || prismGeometry.addAfterContent !== 'none'
+              || prismGeometry.sidebarOverflow
+              || prismGeometry.documentOverflow) {
+            throw new Error('Prism desktop geometry is broken; refusing to publish misleading screenshots.');
+          }
+
+          await page.mouse.move(820, 450);
           await page.screenshot({
             path: 'artifacts/ui/prism-pinecone-desktop.png',
             fullPage: true,
           });
           await page.setViewportSize({ width: 390, height: 844 });
+          await page.mouse.move(320, 420);
           await page.waitForTimeout(250);
+          const prismMobileGeometry = await page.evaluate(() => {
+            const root = document.documentElement;
+            const layout = document.querySelector('.layout');
+            const sidebar = document.querySelector('.sidebar');
+            const main = document.querySelector('.content main');
+            const playbar = document.querySelector('.playbar');
+            const status = document.querySelector('.prism-status-bar');
+            const rect = (element) => {
+              if (!element) return null;
+              const r = element.getBoundingClientRect();
+              return { top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height };
+            };
+            const activeCard = document.querySelector('#library .inst-card.active:not(.add)');
+            const iconRect = rect(activeCard?.querySelector(':scope > .inst-icon'));
+            const labelRect = rect(activeCard?.querySelector(':scope > .inst-name'));
+            return {
+              viewportWidth: innerWidth,
+              documentWidth: root.scrollWidth,
+              layout: rect(layout),
+              sidebar: rect(sidebar),
+              main: rect(main),
+              playbar: rect(playbar),
+              status: rect(status),
+              tileColumn: activeCard ? getComputedStyle(activeCard).flexDirection : 'missing',
+              labelBelowIcon: !!iconRect && !!labelRect && labelRect.top >= iconRect.bottom - 1,
+              playbarContained: !!playbar && playbar.scrollWidth <= playbar.clientWidth + 2,
+              layoutContained: !!layout && layout.scrollWidth <= layout.clientWidth + 2,
+            };
+          });
+          console.log('PRISM MOBILE GEOMETRY:', JSON.stringify(prismMobileGeometry));
+          const mobilePlaybar = prismMobileGeometry.playbar;
+          const mobileStatus = prismMobileGeometry.status;
+          if (prismMobileGeometry.documentWidth > 392
+              || prismMobileGeometry.tileColumn !== 'column'
+              || !prismMobileGeometry.labelBelowIcon
+              || !prismMobileGeometry.playbarContained
+              || !prismMobileGeometry.layoutContained
+              || !mobilePlaybar || !mobileStatus
+              || mobilePlaybar.right > 392
+              || mobileStatus.right > 392
+              || mobilePlaybar.bottom > mobileStatus.top + 2
+              || mobileStatus.bottom > 846) {
+            throw new Error('Prism mobile layout overflows or clips the launch/status panels; refusing to publish screenshots.');
+          }
           await page.screenshot({
             path: 'artifacts/ui/prism-pinecone-mobile.png',
             fullPage: true,
@@ -171,6 +248,7 @@ jobs:
           if (pageErrors.length) {
             throw new Error(`UI emitted ${pageErrors.length} JavaScript error(s).`);
           }
+          await page.mouse.move(1200, 450);
           await page.screenshot({
             path: 'artifacts/ui/end-classic-desktop.png',
             fullPage: true,

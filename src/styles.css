@@ -5121,3 +5121,90 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
     display: none;
   }
 }
+
+
+/* Prism/Pinecone pass 4 — the instance area begins directly below the toolbar. */
+:root[data-ui='prism'] #page-play .library-toolbar {
+  display: none !important;
+}
+:root[data-ui='prism'] .sidebar .library-toolbar-actions {
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  width: auto;
+  max-width: none;
+  min-width: 0;
+  margin: 0;
+}
+:root[data-ui='prism'] .sidebar .library-search {
+  flex: 0 1 148px;
+  max-width: 170px;
+  min-width: 88px;
+  min-height: 25px;
+  padding: 0 6px;
+}
+:root[data-ui='prism'] .sidebar .library-search > span {
+  font-size: 15px;
+}
+:root[data-ui='prism'] .sidebar .library-search input {
+  width: 100%;
+  min-width: 0;
+  padding: 5px 0;
+  font-size: 10px;
+}
+:root[data-ui='prism'] .sidebar .library-toolbar-actions > button {
+  flex: 0 0 auto;
+  min-height: 25px;
+  padding: 4px 7px;
+  font-size: 10px;
+}
+:root[data-ui='prism'] .sidebar #prism-library-tools {
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 0 2px;
+  padding: 0;
+  border: 0;
+}
+:root[data-ui='prism'] .sidebar #prism-library-tools label {
+  gap: 3px;
+  font-size: 9px;
+  white-space: nowrap;
+}
+:root[data-ui='prism'] .sidebar #prism-library-tools select {
+  min-width: 90px;
+  max-width: 112px;
+  padding: 4px 5px;
+  font-size: 9px;
+}
+:root[data-ui='prism'] .content main {
+  padding-top: 10px;
+}
+:root[data-ui='prism'] #library > .library-group-heading:first-child {
+  margin-top: 7px;
+}
+@media (max-width: 1180px) and (min-width: 741px) {
+  :root[data-ui='prism'] .layout {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  :root[data-ui='prism'] .sidebar {
+    height: auto;
+    min-height: 38px;
+    flex-wrap: wrap;
+  }
+  :root[data-ui='prism'] .sidebar .library-toolbar-actions {
+    flex: 1 1 100%;
+    order: 4;
+    flex-wrap: wrap;
+  }
+  :root[data-ui='prism'] .sidebar #prism-library-tools {
+    flex: 1 1 100%;
+    order: 5;
+    margin-left: 0;
+  }
+}

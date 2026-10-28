@@ -480,6 +480,23 @@ check(css.includes(":root[data-ui='prism'] .playbar") && css.includes(":root[dat
     && css.includes(":root[data-ui='prism'] .library-toolbar"),
   'Prism layout needs a separate launch panel, profile-label tiles, and compact toolbar');
 
+check(js.includes('function syncPrismSelectedInstance()')
+    && js.includes('function syncPrismQuickActions()')
+    && js.includes("addAction('folder', '📂 Папка'")
+    && js.includes("addAction('export', '⇩ Экспортировать…'")
+    && js.includes("addAction('duplicate', '⧉ Копировать…'")
+    && js.includes("addAction('delete', '▤ Удалить'"),
+  'Prism action rail must expose working folder, export, copy, rename and delete actions');
+check(html.includes('id="prism-status-bar"')
+    && css.includes(':root[data-ui=\'prism\'] #prism-status-bar')
+    && css.includes('grid-template-rows: 38px minmax(0, 1fr) 56px')
+    && js.includes("statusBar.hidden = currentUi !== 'prism'"),
+  'Prism layout must include a hidden-by-default, responsive two-row status bar');
+check(js.includes("prismLibraryGroup === 'none' ? 'Без группы'")
+    && css.includes(':root[data-ui=\'prism\'] #library .inst-card.add')
+    && css.includes('display: none !important;'),
+  'Prism must show the ungrouped disclosure heading and avoid duplicate add-instance tiles');
+
 check(css.includes(":root[data-ui='prism'] #prism-library-tools")
     && css.includes(":root[data-ui='modrinth'] #modrinth-library-tools")
     && css.includes(":root[data-ui='gd'] #gd-pack-tools")

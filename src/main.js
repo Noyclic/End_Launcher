@@ -1470,8 +1470,7 @@ function syncPrismQuickActions() {
       await invoke('open_instance_folder', { id: inst.id });
     });
     addAction('export', '⇩ Экспортировать…', async (inst) => {
-      const path = await invoke('export_instance', { id: inst.id });
-      showToast(`Архив создан: ${path}`);
+      await exportInstanceWithDialog(inst);
     });
     addAction('duplicate', '⧉ Копировать…', async (inst) => {
       const created = await invoke('duplicate_instance', { id: inst.id });
@@ -1826,6 +1825,25 @@ document.querySelectorAll('[data-create-view]').forEach((button) => {
     setPrismCreateMode(tabs[next]?.dataset.createView);
   });
 });
+async function exportInstanceWithDialog(inst) {
+  if (!inst?.id) {
+    showToast('Сначала выбери экземпляр.', false);
+    return false;
+  }
+  try {
+    const path = await invoke('pick_local_path', { kind: 'export' });
+    if (!path) {
+      showToast('Экспорт отменён.');
+      return false;
+    }
+    const saved = await invoke('export_instance_to_path', { id: inst.id, path });
+    showToast('Экземпляр экспортирован: ' + String(saved || path));
+    return true;
+  } catch (error) {
+    showToast('Не удалось экспортировать экземпляр: ' + String(error), false);
+    return false;
+  }
+}
 async function pickAndImportLocalPath(kind) {
   const status = $('ni-msg');
   try {
@@ -2664,7 +2682,7 @@ async function chooseUi(mode) {
 
 // Test-only bridge: exposed only when the screenshot workflow explicitly opts in via ?ui-test=1.
 if (new URLSearchParams(window.location.search).get('ui-test') === '1') {
-  window.__EL_TEST__ = Object.freeze({ chooseUi, goPage, openNewInstance, closeNewInstance, setPrismCreateMode, syncPrismSettingsPage, openPrismInstanceEditor });
+  window.__EL_TEST__ = Object.freeze({ chooseUi, goPage, openNewInstance, closeNewInstance, setPrismCreateMode, syncPrismSettingsPage, openPrismInstanceEditor, exportInstanceWithDialog });
 }
 $('ui-restart')?.addEventListener('click', () => {
   const status = $('ui-restart-status');

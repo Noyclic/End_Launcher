@@ -6318,3 +6318,24 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   outline: 1px solid #6ca878;
   outline-offset: 2px;
 }
+
+
+/* Prism/Pinecone pass 27 — keep instance play history readable beside the total-time counter. */
+:root[data-ui='prism'] .prism-status-meta-row #prism-status-details {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+:root[data-ui='prism'] .prism-status-meta-row #prism-status-active {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 38%;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+}
+:root[data-ui='prism'] .prism-status-meta-row #prism-status-details[title],
+:root[data-ui='prism'] .prism-status-meta-row #prism-status-active[title] {
+  cursor: help;
+}

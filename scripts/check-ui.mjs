@@ -920,3 +920,9 @@ check(html.includes('id="ni-group"')
     && js.includes('if (created?.id && groupName) savePrismInstanceGroup(created, groupName)')
     && js.includes('const PRISM_INSTANCE_GROUPS_STORE ='),
   'Prism instance creation must let users assign a group immediately and persist it through the existing group store');
+
+check(html.includes('Перейти к перетаскиванию файла')
+    && repairCss.includes('/* Prism/Pinecone pass 40')
+    && repairCss.includes('#page-settings button:not(.theme-card)')
+    && repairCss.includes('#ui-styles .theme-card.active'),
+  'Prism settings controls must use the neutral desktop palette while preserving selected-theme and launch accents');

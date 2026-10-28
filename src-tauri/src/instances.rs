@@ -392,6 +392,36 @@ pub fn duplicate_instance(id: String) -> Result<Instance, String> {
     Ok(copy)
 }
 
+/// Exports an instance to a user-selected .zip location using the existing safe archive builder.
+#[tauri::command]
+pub fn export_instance_to_path(id: String, path: String) -> Result<String, String> {
+    let raw_path = path.trim();
+    if raw_path.is_empty() {
+        return Err("Путь экспорта не указан".into());
+    }
+    let mut destination = PathBuf::from(raw_path);
+    if !destination.is_absolute() {
+        return Err("Путь экспорта должен быть абсолютным (его должен вернуть системный диалог)".into());
+    }
+    match destination.extension().and_then(|value| value.to_str()) {
+        Some(extension) if extension.eq_ignore_ascii_case("zip") => {}
+        None => { destination.set_extension("zip"); }
+        _ => return Err("Экспорт экземпляра поддерживает ZIP-архивы (*.zip)".into()),
+    }
+    let parent = destination.parent().ok_or("Не удалось определить папку экспорта")?;
+    if !parent.is_dir() {
+        return Err("Папка назначения не существует".into());
+    }
+
+    let generated = PathBuf::from(export_instance(id)?);
+    if generated == destination {
+        return Ok(destination.to_string_lossy().to_string());
+    }
+    std::fs::copy(&generated, &destination).map_err(|error| format!("Не удалось сохранить ZIP в выбранное место: {error}"))?;
+    let _ = std::fs::remove_file(&generated);
+    Ok(destination.to_string_lossy().to_string())
+}
+
 /// Экспортирует сборку в ZIP в config/exports и возвращает полный путь к архиву.
 #[tauri::command]
 pub fn export_instance(id: String) -> Result<String, String> {
@@ -934,7 +964,7 @@ async fn download_modrinth_files(index: &serde_json::Value, target: &Path) -> Re
 #[tauri::command]
 pub fn pick_local_path(kind: String) -> Result<Option<String>, String> {
     let kind = kind.trim().to_ascii_lowercase();
-    if !["archive", "folder", "java"].contains(&kind.as_str()) {
+    if !["archive", "folder", "java", "export"].contains(&kind.as_str()) {
         return Err("Неизвестный тип выбора пути".into());
     }
 
@@ -956,6 +986,18 @@ pub fn pick_local_path(kind: String) -> Result<Option<String>, String> {
                 $dialog.Title = 'Выбери исполняемый файл Java'
                 $dialog.Filter = 'Java (java.exe;javaw.exe)|java.exe;javaw.exe|Все файлы (*.*)|*.*'
                 $dialog.CheckFileExists = $true
+                if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { [Console]::Write($dialog.FileName) }
+            "#,
+            "export" => r#"
+                [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+                Add-Type -AssemblyName System.Windows.Forms
+                $dialog = New-Object System.Windows.Forms.SaveFileDialog
+                $dialog.Title = 'Сохрани экспорт сборки Minecraft'
+                $dialog.Filter = 'ZIP архив (*.zip)|*.zip'
+                $dialog.DefaultExt = 'zip'
+                $dialog.AddExtension = $true
+                $dialog.OverwritePrompt = $true
+                $dialog.FileName = 'Minecraft-instance.zip'
                 if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { [Console]::Write($dialog.FileName) }
             "#,
             _ => r#"
@@ -984,6 +1026,7 @@ pub fn pick_local_path(kind: String) -> Result<Option<String>, String> {
         let script = match kind.as_str() {
             "folder" => r#"POSIX path of (choose folder with prompt "Выбери папку экспортированной сборки Minecraft")"#,
             "java" => r#"POSIX path of (choose file with prompt "Выбери исполняемый файл Java")"#,
+            "export" => r#"POSIX path of (choose file name with prompt "Сохрани экспорт сборки Minecraft" default name "Minecraft-instance.zip")"#,
             _ => r#"POSIX path of (choose file with prompt "Выбери архив сборки Minecraft")"#,
         };
         let output = Command::new("osascript")
@@ -1000,12 +1043,15 @@ pub fn pick_local_path(kind: String) -> Result<Option<String>, String> {
         let title = match kind.as_str() {
             "folder" => "Выбери папку экспортированной сборки Minecraft",
             "java" => "Выбери исполняемый файл Java",
+            "export" => "Выбери, куда сохранить ZIP-архив сборки Minecraft",
             _ => "Выбери архив сборки Minecraft",
         };
         let zenity_args: Vec<&str> = if kind == "folder" {
             vec!["--file-selection", "--directory", "--title", title]
         } else if kind == "java" {
             vec!["--file-selection", "--title", title, "--file-filter=Java executables | java javaw java.exe javaw.exe *.bin", "--file-filter=All files | *"]
+        } else if kind == "export" {
+            vec!["--file-selection", "--save", "--confirm-overwrite", "--title", title, "--filename=Minecraft-instance.zip", "--file-filter=ZIP archive | *.zip"]
         } else {
             vec!["--file-selection", "--title", title, "--file-filter=Minecraft packs | *.mrpack *.zip", "--file-filter=ZIP archives | *.zip", "--file-filter=All files | *"]
         };
@@ -1020,6 +1066,8 @@ pub fn pick_local_path(kind: String) -> Result<Option<String>, String> {
         }
         let kdialog = if kind == "folder" {
             Command::new("kdialog").args(["--getexistingdirectory", ".", "--title", title]).output()
+        } else if kind == "export" {
+            Command::new("kdialog").args(["--getsavefilename", ".", "ZIP archive (*.zip)", "--title", title]).output()
         } else {
             let filter = match kind.as_str() {
                 "java" => "Java executables (java javaw java.exe javaw.exe *.bin)",

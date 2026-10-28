@@ -1,5 +1,14 @@
 # Changelog
 
+## Prism/Pinecone reference pass 5
+
+- Added a right-rail quick-action list for the selected instance: Mods, Open Folder, Export, Copy, Rename and two-step Delete. These call existing app operations instead of being decorative controls.
+- Reset delete confirmation if the selected instance changes, preventing a stale confirmation from deleting a different profile.
+- Updated Prism launch wording to compact title-case labels (“Запустить”, “Скачать и запустить”) while keeping existing text in the other layouts.
+- Extended UI regression checks for the selected-instance summary, action rail, default group heading and bottom status strip.
+- JavaScript syntax and UI regression checks passed on the current quick-action changes; Rust tests and a full Windows build remain in progress.
+
+
 ## Prism/Pinecone reference pass 4
 
 - Consolidated the library action controls and Prism sort/group controls into the top application strip; the library now begins directly below it.

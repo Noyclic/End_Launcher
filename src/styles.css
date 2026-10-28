@@ -4946,3 +4946,49 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
     padding: 3px 6px;
   }
 }
+
+
+/* Fine geometry pass: 38 px toolbar height matches the supplied desktop capture. */
+:root[data-ui='prism'] .layout {
+  grid-template-rows: 38px minmax(0, 1fr);
+}
+:root[data-ui='prism'] .sidebar {
+  height: 38px;
+  min-height: 38px;
+}
+:root[data-ui='prism'] #library .library-group-heading::before {
+  content: '⌄';
+  display: inline-block;
+  margin-right: 5px;
+  color: #d0d0d0;
+  font: 600 12px 'Inter', sans-serif;
+  vertical-align: -1px;
+}
+:root[data-ui='prism'] #library .inst-card.active .inst-icon {
+  border-color: #3e3e3e;
+  background: #363636;
+  color: #e6e6e6;
+}
+:root[data-ui='prism'] #library .inst-card.active .inst-name {
+  min-height: 23px;
+  padding: 4px 2px;
+  background: #91d85a;
+  color: #17220e;
+  font-weight: 500;
+}
+:root[data-ui='prism'] .sidebar #library-add {
+  font-size: 0;
+}
+:root[data-ui='prism'] .sidebar #library-add::after {
+  content: 'Добавить экземпляр…';
+  font-size: 10px;
+}
+@media (max-width: 740px) {
+  :root[data-ui='prism'] .layout {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  :root[data-ui='prism'] .sidebar {
+    height: auto;
+    min-height: 38px;
+  }
+}

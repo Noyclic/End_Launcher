@@ -1783,6 +1783,7 @@ function ensurePrismOverflow(sidebar) {
     prismOverflowToggle.setAttribute('aria-controls', 'prism-toolbar-overflow');
     prismOverflowToggle.addEventListener('click', (event) => {
       event.stopPropagation();
+      closePrismFoldersMenu();
       if (!prismOverflowPanel) return;
       prismOverflowPanel.hidden = !prismOverflowPanel.hidden;
       prismOverflowToggle?.setAttribute('aria-expanded', String(!prismOverflowPanel.hidden));
@@ -1957,6 +1958,10 @@ function ensurePrismFoldersMenu(sidebar) {
 function togglePrismFoldersMenu() {
   const trigger = $('prism-open-folder');
   if (currentUi !== 'prism' || !trigger || !prismFoldersMenu) return;
+  if (prismOverflowPanel && !prismOverflowPanel.hidden) {
+    prismOverflowPanel.hidden = true;
+    prismOverflowToggle?.setAttribute('aria-expanded', 'false');
+  }
   const shouldOpen = prismFoldersMenu.hidden;
   closePrismFoldersMenu();
   if (!shouldOpen) return;

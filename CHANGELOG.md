@@ -1,5 +1,12 @@
 # Changelog
 
+## Prism/Pinecone reference pass 9
+
+- Corrected the Folders menu's path semantics: “Корневая папка” now opens the configured game root; “Папка экземпляров” opens its instances directory; “Общие моды” opens shared mods; “Папка настроек” separately opens End Launcher's config directory.
+- Added and registered a Rust/Tauri `open_game_folder` command so the root action follows a user-configured game directory rather than always opening the configuration folder.
+- Extended the regression checks for the new command and registration.
+
+
 ## Prism/Pinecone reference pass 8
 
 - Reworked the bottom status bar to match the reference's two-row rhythm more closely: project news/update label and a working “Больше новостей” action above; selected instance details and launch state below.

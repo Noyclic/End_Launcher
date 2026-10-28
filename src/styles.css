@@ -6515,3 +6515,167 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   outline-offset: 1px;
   background: #2c302b;
 }
+
+
+/* Cross-launcher pass 34 — make the non-Prism layouts feel distinct while keeping them usable at narrow widths. */
+/* Modrinth: calmer filters, flatter list rows, and a stable green focus state. */
+:root[data-ui='modrinth'] #library .inst-card {
+  box-shadow: none;
+  border: 1px solid #303b35;
+  background: #1a201c;
+}
+:root[data-ui='modrinth'] #library .inst-card.active {
+  border-color: #527b5c;
+  background: linear-gradient(90deg, #233328, #1a201c 72%);
+  box-shadow: inset 3px 0 0 #75b85a;
+}
+:root[data-ui='modrinth'] #library .inst-card:focus-visible {
+  outline: 2px solid #75b85a;
+  outline-offset: 2px;
+}
+:root[data-ui='modrinth'] #library .library-group-heading {
+  letter-spacing: .02em;
+  text-transform: none;
+}
+
+/* TL Legacy: preserve the classic bottom launch strip without letting its controls squeeze. */
+:root[data-ui='tl'] .play-ui {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+:root[data-ui='tl'] .play-ui #play-btn {
+  min-width: clamp(160px, 22vw, 280px);
+  min-height: 44px;
+}
+:root[data-ui='tl'] .play-ui .pb-selects {
+  min-width: min(100%, 230px);
+}
+
+/* GDLauncher Carbon: roomy cards, clearer active state, and a separate visual layer for metadata. */
+:root[data-ui='gd'] #library .inst-card {
+  border: 1px solid #343941;
+  background: linear-gradient(145deg, #22262d, #1a1d23);
+}
+:root[data-ui='gd'] #library .inst-card.active {
+  border-color: #7b9edb;
+  box-shadow: inset 0 0 0 1px #7b9edb44, 0 8px 24px #0003;
+}
+:root[data-ui='gd'] #library .inst-card:focus-visible {
+  outline: 2px solid #8bb3f5;
+  outline-offset: 2px;
+}
+:root[data-ui='gd'] .playbar {
+  box-shadow: 0 -10px 30px #0002;
+}
+
+/* Lunar: favorites and selected profile states remain visible against the dark purple surface. */
+:root[data-ui='lunar'] #library .inst-card {
+  border-color: #34334f;
+  background: #191927;
+}
+:root[data-ui='lunar'] #library .inst-card.active {
+  border-color: #7778ff;
+  background: linear-gradient(115deg, #292744, #1a1929 75%);
+  box-shadow: inset 3px 0 0 #898aff;
+}
+:root[data-ui='lunar'] #library .inst-card:focus-visible {
+  outline: 2px solid #999aff;
+  outline-offset: 2px;
+}
+:root[data-ui='lunar'] .playbar {
+  box-shadow: 0 -10px 28px #08081288;
+}
+
+/* Official Minecraft-like: squared edges and an unmistakable selected installation. */
+:root[data-ui='official'] #library .inst-card {
+  border-radius: 4px;
+  border-color: #35453a;
+  background: #18211b;
+}
+:root[data-ui='official'] #library .inst-card.active {
+  border-color: #6aa64c;
+  box-shadow: inset 3px 0 0 #6aa64c;
+}
+:root[data-ui='official'] #library .inst-card:focus-visible {
+  outline: 2px solid #8bc96b;
+  outline-offset: 1px;
+}
+
+/* ATLauncher: denser, utility-first tiles with stable text wrapping. */
+:root[data-ui='at'] #library .inst-card {
+  box-shadow: none;
+  border-color: #383b40;
+  background: #202226;
+}
+:root[data-ui='at'] #library .inst-card.active {
+  border-color: #8b9c72;
+  background: #292e27;
+  box-shadow: inset 3px 0 0 #a0b783;
+}
+:root[data-ui='at'] #library .inst-card .inst-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+:root[data-ui='at'] #library .inst-card:focus-visible {
+  outline: 1px solid #b0c58d;
+  outline-offset: 1px;
+}
+
+/* Shared narrow-window behavior: each layout keeps its identity instead of overflowing horizontally. */
+@media (max-width: 760px) {
+  :root[data-ui='modrinth'] .sidebar,
+  :root[data-ui='lunar'] .sidebar {
+    width: 100%;
+    min-height: auto;
+    padding: 8px 10px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    border-right: 0;
+    border-bottom: 1px solid var(--el-line);
+  }
+  :root[data-ui='modrinth'] nav,
+  :root[data-ui='lunar'] nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: auto;
+    justify-content: center;
+  }
+  :root[data-ui='modrinth'] .account,
+  :root[data-ui='lunar'] .account {
+    width: auto;
+    margin: 0;
+  }
+  :root[data-ui='gd'] .content main,
+  :root[data-ui='official'] .content main,
+  :root[data-ui='at'] .content main,
+  :root[data-ui='modrinth'] .content main {
+    padding: 16px;
+    min-width: 0;
+  }
+  :root[data-ui='gd'] .grid,
+  :root[data-ui='at'] .grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr));
+    gap: 10px;
+  }
+  :root[data-ui='tl'] .playbar,
+  :root[data-ui='gd'] .playbar,
+  :root[data-ui='official'] .playbar,
+  :root[data-ui='at'] .playbar {
+    padding: 10px 12px;
+  }
+  :root[data-ui='tl'] .play-ui #play-btn {
+    min-width: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-ui='modrinth'] #library .inst-card,
+  :root[data-ui='gd'] #library .inst-card,
+  :root[data-ui='lunar'] #library .inst-card,
+  :root[data-ui='official'] #library .inst-card,
+  :root[data-ui='at'] #library .inst-card {
+    transition: none !important;
+    animation: none !important;
+  }
+}

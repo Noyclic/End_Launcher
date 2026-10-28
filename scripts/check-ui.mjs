@@ -797,4 +797,16 @@ check(css.includes('/* Prism/Pinecone pass 33 — keyboard navigation')
     && css.includes(":root[data-ui='prism'] #library .library-group-heading:focus-visible"),
   'Prism keyboard focus and long profile labels must stay visible and contained within compact tiles');
 
+
+
+check(css.includes('/* Cross-launcher pass 34')
+    && css.includes(":root[data-ui='modrinth'] #library .inst-card.active")
+    && css.includes(":root[data-ui='gd'] #library .inst-card:focus-visible")
+    && css.includes(":root[data-ui='lunar'] #library .inst-card.active")
+    && css.includes(":root[data-ui='official'] #library .inst-card.active")
+    && css.includes(":root[data-ui='at'] #library .inst-card.active")
+    && css.includes('@media (max-width: 760px)')
+    && css.includes('@media (prefers-reduced-motion: reduce)'),
+  'Non-Prism launcher layouts must have distinct active-card styling, keyboard focus, narrow-window layouts, and reduced-motion support');
+
 console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags, plus keyboard-navigable Prism profile tiles and search-aware collapsed groups.');

@@ -712,6 +712,8 @@ $('launcher-banner-play')?.addEventListener('click', () => {
 
 function syncPrismSelectedInstance() {
   const bar = $('slot-bar');
+  const statusBar = $('prism-status-bar');
+  if (statusBar) statusBar.hidden = currentUi !== 'prism';
   if (!bar) return;
   let summary = $('prism-selected-instance');
   if (currentUi !== 'prism') {
@@ -734,6 +736,12 @@ function syncPrismSelectedInstance() {
   }
   const selected = instances.find((item) => String(item.id) === String(activeId));
   summary.hidden = !selected;
+  const statusActive = $('prism-status-active');
+  const statusDetails = $('prism-status-details');
+  if (statusActive) statusActive.textContent = selected ? 'Готов к запуску' : 'Нет выбранной сборки';
+  if (statusDetails) statusDetails.textContent = selected
+    ? `Minecraft ${selected.version || '—'} · ${selected.name || 'Сборка'}`
+    : 'Minecraft · Нет выбранной сборки';
   const icon = summary.querySelector('.prism-selected-icon');
   const name = summary.querySelector('.prism-selected-name');
   const version = summary.querySelector('.prism-selected-version');

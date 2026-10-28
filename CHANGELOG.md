@@ -1,5 +1,12 @@
 # Changelog
 
+## Prism/Pinecone reference pass 10
+
+- Made instance group headings collapsible with keyboard support (Enter/Space), aria-expanded state and a visible focus outline.
+- Collapse state is persisted locally. Typing into the library search temporarily shows matching results even when their group is collapsed.
+- Added UI regression coverage for persistence/ARIA/keyboard handling, plus an explicit hidden-card rule so the grid layout does not override the collapsed state.
+- The latest automated runs and a fresh Windows build must still confirm this pass; visual comparison stays scheduled for the 10-request checkpoint.
+
 ## Prism/Pinecone reference pass 8
 
 - Added a functional instance editor to the right-side action rail. It edits the instance name, Minecraft version and loader without changing the instance folder or removing worlds/mods.

@@ -525,6 +525,13 @@ check(html.includes('id="prism-status-bar"')
     && css.includes('grid-template-rows: 38px minmax(0, 1fr) 56px')
     && js.includes("statusBar.hidden = currentUi !== 'prism'"),
   'Prism layout must include a hidden-by-default, responsive two-row status bar');
+check(html.includes('id="library-toolbar-actions" class="library-toolbar-actions"')
+      && html.includes('id="library-search-control" class="library-search"')
+      && js.includes("for (const id of ['library-toolbar-actions', 'prism-library-tools'])")
+      && js.includes("'library-search-control'")
+      && js.includes("sidebar.insertBefore(element, prismOverflowToggle || account)"),
+  'Prism toolbar movers need matching element IDs so the real action row and search control move into their intended toolbar/overflow containers');
+
 check(html.includes('id="library-search-control"')
     && html.includes('id="prism-help"')
     && html.includes('id="prism-update"')

@@ -1415,16 +1415,90 @@ for (const id of ['library-toolbar-actions', 'prism-library-tools']) {
     prismToolbarHome[id] = marker;
   }
 }
+const prismOverflowIds = ['library-search-control', 'library-view', 'library-import', 'layout-extras-toggle', 'prism-library-tools'];
+const prismOverflowHome = {};
+for (const id of prismOverflowIds) {
+  if (id === 'prism-library-tools') continue;
+  const element = $(id);
+  if (element?.parentNode) {
+    const marker = document.createComment(`${id}-prism-overflow-position`);
+    element.parentNode.insertBefore(marker, element);
+    prismOverflowHome[id] = marker;
+  }
+}
+let prismOverflowPanel = null;
+let prismOverflowToggle = null;
+function ensurePrismOverflow(sidebar) {
+  if (!prismOverflowPanel) {
+    prismOverflowPanel = document.createElement('div');
+    prismOverflowPanel.id = 'prism-toolbar-overflow';
+    prismOverflowPanel.className = 'prism-toolbar-overflow';
+    prismOverflowPanel.hidden = true;
+    prismOverflowPanel.setAttribute('aria-label', 'Дополнительные инструменты списка экземпляров');
+    prismOverflowPanel.addEventListener('click', (event) => event.stopPropagation());
+  }
+  if (!prismOverflowToggle) {
+    prismOverflowToggle = document.createElement('button');
+    prismOverflowToggle.id = 'prism-toolbar-overflow-toggle';
+    prismOverflowToggle.type = 'button';
+    prismOverflowToggle.className = 'prism-toolbar-overflow-toggle';
+    prismOverflowToggle.textContent = '⋯';
+    prismOverflowToggle.title = 'Поиск, сортировка, импорт и дополнительные инструменты';
+    prismOverflowToggle.setAttribute('aria-label', 'Дополнительные инструменты');
+    prismOverflowToggle.setAttribute('aria-expanded', 'false');
+    prismOverflowToggle.setAttribute('aria-controls', 'prism-toolbar-overflow');
+    prismOverflowToggle.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (!prismOverflowPanel) return;
+      prismOverflowPanel.hidden = !prismOverflowPanel.hidden;
+      prismOverflowToggle?.setAttribute('aria-expanded', String(!prismOverflowPanel.hidden));
+    });
+  }
+  const account = $('account-box');
+  if (account && prismOverflowToggle.parentElement !== sidebar) sidebar.insertBefore(prismOverflowToggle, account);
+  if (prismOverflowPanel.parentElement !== sidebar) sidebar.appendChild(prismOverflowPanel);
+}
+function restorePrismOverflow() {
+  for (const id of prismOverflowIds) {
+    const element = $(id);
+    const marker = id === 'prism-library-tools' ? prismToolbarHome[id] : prismOverflowHome[id];
+    if (element && marker?.parentNode) marker.parentNode.insertBefore(element, marker.nextSibling);
+  }
+  prismOverflowPanel?.remove();
+  prismOverflowToggle?.remove();
+  prismOverflowPanel = null;
+  prismOverflowToggle = null;
+}
+function syncPrismOverflow(mode) {
+  if (mode !== 'prism') {
+    if (prismOverflowPanel || prismOverflowToggle) restorePrismOverflow();
+    return;
+  }
+  const sidebar = document.querySelector('.sidebar');
+  if (!sidebar) return;
+  ensurePrismOverflow(sidebar);
+  for (const id of prismOverflowIds) {
+    const element = $(id);
+    if (element && element.parentElement !== prismOverflowPanel) prismOverflowPanel.appendChild(element);
+  }
+  prismOverflowPanel.hidden = true;
+  prismOverflowToggle?.setAttribute('aria-expanded', 'false');
+}
+document.addEventListener('click', (event) => {
+  if (currentUi !== 'prism' || !prismOverflowPanel || prismOverflowPanel.hidden) return;
+  if (prismOverflowPanel.contains(event.target) || prismOverflowToggle?.contains(event.target)) return;
+  prismOverflowPanel.hidden = true;
+  prismOverflowToggle?.setAttribute('aria-expanded', 'false');
+});
 function syncPrismToolbar(mode) {
   const sidebar = document.querySelector('.sidebar');
   const account = $('account-box');
-  for (const id of ['library-toolbar-actions', 'prism-library-tools']) {
-    const element = $(id);
-    if (!element) continue;
+  const element = $('library-toolbar-actions');
+  if (element) {
     if (mode === 'prism' && sidebar && account) {
-      sidebar.insertBefore(element, account);
+      sidebar.insertBefore(element, prismOverflowToggle || account);
     } else {
-      const marker = prismToolbarHome[id];
+      const marker = prismToolbarHome['library-toolbar-actions'];
       if (marker?.parentNode) marker.parentNode.insertBefore(element, marker.nextSibling);
     }
   }
@@ -1440,6 +1514,7 @@ function applyUi(mode) {
   if (!UI_STYLES[mode]) mode = 'end';
   currentUi = mode;
   root.dataset.ui = mode;
+  syncPrismOverflow(mode);
   syncPrismToolbar(mode);
   const target = ['end', 'tl'].includes(mode) ? $('slot-page') : $('slot-bar');
   if ($('play-ui').parentElement !== target) target.appendChild($('play-ui'));

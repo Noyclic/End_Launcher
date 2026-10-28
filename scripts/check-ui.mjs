@@ -729,4 +729,15 @@ check(js.includes('function closePrismOverflow({ restoreFocus = false } = {})')
     && js.includes("event.key !== 'Escape' || currentUi !== 'prism' || !prismOverflowPanel || prismOverflowPanel.hidden"),
   'Prism overflow menu must dismiss on Escape and resize, update aria-expanded, and restore focus to its trigger');
 
+
+check(js.includes('function openPrismEmptyContextMenu(event)')
+    && js.includes("menu.id = 'prism-empty-context-menu'")
+    && js.includes("addItem('＋ Добавить экземпляр…', () => openNewInstance())")
+    && js.includes("addItem('⇩ Импортировать экземпляр…'")
+    && js.includes("addItem('↻ Обновить список', () => loadInstances())")
+    && js.includes("document.querySelector('.content main')?.addEventListener('contextmenu', openPrismEmptyContextMenu)")
+    && js.includes("if (event.key !== 'Escape' || !menu) return;")
+    && js.includes("target?.closest('.inst-card, button, input, select, textarea, a, [role=\"dialog\"], .inst-menu, .prism-folders-menu, .prism-toolbar-overflow')"),
+  'Prism empty-library right-click menu must offer create/import/refresh, avoid intercepting cards or controls, and close on Escape');
+
 console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags.');

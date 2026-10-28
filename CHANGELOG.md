@@ -1,5 +1,13 @@
 # Changelog
 
+## Prism/Pinecone reference pass 19
+
+- Added a true right-click instance context menu in Prism mode, positioned near the pointer and constrained to the viewport.
+- Matched the reference action order: Rename, Change Icon, Launch, Kill when the matching Java instance is running, Edit, Change Group, Folder, Export, Copy, Delete, Create Shortcut.
+- Reused the existing backend commands and instance editor/group editor rather than creating parallel handlers; the other interface modes keep their existing menu.
+- Added regression checks for the pointer-triggered menu, key actions/order, and viewport-safe scrolling.
+
+
 ## Prism/Pinecone reference pass 18
 
 - Fixed the missing DOM ID on the library toolbar action container. The existing Prism layout mover now finds and moves the real toolbar into the top strip instead of silently leaving it inside the library.

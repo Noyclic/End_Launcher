@@ -1999,6 +1999,14 @@ function syncPrismToolbar(mode) {
   // the original navigation slot when switching back to any other UI layout.
   const settingsButton = $('nav-settings-button');
   if (settingsButton) {
+    const settingsLabel = settingsButton.querySelector('.lbl');
+    if (mode === 'prism') {
+      if (settingsLabel) settingsLabel.textContent = 'Параметры…';
+      settingsButton.title = 'Параметры лаунчера';
+    } else {
+      if (settingsLabel) settingsLabel.textContent = 'Настройки';
+      settingsButton.title = 'Настройки';
+    }
     if (mode === 'prism' && sidebar) {
       const firstAfterToolbar = $('prism-help') || prismOverflowToggle || account;
       sidebar.insertBefore(settingsButton, firstAfterToolbar);
@@ -2247,7 +2255,7 @@ $('prism-update')?.addEventListener('click', async () => {
     showToast('Не удалось проверить обновления: ' + String(error), false);
   } finally {
     button.disabled = false;
-    button.textContent = '♻ Обновить…';
+    button.textContent = 'Обновить…';
   }
 });
 

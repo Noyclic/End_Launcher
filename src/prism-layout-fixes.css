@@ -311,3 +311,18 @@
 :root[data-ui='prism'] .sidebar #prism-cat-toggle {
   display: none !important;
 }
+
+
+/* Prism visual repair pass 3 — keep auxiliary overlays out of the selected profile and status rows. */
+:root[data-ui='prism'] .pet {
+  display: none !important;
+}
+:root[data-ui='prism'] {
+  --el-p2p-dock-bottom: 72px;
+}
+@media (max-width: 900px) {
+  :root[data-ui='prism'] {
+    --el-p2p-dock-right: 18px;
+    --el-p2p-dock-bottom: calc(40vh + 62px);
+  }
+}

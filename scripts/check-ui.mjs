@@ -908,3 +908,9 @@ check(repairCss.includes('/* Prism/Pinecone pass 39')
     && repairCss.includes('.create-provider-card')
     && repairCss.includes('@media (max-width: 620px)'),
   'Prism create-instance wizard must have a compact left command rail, provider/import panels and a narrow-window fallback');
+
+check(js.includes('const createInstanceHomeMarker = document.createComment')
+    && js.includes('document.body.appendChild(wrapper)')
+    && js.includes('function restoreNewInstanceLocation()')
+    && js.includes('document.body.appendChild(wrapper)'),
+  'Prism instance creation overlay must be viewport-rooted and restore its original location after closing');

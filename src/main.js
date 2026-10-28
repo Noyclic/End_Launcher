@@ -1832,13 +1832,16 @@ $('ni-create').addEventListener('click', async () => {
   $('ni-msg').textContent = 'Подготавливаем папку сборки…';
   try {
     // -> Rust: instances.rs :: create_instance(name, version, loader)
-    await invoke('create_instance', {
+    const created = await invoke('create_instance', {
       name,
       version: $('ni-version').value,
       loader: $('ni-loader').value,
     });
+    const groupName = currentUi === 'prism' ? String($('ni-group')?.value || '').trim() : '';
+    if (created?.id && groupName) savePrismInstanceGroup(created, groupName);
     closeNewInstance();
     $('ni-name').value = '';
+    if ($('ni-group')) $('ni-group').value = '';
     await loadInstances();
     showToast(currentUi === 'prism' ? `Экземпляр «${name}» создан` : `Сборка «${name}» создана`);
   } catch (e) {

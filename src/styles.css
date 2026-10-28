@@ -6472,3 +6472,26 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   color: transparent;
   box-shadow: none;
 }
+
+
+/* Prism/Pinecone pass 32 — make the lime name strip the primary selected-instance cue. */
+/* The reference keeps the tile and profile icon neutral; selection is carried by the green name strip. */
+:root[data-ui='prism'] #library .inst-card.active {
+  border-color: #484848;
+  background: #303030;
+  box-shadow: none;
+}
+:root[data-ui='prism'] #library .inst-card.active:hover {
+  border-color: #565656;
+  background: #383838;
+  box-shadow: none;
+}
+:root[data-ui='prism'] #library .inst-card.active .inst-name {
+  background: #91d85a;
+  color: #17220e;
+  font-weight: 500;
+}
+:root[data-ui='prism'] #library .inst-card:focus-visible {
+  outline: 1px solid #91d85a;
+  outline-offset: -2px;
+}

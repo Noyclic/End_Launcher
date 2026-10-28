@@ -1350,6 +1350,12 @@ function renderLibrary() {
       more,
     );
     card.addEventListener('click', () => setActive(inst.id));
+    card.addEventListener('dblclick', async (event) => {
+      if (currentUi !== 'prism' || event.target.closest('button, input, select, textarea')) return;
+      event.preventDefault();
+      await setActive(inst.id);
+      playBtn.click();
+    });
     card.addEventListener('contextmenu', (event) => {
       if (currentUi !== 'prism') return;
       event.preventDefault();

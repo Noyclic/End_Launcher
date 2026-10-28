@@ -61,9 +61,17 @@ jobs:
               list_instances: [
                 { id: 1001, name: 'Prism Preview - Fabric', version: '1.21.1', loader: 'fabric' },
                 { id: 1002, name: 'Vanilla Preview', version: '1.20.1', loader: 'vanilla' },
+                { id: 1003, name: 'NeoForge 1.21.1', version: '1.21.1', loader: 'neoforge' },
+                { id: 1004, name: 'Quilt 1.20.1', version: '1.20.1', loader: 'quilt' },
+                { id: 1005, name: 'Snapshot 26.1', version: '26.1-snapshot', loader: 'vanilla' },
+                { id: 1006, name: 'Cobblemon Modpack', version: '1.21.1', loader: 'fabric' },
+                { id: 1007, name: 'Better MC', version: '1.20.1', loader: 'forge' },
+                { id: 1008, name: 'SkyFactory 4', version: '1.12.2', loader: 'forge' },
+                { id: 1009, name: 'Adrenaline', version: '1.21.1', loader: 'fabric' },
+                { id: 1010, name: 'Vanilla 1.21.11', version: '1.21.11', loader: 'vanilla' },
               ],
               get_active_instance: 1001,
-              list_installed_versions: ['1.21.1', '1.20.1'],
+              list_installed_versions: ['1.21.1', '1.20.1', '1.12.2', '26.1-snapshot', '1.21.11'],
               list_mods: [],
               check_java: { source: 'managed', required_major: 21 },
               get_ui_style: 'prism',
@@ -97,6 +105,14 @@ jobs:
             localStorage.setItem('el-first-run-complete', '1');
             localStorage.setItem('el-ui-style', 'prism');
             localStorage.setItem('el-ui-style-v2', 'prism');
+            localStorage.setItem('end-launcher-prism-instance-groups-v1', JSON.stringify({
+              1006: 'Modpack',
+              1007: 'Modpack',
+              1008: 'Modpack',
+              1002: 'Vanilla-like',
+              1009: 'Vanilla-like',
+              1010: 'Vanilla-like',
+            }));
           });
 
           await page.goto('http://127.0.0.1:4173/index.html?ui-test=1', {
@@ -124,6 +140,8 @@ jobs:
             sidebarVisible: !!document.querySelector('.sidebar')
               && getComputedStyle(document.querySelector('.sidebar')).display !== 'none',
             bodyTextLength: (document.body.innerText || '').trim().length,
+            instanceTiles: document.querySelectorAll('#library .inst-card:not(.add):not([hidden])').length,
+            groupHeadings: document.querySelectorAll('#library .library-group-heading').length,
             navButtons: document.querySelectorAll('.nav-btn').length,
           }));
           console.log('PRISM UI ASSERTIONS:', JSON.stringify(prismState));
@@ -133,6 +151,8 @@ jobs:
               || prismState.playUiParent !== 'slot-bar'
               || !prismState.sidebarVisible
               || prismState.bodyTextLength < 80
+              || prismState.instanceTiles < 8
+              || prismState.groupHeadings < 3
               || prismState.navButtons < 3) {
             throw new Error('Prism UI did not render correctly; refusing to publish misleading screenshots.');
           }

@@ -575,11 +575,25 @@ function toggleMenu(card, inst) {
     };
     item('✎ Переименовать', () => beginRenameInstance(inst, card));
     item(prismInstanceIcons[String(inst.id)] ? '▧ Сменить иконку…' : '▧ Изменить иконку…', () => choosePrismInstanceIcon(inst));
+    if (prismInstanceIcons[String(inst.id)]) {
+      item('× Сбросить иконку', async () => {
+        const next = { ...prismInstanceIcons };
+        delete next[String(inst.id)];
+        if (!savePrismInstanceIcons(next)) return;
+        renderLibrary();
+        showToast(`Для «${inst.name || 'сборки'}» восстановлена стандартная иконка.`);
+      });
+    }
     item('▶ Запустить', async () => { await setActive(inst.id); playBtn.click(); });
     if (gameRunning && String(runningInstanceId) === String(inst.id)) {
       item('× Остановить', async () => invoke('stop_instance', { id: String(inst.id) }));
     }
     item('▤ Изменить…', () => runRailAction('edit'));
+    item('🧩 Моды', async () => {
+      await setActive(inst.id);
+      refreshInstalled();
+      goPage('mods');
+    });
     item('▤ Изменить группу…', () => runRailAction('group'));
     item('📂 Папка', () => invoke('open_instance_folder', { id: inst.id }));
     item('⇩ Экспортировать…', async () => {

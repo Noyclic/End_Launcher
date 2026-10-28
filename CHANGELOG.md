@@ -1,5 +1,13 @@
 # Changelog
 
+## Prism/Pinecone reference pass 2
+
+- Moved the Settings/Parameters control out of generic navigation and into the Prism-style top command strip; switching away from Prism restores the original navigation placement rather than cloning the control.
+- Rebalanced the command strip and right-side action rail to match the supplied screenshot's 38 px toolbar rhythm, 164 px rail, 72 px selected-profile icon, and more legible action rows.
+- Reasserted a three-row desktop layout (header, work area, status footer) and a compact stacked mobile layout so the footer does not become an accidental implicit grid row.
+- Confirmed the HTML control ID, layout-switch restoration marker, DOM move code, and dedicated Prism CSS rule are present on branch ui-fidelity-pass. Native visual verification remains scheduled for the agreed 10-request checkpoint.
+
+
 ## Prism/Pinecone reference pass 21
 
 - A double-click on an instance tile now selects and launches that exact Java instance in Prism mode, matching the desktop-launcher interaction pattern.

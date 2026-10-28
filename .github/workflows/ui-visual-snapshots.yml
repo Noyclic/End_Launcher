@@ -60,6 +60,7 @@ jobs:
               get_ms_client_id: '',
               create_instance: { id: 'visual-test', name: 'Visual Test', version: '1.21.1', loader: 'fabric' },
               update_instance: { id: '1001', name: 'Renamed by visual test', version: '1.21.1', loader: 'fabric' },
+              export_instance_to_path: '/tmp/end-launcher-visual-export.zip',
               pick_local_path: null,
               list_instances: [
                 { id: 1001, name: 'Prism Preview - Fabric', version: '1.21.1', loader: 'fabric' },
@@ -95,6 +96,8 @@ jobs:
               core: {
                 invoke: async (command, args) => {
                   window.__TAURI_CALL_LOG.push({ command, args: args || null });
+                  if (command === 'pick_local_path' && args?.kind === 'export') return '/tmp/end-launcher-visual-export.zip';
+                  if (command === 'export_instance_to_path') return args?.path || responses.export_instance_to_path;
                   return Object.prototype.hasOwnProperty.call(responses, command)
                     ? responses[command]
                     : null;
@@ -346,6 +349,16 @@ jobs:
             window.__TAURI_CALL_LOG.some((entry) => entry.command === 'open_url' && entry.args?.url === 'https://www.curseforge.com/minecraft/search?class=modpacks'));
           if (!curseforgeOpened) throw new Error('CurseForge provider button did not call the launcher open-url action.');
           await page.evaluate(() => window.__EL_TEST__.closeNewInstance());
+          await page.evaluate(async () => {
+            await window.__EL_TEST__.exportInstanceWithDialog({ id: '1001', name: 'Prism Preview - Fabric' });
+          });
+          const exportDialogUsed = await page.evaluate(() => {
+            const picker = window.__TAURI_CALL_LOG.find((entry) => entry.command === 'pick_local_path' && entry.args?.kind === 'export');
+            const save = window.__TAURI_CALL_LOG.find((entry) => entry.command === 'export_instance_to_path');
+            return picker && save && save.args?.id === '1001' && save.args?.path === '/tmp/end-launcher-visual-export.zip';
+          });
+          if (!exportDialogUsed) throw new Error('Prism Export action did not use the native Save As path and export command.');
+
 
           await page.locator('#nav-settings-button').click();
           const settingsVisible = await page.evaluate(() => ({

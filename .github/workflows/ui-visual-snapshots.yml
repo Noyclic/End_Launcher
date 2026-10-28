@@ -321,7 +321,7 @@ jobs:
               && entry.args?.loader === document.getElementById('ni-loader')?.value));
           if (!createCall) throw new Error('Create Instance did not call the native create_instance action.');
           await page.waitForFunction(() => getComputedStyle(document.getElementById('new-instance')).display === 'none');
-
+          await page.evaluate(async () => { await window.__EL_TEST__.openNewInstance(); });
 
           await page.locator('[data-create-view="import"]').click();
           const importVisible = await page.locator('[data-create-panel="import"]').evaluate((el) => !el.hidden);

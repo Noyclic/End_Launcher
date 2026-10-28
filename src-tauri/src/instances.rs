@@ -129,6 +129,26 @@ pub fn rename_instance(id: String, name: String) -> Result<(), String> {
     write(&inst)
 }
 
+/// Обновляет метаданные экземпляра, не перемещая папку и не затрагивая сохранения.
+#[tauri::command]
+pub fn update_instance(id: String, name: String, version: String, loader: String) -> Result<Instance, String> {
+    let name = name.trim().to_string();
+    let version = version.trim().to_string();
+    if name.is_empty() || name.chars().count() > 40 {
+        return Err("название сборки: от 1 до 40 символов".into());
+    }
+    crate::mc::check_id(&version)?;
+    if !["vanilla", "fabric", "forge", "neoforge"].contains(&loader.as_str()) {
+        return Err(format!("неизвестный загрузчик: {loader}"));
+    }
+    let mut inst = get(&id).ok_or("сборка не найдена")?;
+    inst.name = name;
+    inst.version = version;
+    inst.loader = loader;
+    write(&inst)?;
+    Ok(inst)
+}
+
 /// Удаляет сборку вместе с её модами и сохранениями (общие библиотеки и ассеты не трогает).
 #[tauri::command]
 pub fn delete_instance(id: String) -> Result<(), String> {

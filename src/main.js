@@ -2047,6 +2047,7 @@ const progressBar = $('progress-bar');
 const analyzeBtn = $('analyze-crash');
 const stopBtn = $('stop-btn');
 let gameRunning = false;
+let runningInstanceId = null;
 let lastCrashLog = '';
 
 const STAGES = {
@@ -2067,6 +2068,7 @@ window.__TAURI__.event.listen('install-progress', ({ payload }) => {
 // Rust шлёт, когда игра закрылась: game-exit {code, log_tail}
 window.__TAURI__.event.listen('game-exit', ({ payload }) => {
   gameRunning = false;
+  runningInstanceId = null;
   if (payload.stopped === true) {
     playStatus.textContent = 'Игра остановлена';
     analyzeBtn.style.display = 'none';
@@ -2106,7 +2108,8 @@ function updatePlayBtn() {
   const prismMode = currentUi === 'prism';
   if (stopBtn) {
     stopBtn.disabled = !gameRunning || editionSel.value !== 'java';
-    stopBtn.title = gameRunning ? `Остановить ${currentInstance()?.name || 'игру'}` : 'Игра не запущена';
+    const runningInstance = instances.find((item) => String(item.id) === String(runningInstanceId));
+    stopBtn.title = gameRunning ? `Остановить ${runningInstance?.name || 'игру'}` : 'Игра не запущена';
   }
   if (gameRunning) {
     playBtn.disabled = true;
@@ -2149,12 +2152,11 @@ async function refreshPlay() {
 editionSel.addEventListener('change', refreshPlay);
 
 stopBtn?.addEventListener('click', async () => {
-  const inst = currentInstance();
-  if (!inst || !gameRunning || stopBtn.disabled) return;
+  if (!runningInstanceId || !gameRunning || stopBtn.disabled) return;
   stopBtn.disabled = true;
   playStatus.textContent = 'Останавливаю игру…';
   try {
-    await invoke('stop_instance', { id: String(inst.id) });
+    await invoke('stop_instance', { id: String(runningInstanceId) });
   } catch (error) {
     stopBtn.disabled = false;
     playStatus.textContent = 'Игра запущена…';
@@ -2177,6 +2179,7 @@ playBtn.addEventListener('click', async () => {
       // -> Rust: java.rs :: launch_instance(id) — загрузчик, Java, клиент, библиотеки, ассеты и запуск
       //    в папке сборки (моды, сохранения и настройки у каждой сборки свои)
       await invoke('launch_instance', { id: inst.id });
+      runningInstanceId = String(inst.id);
       gameRunning = true;
     }
   } catch (e) {

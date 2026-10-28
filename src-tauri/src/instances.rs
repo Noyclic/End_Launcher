@@ -211,18 +211,19 @@ fn unique_shortcut_path(inst: &Instance, extension: &str) -> Result<PathBuf, Str
     Ok(path)
 }
 
-fn shortcut_arg_id(id: &str) -> String {
-    // Instance IDs are already restricted to ASCII letters, digits, '-' and '_'.
-    format!("\\"{id}\\"")
-}
-
 #[tauri::command]
 pub fn create_instance_shortcut(id: String) -> Result<String, String> {
     let inst = get(&id).ok_or("сборка не найдена")?;
     let executable = std::env::current_exe().map_err(err)?;
-    let path_text = unique_shortcut_path(&inst, if cfg!(target_os = "windows") { ".lnk" } else if cfg!(target_os = "macos") { ".command" } else { ".desktop" })?;
+    let extension = if cfg!(target_os = "windows") {
+        ".lnk"
+    } else if cfg!(target_os = "macos") {
+        ".command"
+    } else {
+        ".desktop"
+    };
+    let path_text = unique_shortcut_path(&inst, extension)?;
     let executable_text = executable.to_string_lossy().to_string();
-    let id_arg = shortcut_arg_id(&inst.id);
 
     #[cfg(target_os = "windows")]
     {
@@ -249,8 +250,10 @@ pub fn create_instance_shortcut(id: String) -> Result<String, String> {
             .output()
             .map_err(|e| format!("не удалось создать ярлык Windows: {e}"))?;
         if !output.status.success() {
-            let detail = String::from_utf8_lossy(&output.stderr);
-            return Err(format!("PowerShell не смог создать ярлык: {}", detail.trim()));
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            let detail = if stderr.trim().is_empty() { stdout.trim() } else { stderr.trim() };
+            return Err(format!("PowerShell не смог создать ярлык: {detail}"));
         }
     }
 
@@ -263,12 +266,61 @@ pub fn create_instance_shortcut(id: String) -> Result<String, String> {
                 .replace('\t', "\\t")
         }
         fn desktop_arg(value: &str) -> String {
-            format!("\\"{}\\"",
+            format!("\"{}\"",
                 value.replace('\\', "\\\\")
                     .replace('"', "\\\"")
-                    .replace('
+                    .replace('%', "%%"))
+        }
+        let entry = format!(
+            "[Desktop Entry]\nType=Application\nName={}\nComment=Launch Minecraft instance in End Launcher\nExec={} --launch-instance {}\nIcon=applications-games\nTerminal=false\nCategories=Game;\nStartupNotify=true\n",
+            desktop_value(&inst.name),
+            desktop_arg(&executable_text),
+            desktop_arg(&inst.id)
+        );
+        std::fs::write(&path_text, entry).map_err(err)?;
+        use std::os::unix::fs::PermissionsExt;
+        let mut permissions = std::fs::metadata(&path_text).map_err(err)?.permissions();
+        permissions.set_mode(0o755);
+        std::fs::set_permissions(&path_text, permissions).map_err(err)?;
+    }
 
+    #[cfg(target_os = "macos")]
+    {
+        fn shell_arg(value: &str) -> String {
+            format!("'{}'", value.replace('\'', "'\\''"))
+        }
+        let script = format!(
+            "#!/bin/sh\nexec {} --launch-instance {}\n",
+            shell_arg(&executable_text),
+            shell_arg(&inst.id)
+        );
+        std::fs::write(&path_text, script).map_err(err)?;
+        use std::os::unix::fs::PermissionsExt;
+        let mut permissions = std::fs::metadata(&path_text).map_err(err)?.permissions();
+        permissions.set_mode(0o755);
+        std::fs::set_permissions(&path_text, permissions).map_err(err)?;
+    }
 
+    #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
+    {
+        let _ = (&executable_text, &path_text);
+        return Err("создание ярлыков на этой платформе пока не поддерживается".to_string());
+    }
+
+    Ok(path_text.to_string_lossy().to_string())
+}
+
+#[tauri::command]
+pub fn get_startup_instance() -> Option<String> {
+    let mut args = std::env::args().skip(1);
+    while let Some(arg) = args.next() {
+        if arg == "--launch-instance" {
+            let id = args.next()?;
+            return if valid_id(&id) && get(&id).is_some() { Some(id) } else { None };
+        }
+    }
+    None
+}
 
 const MAX_DUPLICATE_FILE_BYTES: u64 = 512 * 1024 * 1024;
 const MAX_DUPLICATE_TOTAL_BYTES: u64 = 4 * 1024 * 1024 * 1024;

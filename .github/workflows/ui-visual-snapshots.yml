@@ -352,7 +352,7 @@ jobs:
           await page.locator('[data-prism-settings-tab="appearance"]').click();
           const appearanceVisible = await page.locator('#catpack-settings').evaluate((el) => !el.hidden);
           if (!appearanceVisible) throw new Error('Prism appearance settings did not expose the cat/background controls.');
-          await page.screenshot({ path: 'artifacts/ui/prism-settings-appearance.png', fullPage: true);
+          await page.screenshot({ path: 'artifacts/ui/prism-settings-appearance.png', fullPage: true });
 
           await page.setViewportSize({ width: 1440, height: 900 });
           await page.evaluate(async () => {

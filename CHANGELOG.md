@@ -387,6 +387,12 @@
 
 
 
+
+### UI fidelity pass 41 — preserve the Modrinth welcome header
+
+- Resolved a CSS precedence conflict where an older hidden-banner rule still took priority over the newer Modrinth welcome-back header.
+- Made the new header explicitly visible and extended the regression check to require that override.
+
 ### UI fidelity pass 40 — Prism, Official, ATLauncher and Lunar refinements
 
 - Tightened Prism's instance shelf into compact icon tiles and reduced visual noise by revealing secondary card actions on hover or keyboard focus.

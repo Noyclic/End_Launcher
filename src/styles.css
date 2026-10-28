@@ -3258,7 +3258,7 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 
 /* Modrinth App: the welcome-back header belongs above the instance rows, not hidden. */
 :root[data-ui='modrinth'] #page-play .launcher-banner {
-  display:flex;
+  display:flex !important;
   min-height:0;
   align-items:center;
   gap:16px;

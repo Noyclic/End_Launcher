@@ -376,8 +376,9 @@ check(css.includes(":root[data-ui='gd'] .sidebar nav {")
     && /:root\[data-ui='gd'\] \.playbar \{\s*order:2;/.test(css),
   'GDLauncher-inspired layout must use its horizontal app navigation, scrollable center and footer play strip');
 check(css.includes(":root[data-ui='modrinth'] #page-play .launcher-banner {")
+    && css.includes("display:flex !important;")
     && css.includes("border-bottom:1px solid #2e3432;"),
-  'Modrinth welcome-back header must be visible above the library list');
+  'Modrinth welcome-back header must override the old hidden state and remain visible above the library list');
 check(css.includes(":root[data-ui='tl'] #page-play::before")
     && css.includes(":root[data-ui='tl'] #slot-page {")
     && css.includes("background:rgba(234,241,238,.86);"),

@@ -573,4 +573,11 @@ check(css.includes(":root[data-ui='modrinth'] #page-play .library-toolbar-action
     && css.includes(":root[data-ui='modrinth'] .mods-search-controls"),
   'Modrinth library, filters and catalog cards must use shrink-safe, responsive layouts');
 
+check(css.lastIndexOf("/* Prism/Pinecone pass 14")
+      > css.lastIndexOf("/* Prism/Pinecone pass 13")
+      && css.includes("gap: 18px;")
+      && css.includes("color: #91d47b;")
+      && css.lastIndexOf("[data-action='delete']") < css.lastIndexOf("[data-action='rename']"),
+  'Prism launch row should stay unboxed, use the green launch glyph, and match selected-instance spacing/action order');
+
 console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags.');

@@ -72,6 +72,7 @@ jobs:
               ],
               get_active_instance: 1001,
               list_installed_versions: ['1.21.1', '1.20.1', '1.12.2', '26.1-snapshot', '1.21.11'],
+              list_java_versions: [{ id: '1.21.11' }, { id: '1.21.1' }, { id: '1.20.1' }, { id: '1.12.2' }],
               list_mods: [],
               check_java: { source: 'managed', required_major: 21 },
               get_ui_style: 'prism',
@@ -86,12 +87,15 @@ jobs:
               get_advanced: { jvm_args: '', java_path: '' },
               get_startup_instance: null,
             };
+            window.__TAURI_CALL_LOG = [];
             window.__TAURI__ = {
               core: {
-                invoke: async (command) =>
-                  Object.prototype.hasOwnProperty.call(responses, command)
+                invoke: async (command, args) => {
+                  window.__TAURI_CALL_LOG.push({ command, args: args || null });
+                  return Object.prototype.hasOwnProperty.call(responses, command)
                     ? responses[command]
-                    : null,
+                    : null;
+                },
               },
               event: {
                 listen: async () => () => {},
@@ -276,6 +280,79 @@ jobs:
             path: 'artifacts/ui/prism-pinecone-mobile.png',
             fullPage: true,
           });
+
+
+          // Exercise the newly added in-app instance wizard, import hand-off, provider actions and settings tabs.
+          await page.setViewportSize({ width: 1440, height: 900 });
+          await page.evaluate(async () => { await window.__EL_TEST__.openNewInstance(); });
+          await page.waitForTimeout(120);
+          const wizardState = await page.evaluate(() => ({
+            visible: getComputedStyle(document.getElementById('new-instance')).display !== 'none',
+            title: document.getElementById('create-instance-title')?.textContent,
+            sidebarButtons: document.querySelectorAll('[data-create-view]').length,
+            minecraftPanelVisible: !document.querySelector('[data-create-panel="minecraft"]')?.hidden,
+            importPanelHidden: !!document.querySelector('[data-create-panel="import"]')?.hidden,
+            versionOptions: document.getElementById('ni-version')?.options.length || 0,
+          }));
+          console.log('PRISM CREATE WIZARD ASSERTIONS:', JSON.stringify(wizardState));
+          if (!wizardState.visible || wizardState.title !== 'Добавить экземпляр'
+              || wizardState.sidebarButtons !== 4 || !wizardState.minecraftPanelVisible
+              || !wizardState.importPanelHidden || wizardState.versionOptions < 1) {
+            throw new Error('Prism Add Instance wizard did not initialize its in-app tabs and version choices.');
+          }
+          await page.screenshot({ path: 'artifacts/ui/prism-add-instance.png', fullPage: true });
+
+          await page.locator('[data-create-view="import"]').click();
+          const importVisible = await page.locator('[data-create-panel="import"]').evaluate((el) => !el.hidden);
+          if (!importVisible) throw new Error('Prism Import panel did not open.');
+          await page.locator('#ni-import-start').click();
+          const importGuideOpened = await page.locator('#library-import-guide').evaluate((el) => getComputedStyle(el).display !== 'none');
+          const dialogClosed = await page.locator('#new-instance').evaluate((el) => getComputedStyle(el).display === 'none');
+          if (!importGuideOpened || !dialogClosed) throw new Error('Prism Import action did not hand off to the native drag/drop import flow.');
+          await page.locator('#library-import-close').click();
+
+          await page.evaluate(async () => { await window.__EL_TEST__.openNewInstance(); });
+          await page.locator('[data-create-view="modrinth"]').click();
+          await page.locator('#ni-open-modrinth').click();
+          const modrinthOpened = await page.evaluate(() =>
+            window.__TAURI_CALL_LOG.some((entry) => entry.command === 'open_url' && entry.args?.url === 'https://modrinth.com/modpacks'));
+          if (!modrinthOpened) throw new Error('Modrinth provider button did not call the launcher open-url action.');
+          await page.locator('[data-create-view="curseforge"]').click();
+          await page.locator('#ni-open-curseforge').click();
+          const curseforgeOpened = await page.evaluate(() =>
+            window.__TAURI_CALL_LOG.some((entry) => entry.command === 'open_url' && entry.args?.url === 'https://www.curseforge.com/minecraft/search?class=modpacks'));
+          if (!curseforgeOpened) throw new Error('CurseForge provider button did not call the launcher open-url action.');
+          await page.evaluate(() => window.__EL_TEST__.closeNewInstance());
+
+          await page.locator('#nav-settings-button').click();
+          const settingsVisible = await page.evaluate(() => ({
+            pageActive: document.getElementById('page-settings')?.classList.contains('active'),
+            tabsVisible: !document.getElementById('prism-settings-tabs')?.hidden,
+            selectedTab: document.querySelector('[data-prism-settings-tab][aria-selected="true"]')?.dataset.prismSettingsTab,
+            generalVisible: !document.querySelector('[data-prism-settings-section="general"]')?.hidden,
+            javaHidden: !!document.querySelector('[data-prism-settings-section="java"]')?.hidden,
+          }));
+          console.log('PRISM SETTINGS ASSERTIONS:', JSON.stringify(settingsVisible));
+          if (!settingsVisible.pageActive || !settingsVisible.tabsVisible
+              || settingsVisible.selectedTab !== 'general' || !settingsVisible.generalVisible
+              || !settingsVisible.javaHidden) {
+            throw new Error('Prism Parameters did not switch to the tabbed in-app settings page.');
+          }
+          await page.screenshot({ path: 'artifacts/ui/prism-settings-general.png', fullPage: true });
+          await page.locator('[data-prism-settings-tab="java"]').click();
+          const javaState = await page.evaluate(() => ({
+            selected: document.querySelector('[data-prism-settings-tab][aria-selected="true"]')?.dataset.prismSettingsTab,
+            javaVisible: !document.querySelector('[data-prism-settings-section="java"]')?.hidden,
+            generalHidden: !!document.querySelector('[data-prism-settings-section="general"]')?.hidden,
+          }));
+          if (javaState.selected !== 'java' || !javaState.javaVisible || !javaState.generalHidden) {
+            throw new Error('Prism Java settings tab did not filter the settings panel correctly.');
+          }
+          await page.screenshot({ path: 'artifacts/ui/prism-settings-java.png', fullPage: true });
+          await page.locator('[data-prism-settings-tab="appearance"]').click();
+          const appearanceVisible = await page.locator('#catpack-settings').evaluate((el) => !el.hidden);
+          if (!appearanceVisible) throw new Error('Prism appearance settings did not expose the cat/background controls.');
+          await page.screenshot({ path: 'artifacts/ui/prism-settings-appearance.png', fullPage: true);
 
           await page.setViewportSize({ width: 1440, height: 900 });
           await page.evaluate(async () => {

@@ -505,6 +505,26 @@ check(js.includes("addAction('shortcut', '↗ Создать ярлык'")
       && css.includes("[data-action='rename'] {\n  display: none !important;"),
   'Prism Create Shortcut must create a desktop entry, launch the intended instance, and replace the redundant Rename row');
 
+const prismMenuStart = js.indexOf("if (currentUi === 'prism') {", js.indexOf("function toggleMenu(card, inst)"));
+const prismMenuEnd = js.indexOf("item('🧩 Моды'", prismMenuStart);
+const prismMenu = js.slice(prismMenuStart, prismMenuEnd);
+check(js.includes("card.addEventListener('contextmenu'")
+      && js.includes("event.preventDefault();")
+      && js.includes("menu.dataset.contextMenu = 'true';")
+      && prismMenu.includes("item('✎ Переименовать'")
+      && prismMenu.includes("item('▶ Запустить'")
+      && prismMenu.includes("item('▤ Изменить…'")
+      && prismMenu.includes("item('▤ Изменить группу…'")
+      && prismMenu.includes("item('📂 Папка'")
+      && prismMenu.includes("item('⇩ Экспортировать…'")
+      && prismMenu.includes("item('⧉ Копировать…'")
+      && prismMenu.includes("item('↗ Создать ярлык'")
+      && prismMenu.indexOf("item('✎ Переименовать'") < prismMenu.indexOf("item('▶ Запустить'")
+      && prismMenu.indexOf("item('▶ Запустить'") < prismMenu.indexOf("item('▤ Изменить…'")
+      && css.includes(".inst-menu[data-context-menu='true']")
+      && css.includes("max-height: calc(100vh - 16px)"),
+  'Prism right-click context menu must follow the classic action order, appear at the pointer, and remain scrollable inside the viewport');
+
 check(js.includes('function syncPrismSelectedInstance()')
     && js.includes('function syncPrismQuickActions()')
     && js.includes("addAction('folder', '📂 Папка'")

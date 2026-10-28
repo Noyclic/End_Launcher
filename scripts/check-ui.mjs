@@ -880,3 +880,31 @@ check(html.includes('<link rel="stylesheet" href="prism-layout-fixes.css" />')
   'Prism repair stylesheet must be loaded last and preserve icon-first tiles, one add label, and a contained mobile launch panel');
 
 console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags, plus keyboard-navigable Prism profile tiles and search-aware collapsed groups.');
+
+
+// Prism/Pinecone pass 39: command buttons open the in-app instance wizard and real settings sections.
+check(html.includes('id="prism-settings-tabs"')
+    && html.includes('data-prism-settings-tab="general"')
+    && html.includes('data-prism-settings-tab="java"')
+    && js.includes('function syncPrismSettingsPage(mode)')
+    && js.includes('prismSettingsActiveTab')
+    && css.includes('.prism-settings-tabs button.active')
+    && css.includes('#page-settings [data-prism-settings-section][hidden]'),
+  'Prism Parameters must use its own working tabbed view while restoring the classic settings page in other layouts');
+check(html.includes('data-create-view="minecraft"')
+    && html.includes('data-create-view="import"')
+    && html.includes('data-create-view="modrinth"')
+    && html.includes('data-create-view="curseforge"')
+    && html.includes('data-create-panel="minecraft"')
+    && html.includes('id="ni-import-start"')
+    && js.includes('function setPrismCreateMode(mode)')
+    && js.includes("invoke('import_instance', { path })")
+    && js.includes("url: 'https://modrinth.com/modpacks'")
+    && js.includes("url: 'https://www.curseforge.com/minecraft/search?class=modpacks'"),
+  'Prism Add Instance wizard must expose working native creation/import flows and clear provider catalog actions');
+check(css.includes('/* Prism/Pinecone pass 39')
+    && css.includes('.create-instance-layout')
+    && css.includes('.create-instance-sidebar')
+    && css.includes('.create-provider-card')
+    && css.includes('@media (max-width: 620px)'),
+  'Prism create-instance wizard must have a compact left command rail, provider/import panels and a narrow-window fallback');

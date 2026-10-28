@@ -1086,6 +1086,122 @@ $('launcher-banner-play')?.addEventListener('click', () => {
   playBtn.click();
 });
 
+const PRISM_PLAY_STATS_STORE = 'end-launcher-prism-play-stats-v1';
+const PRISM_PLAY_STATS_MAX_INSTANCES = 500;
+const PRISM_PLAY_SESSION_MAX_MS = 30 * 24 * 60 * 60 * 1000;
+const prismPlayStats = (() => {
+  try {
+    const raw = JSON.parse(localStorage.getItem(PRISM_PLAY_STATS_STORE) || '{}');
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return Object.create(null);
+    const safe = Object.create(null);
+    for (const [id, value] of Object.entries(raw).slice(-PRISM_PLAY_STATS_MAX_INSTANCES)) {
+      if (!id || id.length > 128 || !value || typeof value !== 'object') continue;
+      const totalMs = Number(value.totalMs);
+      const lastPlayedAt = Number(value.lastPlayedAt);
+      const lastSessionMs = Number(value.lastSessionMs);
+      safe[id] = {
+        totalMs: Number.isFinite(totalMs) ? Math.max(0, Math.min(totalMs, 10 * 365 * 24 * 60 * 60 * 1000)) : 0,
+        lastPlayedAt: Number.isFinite(lastPlayedAt) && lastPlayedAt > 0 && lastPlayedAt < Date.now() + 86400000 ? lastPlayedAt : 0,
+        lastSessionMs: Number.isFinite(lastSessionMs) ? Math.max(0, Math.min(lastSessionMs, PRISM_PLAY_SESSION_MAX_MS)) : 0,
+      };
+    }
+    return safe;
+  } catch {
+    return Object.create(null);
+  }
+})();
+let prismActivePlaySession = null;
+
+function savePrismPlayStats() {
+  try {
+    const entries = Object.entries(prismPlayStats).slice(-PRISM_PLAY_STATS_MAX_INSTANCES);
+    localStorage.setItem(PRISM_PLAY_STATS_STORE, JSON.stringify(Object.fromEntries(entries)));
+  } catch (error) {
+    console.warn('Could not persist Prism play-time statistics:', error);
+  }
+}
+
+function formatPrismDuration(value) {
+  const seconds = Math.max(0, Math.floor((Number(value) || 0) / 1000));
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainder = seconds % 60;
+  if (hours) return minutes
+    ? `${hours}ч ${minutes}мин ${remainder}с`
+    : `${hours}ч ${remainder}с`;
+  return `${minutes}мин ${remainder}с`;
+}
+
+function formatPrismLastPlayed(value) {
+  try {
+    return new Intl.DateTimeFormat('ru-RU', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    }).format(new Date(value)).replace(',', '');
+  } catch {
+    return new Date(value).toLocaleString();
+  }
+}
+
+function renderPrismFooterStats(selected) {
+  const statusActive = $('prism-status-active');
+  const statusDetails = $('prism-status-details');
+  if (!selected) {
+    if (statusDetails) {
+      statusDetails.textContent = 'Minecraft · Нет выбранной сборки';
+      statusDetails.title = '';
+    }
+    if (statusActive) {
+      statusActive.textContent = 'Общее время игры: —';
+      statusActive.title = '';
+    }
+    return;
+  }
+
+  const key = String(selected.id);
+  const stats = prismPlayStats[key] || { totalMs: 0, lastPlayedAt: 0, lastSessionMs: 0 };
+  const liveMs = prismActivePlaySession?.instanceId === key
+    ? Math.max(0, Date.now() - prismActivePlaySession.startedAt)
+    : 0;
+  const totalMs = stats.totalMs + liveMs;
+  const versionLabel = `Minecraft ${selected.version || '—'}`;
+  let details = stats.lastPlayedAt
+    ? `${versionLabel}, в последний раз играли ${formatPrismLastPlayed(stats.lastPlayedAt)} в течение ${formatPrismDuration(stats.lastSessionMs)}`
+    : `${versionLabel} · Ещё не запускали`;
+  if (liveMs) details = `${versionLabel}, игра запущена ${formatPrismDuration(liveMs)} назад`;
+  if (statusDetails) {
+    statusDetails.textContent = details;
+    statusDetails.title = stats.lastPlayedAt
+      ? `${details}. Общее время игры: ${formatPrismDuration(totalMs)}`
+      : details;
+  }
+  if (statusActive) {
+    statusActive.textContent = `Общее время игры: ${formatPrismDuration(totalMs)}`;
+    statusActive.title = `Зафиксированное время: ${formatPrismDuration(stats.totalMs)}`;
+  }
+}
+
+function finishPrismPlaySession() {
+  const session = prismActivePlaySession;
+  if (!session) return;
+  const elapsed = Math.max(0, Math.min(Date.now() - session.startedAt, PRISM_PLAY_SESSION_MAX_MS));
+  const old = prismPlayStats[session.instanceId] || { totalMs: 0, lastPlayedAt: 0, lastSessionMs: 0 };
+  prismPlayStats[session.instanceId] = {
+    totalMs: old.totalMs + elapsed,
+    lastPlayedAt: session.startedAt,
+    lastSessionMs: elapsed,
+  };
+  prismActivePlaySession = null;
+  savePrismPlayStats();
+  const selected = instances.find((item) => String(item.id) === String(activeId));
+  renderPrismFooterStats(selected);
+}
+
+window.setInterval(() => {
+  if (currentUi !== 'prism' || !prismActivePlaySession) return;
+  renderPrismFooterStats(instances.find((item) => String(item.id) === String(activeId)));
+}, 15000);
+
 function syncPrismSelectedInstance() {
   const bar = $('slot-bar');
   const statusBar = $('prism-status-bar');
@@ -1113,12 +1229,7 @@ function syncPrismSelectedInstance() {
   }
   const selected = instances.find((item) => String(item.id) === String(activeId));
   summary.hidden = !selected;
-  const statusActive = $('prism-status-active');
-  const statusDetails = $('prism-status-details');
-  if (statusActive) statusActive.textContent = selected ? 'Готов к запуску' : 'Нет выбранной сборки';
-  if (statusDetails) statusDetails.textContent = selected
-    ? `Minecraft ${selected.version || '—'} · ${selected.name || 'Сборка'}`
-    : 'Minecraft · Нет выбранной сборки';
+  renderPrismFooterStats(selected);
   const icon = summary.querySelector('.prism-selected-icon');
   const name = summary.querySelector('.prism-selected-name');
   const version = summary.querySelector('.prism-selected-version');
@@ -2285,6 +2396,7 @@ window.__TAURI__.event.listen('install-progress', ({ payload }) => {
 });
 // Rust шлёт, когда игра закрылась: game-exit {code, log_tail}
 window.__TAURI__.event.listen('game-exit', ({ payload }) => {
+  finishPrismPlaySession();
   gameRunning = false;
   runningInstanceId = null;
   if (payload.stopped === true) {
@@ -2399,6 +2511,8 @@ playBtn.addEventListener('click', async () => {
       await invoke('launch_instance', { id: inst.id });
       runningInstanceId = String(inst.id);
       gameRunning = true;
+      prismActivePlaySession = { instanceId: String(inst.id), startedAt: Date.now() };
+      renderPrismFooterStats(inst);
     }
   } catch (e) {
     error = String(e);

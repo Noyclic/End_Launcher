@@ -6342,3 +6342,38 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 :root[data-ui='prism'] .prism-status-meta-row #prism-status-active[title] {
   cursor: help;
 }
+
+
+/* Prism/Pinecone pass 28 — reference-like Help/Update glyphs and precise Parameters label. */
+:root[data-ui='prism'] .sidebar #prism-help::before {
+  content: '?';
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 15px;
+  width: 15px;
+  height: 15px;
+  margin-right: 5px;
+  border: 1.5px solid #d5d5d5;
+  border-radius: 50%;
+  color: #e4e4e4;
+  font: 700 10px/1 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .sidebar #prism-update::before {
+  content: '☁↓';
+  display: inline-block;
+  flex: 0 0 auto;
+  margin-right: 5px;
+  color: #84b9ef;
+  font: 500 14px/1 'Inter', sans-serif;
+  letter-spacing: -3px;
+  white-space: nowrap;
+}
+:root[data-ui='prism'] .sidebar #prism-help,
+:root[data-ui='prism'] .sidebar #prism-update {
+  gap: 0;
+}
+:root[data-ui='prism'] .sidebar #nav-settings-button .lbl {
+  width: auto;
+  white-space: nowrap;
+  font-size: 10px;
+}

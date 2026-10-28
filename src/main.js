@@ -1921,9 +1921,10 @@ function ensurePrismFoldersMenu(sidebar) {
     prismFoldersMenu.setAttribute('aria-label', 'Папки лаунчера');
 
     const choices = [
-      { action: 'launcher', icon: '▰', label: 'Папка лаунчера', title: 'Открыть папку конфигурации End Launcher' },
+      { action: 'root', icon: '▰', label: 'Корневая папка', title: 'Открыть корневой игровой каталог' },
       { action: 'instances', icon: '▣', label: 'Папка экземпляров', title: 'Открыть каталог всех сборок Minecraft' },
       { action: 'mods', icon: '▧', label: 'Общие моды', title: 'Открыть общую папку модов' },
+      { action: 'config', icon: '⚙', label: 'Папка настроек', title: 'Открыть конфигурацию End Launcher' },
     ];
     for (const choice of choices) {
       const item = document.createElement('button');
@@ -1944,15 +1945,17 @@ function ensurePrismFoldersMenu(sidebar) {
         const action = item.dataset.folderAction;
         closePrismFoldersMenu();
         try {
-          if (action === 'launcher') {
-            await invoke('open_launcher_folder');
+          if (action === 'root') {
+            await invoke('open_game_folder');
           } else if (action === 'instances') {
             await invoke('open_instances_folder');
           } else if (action === 'mods') {
             await invoke('open_mods_folder');
+          } else if (action === 'config') {
+            await invoke('open_launcher_folder');
           }
         } catch (error) {
-          const label = action === 'instances' ? 'папку экземпляров' : action === 'mods' ? 'общую папку модов' : 'папку лаунчера';
+          const label = action === 'root' ? 'корневую папку' : action === 'instances' ? 'папку экземпляров' : action === 'mods' ? 'общую папку модов' : 'папку настроек';
           showToast('Не удалось открыть ' + label + ': ' + String(error), false);
         }
       });

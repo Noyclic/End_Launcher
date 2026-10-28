@@ -4992,3 +4992,123 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
     min-height: 38px;
   }
 }
+
+
+/* Prism/Pinecone pass 3 — selected profile summary and default Minecraft block art. */
+:root[data-ui='prism'] #library .inst-icon,
+:root[data-ui='prism'] .prism-selected-icon {
+  overflow: hidden;
+  color: transparent;
+  font-size: 0;
+  background-color: #846447;
+  background-image:
+    linear-gradient(90deg, #0002, transparent 18%, transparent 82%, #fff1),
+    linear-gradient(#6d8e3b 0 0),
+    linear-gradient(#b8d66e 0 0),
+    linear-gradient(#789c43 0 0),
+    linear-gradient(#c2df7b 0 0),
+    linear-gradient(#6b8d3f 0 0),
+    linear-gradient(#a7cb5e 0 0),
+    linear-gradient(#74563e 0 0),
+    linear-gradient(#a1825a 0 0),
+    linear-gradient(#70523b 0 0),
+    linear-gradient(to bottom, #a8d064 0 35%, #9a7954 35%, #896849 62%, #79583d 100%);
+  background-size:
+    100% 100%,
+    17% 14%,
+    18% 11%,
+    13% 12%,
+    16% 9%,
+    12% 13%,
+    14% 12%,
+    18% 13%,
+    17% 12%,
+    12% 15%,
+    100% 100%;
+  background-position:
+    0 0,
+    0 5%,
+    36% 0,
+    73% 8%,
+    18% 22%,
+    82% 25%,
+    51% 24%,
+    4% 59%,
+    47% 72%,
+    81% 55%,
+    0 0;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+:root[data-ui='prism'] #library .inst-icon[data-loader='fabric'],
+:root[data-ui='prism'] .prism-selected-icon[data-loader='fabric'] {
+  background-image:
+    linear-gradient(90deg, #0002, transparent 18%, transparent 82%, #fff1),
+    linear-gradient(#8ad4bf 0 0),
+    linear-gradient(#b7e1d2 0 0),
+    linear-gradient(#579c89 0 0),
+    linear-gradient(#c1e6d9 0 0),
+    linear-gradient(#579c89 0 0),
+    linear-gradient(#b1ded0 0 0),
+    linear-gradient(to bottom, #80c6ad 0 35%, #7e7160 35%, #665a4b 100%);
+}
+:root[data-ui='prism'] #library .inst-icon[data-loader='forge'],
+:root[data-ui='prism'] .prism-selected-icon[data-loader='forge'] {
+  background-image:
+    linear-gradient(90deg, #0002, transparent 18%, transparent 82%, #fff1),
+    linear-gradient(#b96b55 0 0),
+    linear-gradient(#db9e7b 0 0),
+    linear-gradient(#8f4d3d 0 0),
+    linear-gradient(#e0ab88 0 0),
+    linear-gradient(#8b4937 0 0),
+    linear-gradient(#ca8666 0 0),
+    linear-gradient(to bottom, #a9604d 0 35%, #7e6658 35%, #614a3e 100%);
+}
+:root[data-ui='prism'] #library .inst-icon[data-loader='neoforge'],
+:root[data-ui='prism'] .prism-selected-icon[data-loader='neoforge'] {
+  background-image:
+    linear-gradient(90deg, #0002, transparent 18%, transparent 82%, #fff1),
+    linear-gradient(#c69a4b 0 0),
+    linear-gradient(#e3cb7c 0 0),
+    linear-gradient(#96723b 0 0),
+    linear-gradient(#e9d18a 0 0),
+    linear-gradient(#8c6d37 0 0),
+    linear-gradient(#d1ae5e 0 0),
+    linear-gradient(to bottom, #c9a14d 0 35%, #7d6951 35%, #65523d 100%);
+}
+:root[data-ui='prism'] .prism-selected-instance {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  margin: 0 0 3px;
+  padding: 0 2px 2px;
+  text-align: center;
+}
+:root[data-ui='prism'] .prism-selected-instance[hidden] {
+  display: none !important;
+}
+:root[data-ui='prism'] .prism-selected-icon {
+  width: 72px;
+  height: 72px;
+  flex: 0 0 72px;
+  border: 1px solid #454545;
+  border-radius: 7px;
+}
+:root[data-ui='prism'] .prism-selected-name {
+  max-width: 100%;
+  color: #e4e4e4;
+  font-size: 12px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+:root[data-ui='prism'] .prism-selected-version {
+  display: none;
+}
+@media (max-width: 740px) {
+  :root[data-ui='prism'] .prism-selected-instance {
+    display: none;
+  }
+}

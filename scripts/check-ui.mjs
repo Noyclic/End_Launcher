@@ -493,6 +493,10 @@ check(html.includes('id="prism-status-bar"')
     && css.includes('grid-template-rows: 38px minmax(0, 1fr) 56px')
     && js.includes("statusBar.hidden = currentUi !== 'prism'"),
   'Prism layout must include a hidden-by-default, responsive two-row status bar');
+check(js.indexOf("addAction('group', '▤ Изменить группу…'") < js.indexOf("addAction('folder', '📂 Папка'")
+    && js.indexOf("addAction('folder', '📂 Папка'") < js.indexOf("addAction('export', '⇩ Экспортировать…'"),
+  'Prism instance action rail should follow the reference order: group management before folder and export');
+
 check(js.includes("const groupLabel = prismGroupKey(inst)")
     && js.includes("return prismInstanceGroups[String(inst.id)] || 'Без группы'")
     && js.includes('PRISM_INSTANCE_GROUPS_STORE')

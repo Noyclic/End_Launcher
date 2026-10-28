@@ -1,5 +1,13 @@
 # Changelog
 
+## Prism/Pinecone reference pass 9
+
+- Added persistent per-instance custom icons, matching a useful Prism/Modrinth library feature. PNG, JPG, GIF, WebP and AVIF images are supported; each icon is capped at 256 KB and the saved collection has a total size cap.
+- Custom icons overlay the generated vanilla/Fabric/Forge/NeoForge defaults in Prism tiles and the selected-instance preview; resetting an icon restores the generated default.
+- Storage failures are reported, and the icon data is validated on load. UI regression coverage now checks the limits, picker, reset action and image styling.
+- Automated UI checks and the Windows build are pending for this change. Visual comparison is still reserved for the planned checkpoint.
+
+
 ## Prism/Pinecone reference pass 7
 
 - Reworked the Prism header into a compact desktop toolbar: Add Instance, selected-instance folder, Settings, Help, update check, and a single overflow button.

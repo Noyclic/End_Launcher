@@ -724,6 +724,7 @@ function syncPrismSelectedInstance() {
   let summary = $('prism-selected-instance');
   if (currentUi !== 'prism') {
     summary?.remove();
+    $('prism-quick-actions')?.remove();
     return;
   }
   if (!summary) {
@@ -1614,17 +1615,19 @@ async function showJavaStatus() {
 }
 
 function updatePlayBtn() {
+  const prismMode = currentUi === 'prism';
   if (gameRunning) {
     playBtn.disabled = true;
-    playBtn.textContent = 'ИГРА ЗАПУЩЕНА';
+    playBtn.textContent = prismMode ? 'Игра запущена' : 'ИГРА ЗАПУЩЕНА';
     return;
   }
   if (editionSel.value !== 'java') return; // у Bedrock своя логика (refreshPlay)
   const inst = currentInstance();
+  const needsDownload = !!inst && inst.loader === 'vanilla' && !installedCache.includes(inst.version);
   playBtn.disabled = !inst;
-  playBtn.textContent = !inst ? 'СОЗДАЙТЕ СБОРКУ'
-    : inst.loader === 'vanilla' && !installedCache.includes(inst.version) ? 'СКАЧАТЬ И ИГРАТЬ'
-    : 'ИГРАТЬ';
+  playBtn.textContent = prismMode
+    ? (!inst ? 'Добавить экземпляр' : needsDownload ? 'Скачать и запустить' : 'Запустить')
+    : (!inst ? 'СОЗДАЙТЕ СБОРКУ' : needsDownload ? 'СКАЧАТЬ И ИГРАТЬ' : 'ИГРАТЬ');
 }
 
 async function refreshPlay() {

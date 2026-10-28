@@ -545,6 +545,13 @@ check(html.includes('id="prism-status-bar"')
     && css.includes('grid-template-rows: 38px minmax(0, 1fr) 56px')
     && js.includes("statusBar.hidden = currentUi !== 'prism'"),
   'Prism layout must include a hidden-by-default, responsive two-row status bar');
+check(html.includes('id="nav-ai-button" class="nav-btn" data-page="ai"')
+      && js.includes("'nav-ai-button'")
+      && js.includes("const prismOverflowIds =")
+      && css.includes(".prism-toolbar-overflow > #nav-ai-button")
+      && !css.includes(":root[data-ui='prism'] .sidebar .nav-btn[data-page='play'],\n:root[data-ui='prism'] .sidebar .nav-btn[data-page='ai']"),
+  'Prism mode must move the AI page into the overflow menu rather than making the existing feature inaccessible');
+
 check(html.includes('id="library-toolbar-actions" class="library-toolbar-actions"')
       && html.includes('id="library-search-control" class="library-search"')
       && js.includes("for (const id of ['library-toolbar-actions', 'prism-library-tools'])")

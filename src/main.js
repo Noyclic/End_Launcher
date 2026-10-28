@@ -2070,6 +2070,14 @@ $('prism-open-folder')?.addEventListener('click', (event) => {
   togglePrismFoldersMenu();
 });
 
+$('prism-status-news-link')?.addEventListener('click', async () => {
+  try {
+    await invoke('open_url', { url: 'https://github.com/Noyclic/End_Launcher/releases' });
+  } catch (error) {
+    showToast('Не удалось открыть релизы End Launcher: ' + String(error), false);
+  }
+});
+
 $('prism-help')?.addEventListener('click', async () => {
   try {
     await invoke('open_url', { url: 'https://github.com/Noyclic/End_Launcher/blob/main/README.ru.md' });

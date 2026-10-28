@@ -438,7 +438,10 @@
   font: 12px 'Inter', sans-serif;
 }
 :root[data-ui='prism'] #page-settings button { border-radius: 3px; font-size: 12px; }
-:root[data-ui='prism'] #page-settings .themes { grid-template-columns: repeat(auto-fill, minmax(126px, 1fr)); }
+:root[data-ui='prism'] #page-settings .themes { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+:root[data-ui='prism'] #page-settings #ui-styles .theme-card { min-height: 82px; }
+:root[data-ui='prism'] #page-settings #ui-styles .theme-card-copy { min-width: 0; overflow-wrap: normal; }
+:root[data-ui='prism'] #page-settings #ui-styles .theme-card-copy .small { overflow-wrap: break-word; }
 
 /* The create dialog has its own left-hand command list just like a desktop instance wizard. */
 :root[data-ui='prism'] .create-instance-panel {
@@ -498,7 +501,6 @@
 :root[data-ui='prism'] .create-instance-sidebar button.active { border-color: #454545; background: #343434; color: #91d47b; }
 :root[data-ui='prism'] .create-instance-sidebar button:focus-visible,
 :root[data-ui='prism'] .create-instance-panel :is(button,input,select):focus-visible { outline: 2px solid #91d47b; outline-offset: 2px; }
-:root[data-ui='prism'] .create-instance-sidebar button[aria-selected='true']::before { content: ''; position: absolute; }
 @media (max-width: 620px) {
   :root[data-ui='prism'] .create-instance-modal { padding: 10px; }
   .create-instance-layout { grid-template-columns: minmax(0, 1fr); }

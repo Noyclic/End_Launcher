@@ -1784,6 +1784,8 @@ function applyUi(mode) {
     end: 'БИБЛИОТЕКА', modrinth: 'Главная', prism: 'Instances', tl: 'Minecraft',
     gd: 'Library', official: 'Minecraft: Java Edition', at: 'Instances', lunar: 'Play',
   })[mode] || 'БИБЛИОТЕКА';
+  const settingsLabel = document.querySelector('.nav-btn[data-page="settings"] .lbl');
+  if (settingsLabel) settingsLabel.textContent = mode === 'prism' ? 'Параметры…' : 'Настройки';
   renderUiCards();
   syncTlNick();
   renderLibrary();

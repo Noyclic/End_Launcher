@@ -731,8 +731,11 @@ check(js.includes('function closePrismOverflow({ restoreFocus = false } = {})')
 
 
 check(js.includes('function openPrismEmptyContextMenu(event)')
+    && js.includes('function closePrismEmptyContextMenu({ restoreFocus = false } = {})')
     && js.includes("menu.id = 'prism-empty-context-menu'")
-    && js.includes("addItem('＋ Добавить экземпляр…', () => openNewInstance())")
+    && js.includes("addItem('＋ Добавить экземпляр…', async () => {")
+    && js.includes('closePrismEmptyContextMenu({ restoreFocus: true });')
+    && js.includes('prismEmptyContextReturnFocus.focus({ preventScroll: true })')
     && js.includes("addItem('⇩ Импортировать экземпляр…'")
     && js.includes("addItem('↻ Обновить список', () => loadInstances())")
     && js.includes("document.querySelector('.content main')?.addEventListener('contextmenu', openPrismEmptyContextMenu)")

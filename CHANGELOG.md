@@ -1,5 +1,13 @@
 # Changelog
 
+## Prism/Pinecone — context menu on empty library space
+
+- Added the official Prism-style right-click affordance to blank space in the active Instances page, offering “Добавить экземпляр…”, import guidance, and refresh.
+- The handler deliberately ignores instance tiles, form controls, links, and existing popovers so a card's own context menu still wins.
+- The menu is positioned at the pointer, constrained to the window, keyboard-focusable, and dismissible with Escape.
+- Added a static regression assertion. The matching Prism behavior is documented at https://www.prismlauncher.org/wiki/getting-started/create-instance/.
+
+
 ## Prism/Pinecone — keyboard-safe toolbar menus
 
 - The “⋯” overflow menu now closes with Escape and returns keyboard focus to its trigger, matching the folder dropdown's keyboard behavior.

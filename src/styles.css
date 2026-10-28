@@ -5296,3 +5296,73 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
     display: none;
   }
 }
+
+
+/* Prism/Pinecone pass 6 — instance actions are visible in the right rail, as in the reference. */
+:root[data-ui='prism'] .play-ui #play-btn {
+  order: 1;
+  padding: 7px 8px;
+  min-height: 31px;
+  font-size: 12px;
+  text-align: left;
+}
+:root[data-ui='prism'] .play-ui #play-btn::before {
+  display: inline-block;
+  content: '▶';
+  margin-right: 6px;
+  font-size: 12px;
+}
+:root[data-ui='prism'] .play-ui .prism-quick-actions {
+  order: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+:root[data-ui='prism'] .play-ui .prism-quick-actions button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-width: 0;
+  min-height: 25px;
+  padding: 4px 3px;
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: #dedede;
+  font: 500 10px 'Inter', sans-serif;
+  line-height: 1.2;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-shadow: none;
+}
+:root[data-ui='prism'] .play-ui .prism-quick-actions button:hover,
+:root[data-ui='prism'] .play-ui .prism-quick-actions button:focus-visible {
+  border-color: #484848;
+  background: #363636;
+  color: #fff;
+  outline: none;
+}
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='delete'] {
+  color: #dfaaa5;
+}
+:root[data-ui='prism'] .play-ui .pb-info {
+  order: 3;
+}
+:root[data-ui='prism'] .play-ui .pb-selects {
+  order: 4;
+  margin-top: 5px;
+}
+:root[data-ui='prism'] .play-ui #tl-nick {
+  order: 5;
+}
+:root[data-ui='prism'] .play-ui .pb-selects select {
+  padding: 5px 4px;
+  font-size: 10px;
+}

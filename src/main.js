@@ -1574,6 +1574,34 @@ $('prism-open-folder')?.addEventListener('click', async () => {
   }
 });
 
+$('prism-help')?.addEventListener('click', async () => {
+  try {
+    await invoke('open_url', { url: 'https://github.com/Noyclic/End_Launcher/blob/main/README.ru.md' });
+  } catch (error) {
+    showToast('Не удалось открыть справку: ' + String(error), false);
+  }
+});
+$('prism-update')?.addEventListener('click', async () => {
+  const button = $('prism-update');
+  if (!button || button.disabled) return;
+  button.disabled = true;
+  button.textContent = 'Проверка…';
+  try {
+    const info = await invoke('check_launcher_update');
+    if (!info) {
+      showToast('Новой версии End Launcher не найдено.');
+      return;
+    }
+    showToast(`Доступен релиз ${info.version}. Открываю страницу релиза…`);
+    if (info.url) await invoke('open_url', { url: info.url });
+  } catch (error) {
+    showToast('Не удалось проверить обновления: ' + String(error), false);
+  } finally {
+    button.disabled = false;
+    button.textContent = '♻ Обновить…';
+  }
+});
+
 $('library-import')?.addEventListener('click', () => {
   const guide = $('library-import-guide');
   const open = guide.style.display === 'none' || !guide.style.display;

@@ -517,8 +517,14 @@ check(js.indexOf("addAction('group', '▤ Изменить группу…'") < 
     && js.indexOf("addAction('folder', '📂 Папка'") < js.indexOf("addAction('export', '⇩ Экспортировать…'"),
   'Prism instance action rail should follow the reference order: group management before folder and export');
 
-check(js.includes("const groupLabel = prismGroupKey(inst)")
+check(js.includes("currentGroupLabel = prismGroupKey(inst)")
     && js.includes("return prismInstanceGroups[String(inst.id)] || 'Без группы'")
+    && js.includes("function togglePrismGroup(groupLabel, heading)")
+    && js.includes("PRISM_COLLAPSED_GROUPS_STORE")
+    && js.includes("heading.setAttribute('aria-expanded', String(!collapsed))")
+    && js.includes("heading.addEventListener('keydown'")
+    && css.includes("#library .library-group-heading[data-collapsed='true']::before")
+    && css.includes("#library .inst-card[hidden]"),
     && js.includes('PRISM_INSTANCE_GROUPS_STORE')
     && js.includes('function savePrismInstanceGroup')
     && js.includes('function openPrismGroupEditor')

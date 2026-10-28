@@ -921,7 +921,7 @@ check(html.includes('id="ni-group"')
     && js.includes('const PRISM_INSTANCE_GROUPS_STORE ='),
   'Prism instance creation must let users assign a group immediately and persist it through the existing group store');
 
-check(html.includes('Перейти к перетаскиванию файла')
+check(html.includes('Перетащить вручную')
     && repairCss.includes('/* Prism/Pinecone pass 40')
     && repairCss.includes('#page-settings button:not(.theme-card)')
     && repairCss.includes('#ui-styles .theme-card.active'),

@@ -5676,3 +5676,74 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 :root[data-ui='prism'] .prism-quick-actions button[hidden] {
   display: none !important;
 }
+
+
+/* Prism instance metadata editor — small, keyboard accessible, and clearly warns about version changes. */
+:root[data-ui='prism'] .play-ui .prism-instance-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 100%;
+  min-width: 0;
+  margin: 2px 0 4px;
+  padding: 8px 7px;
+  border: 1px solid #4a4a4a;
+  border-radius: 3px;
+  background: #252525;
+  box-shadow: 0 3px 9px #0004;
+}
+:root[data-ui='prism'] .play-ui .prism-instance-editor > strong {
+  color: #e7e7e7;
+  font-size: 11px;
+  font-weight: 600;
+}
+:root[data-ui='prism'] .play-ui .prism-instance-edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  color: #bcbcbc;
+  font-size: 9px;
+}
+:root[data-ui='prism'] .play-ui .prism-instance-edit-field input,
+:root[data-ui='prism'] .play-ui .prism-instance-edit-field select {
+  width: 100%;
+  min-width: 0;
+  min-height: 25px;
+  padding: 5px 6px;
+  border: 1px solid #4a4a4a;
+  border-radius: 3px;
+  background: #1c1c1c;
+  color: #e5e5e5;
+  font: 10px 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .play-ui .prism-instance-edit-note {
+  margin: 0;
+  color: #b8b8b8;
+  font-size: 9px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+:root[data-ui='prism'] .play-ui .prism-instance-edit-buttons {
+  display: flex;
+  gap: 5px;
+}
+:root[data-ui='prism'] .play-ui .prism-instance-edit-buttons button {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 25px;
+  padding: 4px;
+  border: 1px solid #4a4a4a;
+  border-radius: 3px;
+  background: #333;
+  color: #e5e5e5;
+  font: 10px 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .play-ui .prism-instance-edit-buttons button:first-child {
+  border-color: #4f7d43;
+  background: #365d2e;
+}
+:root[data-ui='prism'] .play-ui .prism-instance-edit-buttons button:disabled {
+  opacity: .6;
+  cursor: progress;
+}

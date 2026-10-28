@@ -878,6 +878,7 @@ function openPrismInstanceEditor(inst, button, actions) {
   nameInput.select();
 }
 function openPrismGroupEditor(inst, button, actions) {
+  actions.querySelector('.prism-instance-editor')?.remove();
   const existing = actions.querySelector('.prism-group-editor');
   if (existing) {
     existing.remove();

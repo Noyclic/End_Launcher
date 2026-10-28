@@ -3646,3 +3646,72 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   :root[data-ui='lunar'] #page-play .launcher-banner { min-height:112px; padding:14px; }
   :root[data-ui='lunar'] #page-play .launcher-banner h2 { font-size:20px; }
 }
+
+
+/* UI fidelity pass 42 — launcher-native feature controls.
+   These are functional End Launcher controls shaped for each reference-inspired workspace. */
+.layout-feature-tools {
+  display:none; min-width:0; flex-wrap:wrap; align-items:center; gap:7px;
+  margin:0 0 8px; padding:8px 0; color:var(--el-dim); font-size:11px;
+}
+.layout-feature-tools label { display:inline-flex; align-items:center; flex-wrap:wrap; gap:6px; min-width:0; }
+.layout-feature-tools label:not(.layout-check) select {
+  width:auto; min-width:118px; max-width:220px; padding:7px 9px; font:11px 'Inter',sans-serif;
+}
+.layout-feature-tools button { padding:7px 11px; border-radius:8px; font-size:11px; white-space:nowrap; }
+.layout-tool-label { font-weight:700; color:var(--el-text); }
+.layout-check { gap:5px !important; color:var(--el-text); }
+.layout-check input { width:14px; height:14px; margin:0; accent-color:var(--el-accent); }
+.library-group-heading {
+  grid-column:1 / -1; margin:12px 0 0; padding:6px 8px; border-bottom:1px solid var(--el-line);
+  color:var(--el-dim); font:700 10px 'JetBrains Mono',monospace; letter-spacing:.08em; text-transform:uppercase;
+}
+.library-filter-empty {
+  grid-column:1 / -1; margin:16px 0; padding:14px; border:1px dashed var(--el-line);
+  border-radius:8px; overflow-wrap:anywhere;
+}
+:root[data-ui='prism'] #prism-library-tools,
+:root[data-ui='official'] #official-library-tools,
+:root[data-ui='modrinth'] #modrinth-library-tools,
+:root[data-ui='gd'] #gd-pack-tools,
+:root[data-ui='at'] #at-instance-tools,
+:root[data-ui='lunar'] #lunar-library-tools { display:flex; }
+:root[data-ui='prism'] #prism-library-tools { border-bottom:1px solid #41464b; padding:3px 0 10px; margin-bottom:6px; }
+:root[data-ui='prism'] #prism-library-tools select { border-radius:4px; background:#1c2023; border-color:#464c51; }
+:root[data-ui='prism'] .library-group-heading { border-color:#41464b; color:#aabac4; font-size:10px; }
+:root[data-ui='official'] #official-library-tools { padding:10px 12px; border:1px solid #374139; border-radius:5px; background:#202621; }
+:root[data-ui='official'] #official-library-tools label:not(.layout-check) select { border-radius:4px; background:#171d19; }
+:root[data-ui='modrinth'] #modrinth-library-tools { padding:7px 0 12px; border-bottom:1px solid #2e3432; }
+:root[data-ui='modrinth'] #modrinth-library-tools button { border:1px solid #343b37; border-radius:7px; background:#202623; color:#bdc9c1; }
+:root[data-ui='modrinth'] #modrinth-library-tools button.active { border-color:#2f7858; background:#294234; color:#a9edc7; }
+:root[data-ui='gd'] #gd-pack-tools { margin:0 0 12px; padding:9px 12px; border:1px solid #393e4d; border-radius:9px; background:#20232c; }
+:root[data-ui='gd'] #gd-pack-tools button { border-radius:7px; }
+:root[data-ui='gd'] #gd-pack-tools #gd-open-modrinth { background:#1c5c43; }
+:root[data-ui='gd'] #gd-pack-tools #gd-open-curseforge { background:#4b3f27; }
+:root[data-ui='gd'] #gd-pack-tools #gd-show-import { background:#7186f4; }
+:root[data-ui='at'] #at-instance-tools { padding:7px 9px; border:1px solid #404447; border-radius:3px; background:#26292b; }
+:root[data-ui='at'] #at-instance-tools button { border-radius:3px; }
+:root[data-ui='lunar'] #lunar-library-tools { align-items:center; padding:7px 10px; border:1px solid #393750; border-radius:10px; background:#201f33; }
+:root[data-ui='lunar'] #lunar-favorites-toggle[aria-pressed='true'] { border-color:#928bff; background:#383454; color:#f1efff; }
+:root[data-ui='lunar'] #library .inst-card.is-favorite { border-color:#8b83ec; }
+:root[data-ui='lunar'] #library .inst-card.is-favorite .inst-name::before { content:"★ "; color:#c6c0ff; }
+#page-mods .installed-mod-tools { align-items:center; flex-wrap:wrap; }
+#page-mods .installed-mod-tools > input { flex:2 1 220px; min-width:120px; }
+#page-mods .installed-mod-tools > select { flex:0 1 150px; min-width:110px; width:auto; padding:9px 10px; font-size:12px; }
+#page-mods .installed-mod-tools > #installed-mod-count { flex:0 0 auto; }
+@media(max-width:760px) {
+  .layout-feature-tools { align-items:stretch; }
+  .layout-feature-tools label:not(.layout-check) { flex:1 1 160px; }
+  .layout-feature-tools label:not(.layout-check) select { flex:1 1 100%; width:100%; min-width:0; max-width:none; }
+  #page-mods .installed-mod-tools > select { flex:1 1 140px; }
+}
+@media(max-width:520px) {
+  :root[data-ui='prism'] #prism-library-tools,
+  :root[data-ui='official'] #official-library-tools,
+  :root[data-ui='modrinth'] #modrinth-library-tools,
+  :root[data-ui='gd'] #gd-pack-tools,
+  :root[data-ui='at'] #at-instance-tools,
+  :root[data-ui='lunar'] #lunar-library-tools { gap:5px; }
+  .layout-feature-tools button { flex:1 1 auto; }
+  :root[data-ui='lunar'] #lunar-library-tools > span { flex-basis:100%; }
+}

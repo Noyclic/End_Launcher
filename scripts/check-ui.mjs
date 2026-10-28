@@ -411,4 +411,63 @@ check(css.includes(":root[data-ui='lunar'] #page-play .launcher-banner")
     && css.includes("radial-gradient(ellipse at 85% 8%"),
   'Lunar-inspired mode must distinguish the featured active profile from the regular version gallery');
 
+
+const layoutFeatureIds = [
+  'prism-library-tools', 'prism-library-sort', 'prism-library-group',
+  'official-library-tools', 'official-show-releases', 'official-show-snapshots',
+  'official-show-modded', 'official-instance-sort',
+  'modrinth-library-tools', 'gd-pack-tools', 'gd-open-modrinth',
+  'gd-open-curseforge', 'gd-show-import', 'at-instance-tools',
+  'at-duplicate-active', 'at-export-active', 'lunar-library-tools',
+  'lunar-favorites-toggle', 'lunar-favorites-count',
+  'installed-mod-state', 'installed-mod-sort'
+];
+for (const id of layoutFeatureIds) {
+  check(seen.has(id), 'Launcher-specific feature control is missing: #' + id);
+}
+check(js.includes("const FAVORITES_STORE = 'end-launcher-favorite-instances-v1'")
+    && js.includes('function toggleFavoriteInstance(id)')
+    && js.includes('localStorage.setItem(FAVORITES_STORE, JSON.stringify([...favoriteInstanceIds]))')
+    && js.includes("'is-favorite'"),
+  'Favorites must persist by instance ID and be reflected on rendered cards');
+check(js.includes("currentUi === 'lunar' && lunarFavoritesOnly")
+    && js.includes('favoriteInstanceIds.has(String(b.id))'),
+  'Lunar quick-access filter must show favorites and prioritize them in the gallery');
+check(js.includes("currentUi === 'prism' && prismLibraryGroup !== 'none'")
+    && js.includes("prismLibrarySort === 'version-desc'")
+    && js.includes("prismLibraryGroup === 'loader'")
+    && js.includes('library-group-heading'),
+  'Prism instance library must sort instances and optionally group them by loader/version');
+check(js.includes("currentUi === 'official' && !isOfficialCategoryVisible(inst)")
+    && js.includes("officialInstanceSort === 'version'")
+    && js.includes('official-show-snapshots'),
+  'Official-inspired installation view must apply releases/snapshots/modded filters and sorting');
+check(js.includes('function syncModrinthContentShortcuts()')
+    && js.includes('button.dataset.modrinthType')
+    && js.includes("$('mod-type').value = type")
+    && js.includes("goPage('mods')"),
+  'Modrinth home content shortcuts must route to the existing filtered mod/resourcepack/shader search');
+check(js.includes("openPackCatalog('https://modrinth.com/modpacks')")
+    && js.includes("openPackCatalog('https://www.curseforge.com/minecraft/search?page=1&pageSize=20&sortBy=relevancy&class=modpacks')")
+    && js.includes("$('gd-show-import')?.addEventListener"),
+  'GD-inspired modpack discovery actions must open real catalogs and expose the supported import flow');
+check(js.includes("invoke('duplicate_instance', { id: inst.id })")
+    && js.includes("invoke('export_instance', { id: inst.id })")
+    && js.includes("$('at-duplicate-active')?.addEventListener")
+    && js.includes("$('at-export-active')?.addEventListener"),
+  'AT-inspired quick actions must reuse the existing duplicate/export backend commands');
+check(js.includes('let installedModsCache = [];')
+    && js.includes("stateFilter === 'enabled' && !mod.enabled")
+    && js.includes("stateFilter === 'disabled' && mod.enabled")
+    && js.includes("sortMode === 'size-desc'")
+    && js.includes("sortMode === 'size-asc'"),
+  'Modrinth-style installed-content list must filter enabled/disabled mods and sort by file size/name');
+check(css.includes(":root[data-ui='prism'] #prism-library-tools")
+    && css.includes(":root[data-ui='modrinth'] #modrinth-library-tools")
+    && css.includes(":root[data-ui='gd'] #gd-pack-tools")
+    && css.includes(":root[data-ui='official'] #official-library-tools")
+    && css.includes(":root[data-ui='at'] #at-instance-tools")
+    && css.includes(":root[data-ui='lunar'] #lunar-library-tools"),
+  'Each feature toolbar must be scoped to its matching launcher-inspired style');
+
 console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags.');

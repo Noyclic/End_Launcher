@@ -90,6 +90,51 @@
                 <button id="library-add" title="Создать новую сборку">＋ Добавить</button>
               </div>
             </div>
+            <div id="prism-library-tools" class="layout-feature-tools" role="group" aria-label="Настройки списка Prism">
+              <label>Сортировка
+                <select id="prism-library-sort" aria-label="Сортировка сборок Prism">
+                  <option value="name-asc">Имя: А–Я</option><option value="name-desc">Имя: Я–А</option>
+                  <option value="version-desc">Версия: новая сначала</option><option value="loader">Загрузчик</option>
+                </select>
+              </label>
+              <label>Группировка
+                <select id="prism-library-group" aria-label="Группировка сборок Prism">
+                  <option value="none">Без групп</option><option value="loader">По загрузчику</option><option value="version">По версии Minecraft</option>
+                </select>
+              </label>
+            </div>
+            <div id="official-library-tools" class="layout-feature-tools official-library-tools" role="group" aria-label="Фильтры установок">
+              <label class="layout-check"><input id="official-show-releases" type="checkbox" checked /> Релизы</label>
+              <label class="layout-check"><input id="official-show-snapshots" type="checkbox" checked /> Снапшоты</label>
+              <label class="layout-check"><input id="official-show-modded" type="checkbox" checked /> С модами</label>
+              <label>Сортировка
+                <select id="official-instance-sort" aria-label="Сортировка установок">
+                  <option value="name">Имя</option><option value="version">Версия: новая сначала</option><option value="loader">Загрузчик</option>
+                </select>
+              </label>
+            </div>
+            <div id="modrinth-library-tools" class="layout-feature-tools modrinth-library-tools" role="group" aria-label="Тип контента Modrinth">
+              <span class="layout-tool-label">Контент</span>
+              <button class="ghost" type="button" data-modrinth-type="mod" aria-pressed="true">Моды</button>
+              <button class="ghost" type="button" data-modrinth-type="resourcepack" aria-pressed="false">Ресурспаки</button>
+              <button class="ghost" type="button" data-modrinth-type="shader" aria-pressed="false">Шейдеры</button>
+            </div>
+            <div id="gd-pack-tools" class="layout-feature-tools gd-pack-tools" role="group" aria-label="Каталоги модпаков GDLauncher">
+              <span class="layout-tool-label">Найти модпак</span>
+              <button id="gd-open-modrinth" class="ghost" type="button">Modrinth</button>
+              <button id="gd-open-curseforge" class="ghost" type="button">CurseForge</button>
+              <button id="gd-show-import" type="button">⇩ Импорт пака</button>
+            </div>
+            <div id="at-instance-tools" class="layout-feature-tools at-instance-tools" role="group" aria-label="Действия ATLauncher">
+              <span class="layout-tool-label">Выбранная сборка</span>
+              <button id="at-duplicate-active" class="ghost" type="button">⧉ Копировать</button>
+              <button id="at-export-active" class="ghost" type="button">⇧ Экспорт ZIP</button>
+            </div>
+            <div id="lunar-library-tools" class="layout-feature-tools lunar-library-tools" role="group" aria-label="Быстрый доступ Lunar">
+              <button id="lunar-favorites-toggle" class="ghost" type="button" aria-pressed="false">☆ Только избранное</button>
+              <span id="lunar-favorites-count" class="mono small">0 избранных</span>
+              <span class="dim small">Добавляй сборки в избранное через меню «⋯».</span>
+            </div>
             <p class="mono dim small library-help">
               Ваши сборки: у каждой своя версия, загрузчик, моды и сохранения. Нажмите карточку, чтобы выбрать её,
               ▶ — чтобы сразу играть, «⋯» — моды, папка, переименование, удаление.
@@ -207,7 +252,16 @@
           <p class="mono small" id="mod-toast"></p>
 
           <h2 class="mono dim">УСТАНОВЛЕННЫЕ МОДЫ</h2>
-          <div class="row installed-mod-tools"><input id="installed-mod-filter" placeholder="Фильтр по имени файла…" aria-label="Фильтр установленных модов" /><span class="mono small dim" id="installed-mod-count">—</span></div>
+          <div class="row installed-mod-tools">
+            <input id="installed-mod-filter" placeholder="Фильтр по имени файла…" aria-label="Фильтр установленных модов" />
+            <select id="installed-mod-state" aria-label="Фильтр включённых модов">
+              <option value="all">Все</option><option value="enabled">Включённые</option><option value="disabled">Отключённые</option>
+            </select>
+            <select id="installed-mod-sort" aria-label="Сортировка установленных модов">
+              <option value="name">По имени</option><option value="size-desc">Сначала большие</option><option value="size-asc">Сначала маленькие</option>
+            </select>
+            <span class="mono small dim" id="installed-mod-count">—</span>
+          </div>
           <div class="row" style="margin-top:0">
             <button id="mods-refresh" class="ghost">↻ Обновить список</button>
             <button id="mods-check" class="ghost">⬆ Проверить обновления</button>

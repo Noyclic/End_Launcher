@@ -587,6 +587,10 @@ function toggleMenu(card, inst) {
     input.addEventListener('blur', save);
   });
 
+  item(favoriteInstanceIds.has(String(inst.id)) ? '★ Убрать из избранного' : '☆ В избранное', async () => {
+    toggleFavoriteInstance(inst.id);
+  });
+
   // удаление в два нажатия (без confirm(), который не везде работает в окне приложения)
   const del = mk('button', '', '🗑 Удалить');
   let armed = false;
@@ -608,12 +612,55 @@ function toggleMenu(card, inst) {
 
 let libraryQuery = '';
 let libraryListMode = (() => { try { return localStorage.getItem('el-library-list') === '1'; } catch { return false; } })();
+const FAVORITES_STORE = 'end-launcher-favorite-instances-v1';
+let favoriteInstanceIds = (() => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(FAVORITES_STORE) || '[]');
+    return new Set(Array.isArray(stored) ? stored.map(String) : []);
+  } catch { return new Set(); }
+})();
+let lunarFavoritesOnly = false;
+let prismLibrarySort = (() => {
+  try { return localStorage.getItem('el-prism-library-sort') || 'name-asc'; } catch { return 'name-asc'; }
+})();
+let prismLibraryGroup = (() => {
+  try { return localStorage.getItem('el-prism-library-group') || 'none'; } catch { return 'none'; }
+})();
+let officialInstanceSort = (() => {
+  try { return localStorage.getItem('el-official-instance-sort') || 'name'; } catch { return 'name'; }
+})();
+const naturalCompare = (a, b) => String(a ?? '').localeCompare(String(b ?? ''), undefined, { numeric: true, sensitivity: 'base' });
+function toggleFavoriteInstance(id) {
+  const key = String(id);
+  const wasFavorite = favoriteInstanceIds.has(key);
+  if (wasFavorite) favoriteInstanceIds.delete(key);
+  else favoriteInstanceIds.add(key);
+  try { localStorage.setItem(FAVORITES_STORE, JSON.stringify([...favoriteInstanceIds])); }
+  catch {
+    if (wasFavorite) favoriteInstanceIds.add(key);
+    else favoriteInstanceIds.delete(key);
+    showToast('Не удалось сохранить избранное: локальное хранилище недоступно.', false);
+    return;
+  }
+  renderLibrary();
+  showToast(wasFavorite ? 'Сборка удалена из избранного' : 'Сборка добавлена в избранное');
+}
 
 function syncLibraryChrome(filteredCount = instances.length) {
   const count = $('library-count');
-  if (count) count.textContent = libraryQuery.trim()
+  const officialFiltersChanged = currentUi === 'official'
+    && (!($('official-show-releases')?.checked) || !($('official-show-snapshots')?.checked) || !($('official-show-modded')?.checked));
+  const hasLibraryFilter = !!libraryQuery.trim() || officialFiltersChanged || (currentUi === 'lunar' && lunarFavoritesOnly);
+  if (count) count.textContent = hasLibraryFilter
     ? `${filteredCount} из ${instances.length} сборок`
     : `${instances.length} ${instances.length === 1 ? 'сборка' : 'сборок'}`;
+  const favoritesToggle = $('lunar-favorites-toggle');
+  if (favoritesToggle) {
+    favoritesToggle.textContent = lunarFavoritesOnly ? '★ Показать все' : '☆ Только избранное';
+    favoritesToggle.setAttribute('aria-pressed', String(lunarFavoritesOnly));
+  }
+  const favoritesCount = $('lunar-favorites-count');
+  if (favoritesCount) favoritesCount.textContent = `${favoriteInstanceIds.size} избранных`;
   const viewBtn = $('library-view');
   if (viewBtn) {
     viewBtn.textContent = libraryListMode ? '▦ Карточки' : '☷ Список';
@@ -670,16 +717,71 @@ function renderLibrary() {
   box.dataset.layout = currentUi;
   $('empty-hero').style.display = instances.length ? 'none' : '';
   const query = libraryQuery.trim().toLocaleLowerCase();
-  let ci = 0;
-  let shownCount = 0;
-  for (const inst of instances) {
+  const showReleases = $('official-show-releases')?.checked !== false;
+  const showSnapshots = $('official-show-snapshots')?.checked !== false;
+  const showModded = $('official-show-modded')?.checked !== false;
+  const isSnapshotVersion = (version) => /^(?:\d{2}w\d{2}[a-z]?|.*(?:snapshot|pre-release|rc\d*).*)$/i.test(String(version || ''));
+  const isReleaseVersion = (version) => /^\d+\.\d+(?:\.\d+)?$/.test(String(version || ''));
+  const isOfficialCategoryVisible = (inst) => {
+    const version = String(inst.version || '');
+    const snapshot = isSnapshotVersion(version);
+    const release = isReleaseVersion(version) && !snapshot;
+    const modded = String(inst.loader || 'vanilla') !== 'vanilla';
+    return (showReleases && release) || (showSnapshots && snapshot) || (showModded && modded);
+  };
+  const visibleInstances = instances.filter((inst) => {
     const searchable = `${inst.name} ${inst.version} ${LOADER_NAME[inst.loader] || inst.loader}`.toLocaleLowerCase();
-    const matches = !query || searchable.includes(query);
-    const card = mk('div', 'inst-card' + (inst.id === activeId ? ' active' : ''));
+    if (query && !searchable.includes(query)) return false;
+    if (currentUi === 'official' && !isOfficialCategoryVisible(inst)) return false;
+    if (currentUi === 'lunar' && lunarFavoritesOnly && !favoriteInstanceIds.has(String(inst.id))) return false;
+    return true;
+  });
+  const nameCompare = (a, b) => naturalCompare(a.name, b.name);
+  const versionCompare = (a, b) => naturalCompare(b.version, a.version) || nameCompare(a, b);
+  const loaderCompare = (a, b) => naturalCompare(LOADER_NAME[a.loader] || a.loader, LOADER_NAME[b.loader] || b.loader) || nameCompare(a, b);
+  const prismGroupKey = (inst) => prismLibraryGroup === 'loader'
+    ? (LOADER_NAME[inst.loader] || inst.loader || 'Другие')
+    : `Minecraft ${inst.version || 'неизвестно'}`;
+  visibleInstances.sort((a, b) => {
+    if (currentUi === 'prism' && prismLibraryGroup !== 'none') {
+      const groupComparison = naturalCompare(prismGroupKey(a), prismGroupKey(b));
+      if (groupComparison) return groupComparison;
+    }
+    if (currentUi === 'prism') {
+      if (prismLibrarySort === 'name-desc') return nameCompare(b, a);
+      if (prismLibrarySort === 'version-desc') return versionCompare(a, b);
+      if (prismLibrarySort === 'loader') return loaderCompare(a, b);
+      return nameCompare(a, b);
+    }
+    if (currentUi === 'official') {
+      if (officialInstanceSort === 'version') return versionCompare(a, b);
+      if (officialInstanceSort === 'loader') return loaderCompare(a, b);
+      return nameCompare(a, b);
+    }
+    if (currentUi === 'lunar') {
+      const favoriteComparison = Number(favoriteInstanceIds.has(String(b.id))) - Number(favoriteInstanceIds.has(String(a.id)));
+      return favoriteComparison || nameCompare(a, b);
+    }
+    return 0;
+  });
+  let ci = 0;
+  const shownCount = visibleInstances.length;
+  let lastGroup = null;
+  for (const inst of visibleInstances) {
+    if (currentUi === 'prism' && prismLibraryGroup !== 'none') {
+      const groupLabel = prismGroupKey(inst);
+      if (groupLabel !== lastGroup) {
+        const heading = mk('div', 'library-group-heading', groupLabel);
+        heading.dataset.group = prismLibraryGroup;
+        box.appendChild(heading);
+        lastGroup = groupLabel;
+      }
+    }
+    const searchable = `${inst.name} ${inst.version} ${LOADER_NAME[inst.loader] || inst.loader}`.toLocaleLowerCase();
+    const isFavorite = favoriteInstanceIds.has(String(inst.id));
+    const card = mk('div', 'inst-card' + (inst.id === activeId ? ' active' : '') + (isFavorite ? ' is-favorite' : ''));
     card.dataset.instanceId = String(inst.id);
     card.dataset.searchText = searchable;
-    card.style.display = matches ? '' : 'none';
-    if (matches) shownCount++;
     card.style.setProperty('--i', Math.min(ci++, 10));
     card.tabIndex = 0;
     card.setAttribute('role', 'group');
@@ -710,9 +812,15 @@ function renderLibrary() {
     card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActive(inst.id); } });
     box.appendChild(card);
   }
+  if (!shownCount && instances.length) {
+    box.appendChild(mk('p', 'library-filter-empty dim small',
+      currentUi === 'lunar' && lunarFavoritesOnly
+        ? 'В избранное пока ничего не добавлено. Открой меню «⋯» у сборки и выбери «В избранное».'
+        : 'По выбранным фильтрам сборок не найдено.'));
+  }
   const add = mk('div', 'inst-card add');
   add.style.setProperty('--i', Math.min(ci, 10));
-  add.append(mk('div', 'inst-icon', '＋'), mk('div', '', 'Новая сборка'));
+  add.append(mk('div', 'inst-icon', '＋'), mk('div', '', currentUi === 'official' ? 'Новая установка' : 'Новая сборка'));
   add.addEventListener('click', openNewInstance);
   box.appendChild(add);
   syncLibraryChrome(shownCount);
@@ -1058,8 +1166,7 @@ function applyUi(mode) {
   })[mode] || 'БИБЛИОТЕКА';
   renderUiCards();
   syncTlNick();
-  syncLibraryChrome();
-  syncLauncherBanner();
+  renderLibrary();
 }
 let uiChoiceRevision = 0;
 async function chooseUi(mode) {
@@ -1105,6 +1212,75 @@ $('library-view')?.addEventListener('click', () => {
   try { localStorage.setItem('el-library-list', libraryListMode ? '1' : '0'); } catch {}
   renderLibrary();
 });
+$('prism-library-sort')?.addEventListener('change', (event) => {
+  prismLibrarySort = event.target.value;
+  try { localStorage.setItem('el-prism-library-sort', prismLibrarySort); } catch {}
+  renderLibrary();
+});
+$('prism-library-group')?.addEventListener('change', (event) => {
+  prismLibraryGroup = event.target.value;
+  try { localStorage.setItem('el-prism-library-group', prismLibraryGroup); } catch {}
+  renderLibrary();
+});
+$('official-instance-sort')?.addEventListener('change', (event) => {
+  officialInstanceSort = event.target.value;
+  try { localStorage.setItem('el-official-instance-sort', officialInstanceSort); } catch {}
+  renderLibrary();
+});
+for (const id of ['official-show-releases', 'official-show-snapshots', 'official-show-modded']) {
+  $(id)?.addEventListener('change', renderLibrary);
+}
+function syncModrinthContentShortcuts() {
+  document.querySelectorAll('[data-modrinth-type]').forEach((button) => {
+    const active = button.dataset.modrinthType === $('mod-type')?.value;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+}
+document.querySelectorAll('[data-modrinth-type]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const type = button.dataset.modrinthType;
+    $('mod-type').value = type;
+    $('mod-loader').style.display = type === 'mod' ? '' : 'none';
+    syncModrinthContentShortcuts();
+    goPage('mods');
+  });
+});
+$('lunar-favorites-toggle')?.addEventListener('click', () => {
+  lunarFavoritesOnly = !lunarFavoritesOnly;
+  renderLibrary();
+});
+async function openPackCatalog(url) {
+  try { await invoke('open_url', { url }); }
+  catch (error) { showToast('Не удалось открыть каталог модпаков: ' + String(error), false); }
+}
+$('gd-open-modrinth')?.addEventListener('click', () => openPackCatalog('https://modrinth.com/modpacks'));
+$('gd-open-curseforge')?.addEventListener('click', () => openPackCatalog('https://www.curseforge.com/minecraft/search?page=1&pageSize=20&sortBy=relevancy&class=modpacks'));
+$('gd-show-import')?.addEventListener('click', () => {
+  $('library-import')?.click();
+  $('library-import-guide')?.scrollIntoView({ block: 'nearest', behavior: 'auto' });
+});
+async function duplicateActiveInstance() {
+  const inst = currentInstance();
+  if (!inst) { showToast('Сначала выбери сборку.', false); return; }
+  try {
+    const created = await invoke('duplicate_instance', { id: inst.id });
+    await loadInstances();
+    await setActive(created.id);
+    showToast(`Создана копия «${created.name}»`);
+  } catch (error) { showToast('Не удалось скопировать сборку: ' + String(error), false); }
+}
+async function exportActiveInstance() {
+  const inst = currentInstance();
+  if (!inst) { showToast('Сначала выбери сборку.', false); return; }
+  try {
+    const path = await invoke('export_instance', { id: inst.id });
+    showToast(`Архив создан: ${path}`);
+  } catch (error) { showToast('Не удалось экспортировать сборку: ' + String(error), false); }
+}
+$('at-duplicate-active')?.addEventListener('click', duplicateActiveInstance);
+$('at-export-active')?.addEventListener('click', exportActiveInstance);
+syncModrinthContentShortcuts();
 function setHomeExtrasOpen(open) {
   const extras = document.querySelector('.home-extra');
   if (!extras) return;
@@ -1503,54 +1679,79 @@ $('mod-query').addEventListener('keydown', (e) => { if (e.key === 'Enter') { cle
 for (const id of ['mod-type', 'mod-loader', 'mod-version']) $(id).addEventListener('change', () => searchMods());
 
 // ── установленные моды: включить / выключить / удалить / обновить ──
-async function refreshInstalled() {
+let installedModsCache = [];
+function renderInstalledMods() {
   const box = $('installed-mods');
+  const query = ($('installed-mod-filter')?.value || '').trim().toLocaleLowerCase();
+  const stateFilter = $('installed-mod-state')?.value || 'all';
+  const sortMode = $('installed-mod-sort')?.value || 'name';
+  const filtered = installedModsCache.filter((mod) => {
+    if (query && !mod.file.toLocaleLowerCase().includes(query)) return false;
+    if (stateFilter === 'enabled' && !mod.enabled) return false;
+    if (stateFilter === 'disabled' && mod.enabled) return false;
+    return true;
+  });
+  filtered.sort((a, b) => {
+    if (sortMode === 'size-desc') return Number(b.size_kb || 0) - Number(a.size_kb || 0) || naturalCompare(a.file, b.file);
+    if (sortMode === 'size-asc') return Number(a.size_kb || 0) - Number(b.size_kb || 0) || naturalCompare(a.file, b.file);
+    return naturalCompare(a.file, b.file);
+  });
+  const count = $('installed-mod-count');
+  if (count) count.textContent = query || stateFilter !== 'all'
+    ? `${filtered.length} / ${installedModsCache.length} файлов`
+    : `${installedModsCache.length} файлов`;
+  box.replaceChildren();
+  if (!installedModsCache.length) box.appendChild(mk('p', 'mono dim small', 'в папке mods пока ничего нет'));
+  else if (!filtered.length) box.appendChild(mk('p', 'mono dim small', 'по этим фильтрам ничего не найдено'));
+  for (const mod of filtered) {
+    const row = mk('div', 'mod-row' + (mod.enabled ? '' : ' off'));
+    const sw = mk('label', 'toggle');
+    const cb = mk('input');
+    cb.type = 'checkbox';
+    cb.checked = mod.enabled;
+    cb.title = mod.enabled ? 'Выключить мод' : 'Включить мод';
+    cb.addEventListener('change', async () => {
+      cb.disabled = true;
+      try { await invoke('toggle_mod', { file: mod.file }); }
+      catch (error) { $('mod-toast').textContent = String(error); }
+      await refreshInstalled();
+    });
+    sw.appendChild(cb);
+    const del = mk('button', 'ghost', '🗑');
+    del.title = 'Удалить';
+    let armed = false;
+    del.addEventListener('click', async () => {
+      if (!armed) {
+        armed = true;
+        del.textContent = 'Точно?';
+        setTimeout(() => { armed = false; del.textContent = '🗑'; }, 3000);
+        return;
+      }
+      del.disabled = true;
+      try { await invoke('delete_mod', { file: mod.file }); }
+      catch (error) { $('mod-toast').textContent = String(error); }
+      await refreshInstalled();
+    });
+    row.append(sw, mk('div', 'name', mod.file.replace(/\.disabled$/, '')), mk('span', 'kb', `${mod.size_kb} КБ`), del);
+    box.appendChild(row);
+  }
+}
+async function refreshInstalled() {
   try {
     // -> Rust: mods.rs :: list_mods() -> [{file, enabled, size_kb}]
-    const list = await invoke('list_mods');
-    const query = ($('installed-mod-filter')?.value || '').trim().toLocaleLowerCase();
-    const filtered = list.filter((m) => m.file.toLocaleLowerCase().includes(query));
+    installedModsCache = await invoke('list_mods');
+    renderInstalledMods();
+  } catch (error) {
+    const box = $('installed-mods');
+    box.replaceChildren(mk('p', 'mono small', String(error)));
     const count = $('installed-mod-count');
-    if (count) count.textContent = query ? `${filtered.length} / ${list.length} файлов` : `${list.length} файлов`;
-    box.replaceChildren();
-    if (!list.length) box.appendChild(mk('p', 'mono dim small', 'в папке mods пока ничего нет'));
-    else if (!filtered.length) box.appendChild(mk('p', 'mono dim small', 'по этому фильтру ничего не найдено'));
-    for (const m of filtered) {
-      const row = mk('div', 'mod-row' + (m.enabled ? '' : ' off'));
-      const sw = mk('label', 'toggle');
-      const cb = mk('input');
-      cb.type = 'checkbox';
-      cb.checked = m.enabled;
-      cb.title = m.enabled ? 'Выключить мод' : 'Включить мод';
-      cb.addEventListener('change', async () => {
-        // -> Rust: mods.rs :: toggle_mod(file) — переименует X.jar <-> X.jar.disabled
-        await invoke('toggle_mod', { file: m.file }).catch((e) => { $('mod-toast').textContent = String(e); });
-        refreshInstalled();
-      });
-      sw.appendChild(cb);
-      const del = mk('button', 'ghost', '🗑');
-      del.title = 'Удалить';
-      let armed = false;
-      del.addEventListener('click', async () => {
-        if (!armed) { // удаление в два нажатия (confirm() в окне приложения работает не везде)
-          armed = true;
-          del.textContent = 'Точно?';
-          setTimeout(() => { armed = false; del.textContent = '🗑'; }, 3000);
-          return;
-        }
-        // -> Rust: mods.rs :: delete_mod(file)
-        await invoke('delete_mod', { file: m.file }).catch((e) => { $('mod-toast').textContent = String(e); });
-        refreshInstalled();
-      });
-      row.append(sw, mk('div', 'name', m.file.replace(/\.disabled$/, '')), mk('span', 'kb', `${m.size_kb} КБ`), del);
-      box.appendChild(row);
-    }
-  } catch (e) {
-    box.replaceChildren(mk('p', 'mono small', String(e)));
+    if (count) count.textContent = 'ошибка';
   }
 }
 $('mods-refresh').addEventListener('click', refreshInstalled);
-$('installed-mod-filter')?.addEventListener('input', () => refreshInstalled());
+$('installed-mod-filter')?.addEventListener('input', renderInstalledMods);
+$('installed-mod-state')?.addEventListener('change', renderInstalledMods);
+$('installed-mod-sort')?.addEventListener('change', renderInstalledMods);
 
 $('mods-check').addEventListener('click', async () => {
   const box = $('mod-updates');

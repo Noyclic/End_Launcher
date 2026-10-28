@@ -388,6 +388,18 @@
 
 
 
+
+### UI fidelity pass 42 — bring launcher-specific workflows into their matching skins
+
+- Prism: added persistent instance sorting and optional grouping by loader or Minecraft version, using the existing per-instance cards/actions.
+- Official-inspired: added release/snapshot/modded inclusion filters and sorting for the installation list.
+- Modrinth-inspired: added direct Content shortcuts for mods, resource packs and shaders, plus installed-mod filters for enabled/disabled state and sorting by size/name without re-reading the filesystem for every keystroke.
+- GDLauncher-inspired: added quick links to the real Modrinth and CurseForge modpack catalogues plus a shortcut to End Launcher's supported pack-import flow.
+- ATLauncher-inspired: exposed the existing duplicate and ZIP-export actions beside the selected instance.
+- Lunar-inspired: added persisted favourites and a one-click favourites-only gallery, with favourite instances prioritised in the gallery.
+- Reused existing launch, import, duplicate, export, mod search and mod management commands; no fake launch actions or copied third-party icons were added.
+- Added regression checks for each feature route, state persistence, filters and style scoping.
+
 ### UI fidelity pass 41 — preserve the Modrinth welcome header
 
 - Resolved a CSS precedence conflict where an older hidden-banner rule still took priority over the newer Modrinth welcome-back header.

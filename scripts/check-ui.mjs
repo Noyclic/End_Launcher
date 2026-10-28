@@ -644,6 +644,21 @@ check(css.includes(":root[data-ui='prism'] #prism-library-tools")
   'Each feature toolbar must be scoped to its matching launcher-inspired style');
 
 
+check(css.includes("/* Prism/Pinecone pass 24")
+    && css.includes("--el-p2p-dock-right: 182px;")
+    && css.includes("--el-p2p-dock-right: 174px;")
+    && css.includes("--el-p2p-dock-right: 18px;"),
+  'Prism P2P dock offset must track the 164/156 px right rail and switch below the responsive breakpoint');
+
+check(css.includes("/* Prism/Pinecone pass 25")
+    && css.includes(":root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='mods']")
+    && css.includes("[data-action='icon']")
+    && css.includes("[data-action='reset-icon']")
+    && js.includes("item('🧩 Моды', async () => {")
+    && js.includes("if (prismInstanceIcons[String(inst.id)])")
+    && js.includes("item('× Сбросить иконку'"),
+  'Prism right rail should keep the seven reference actions while mods and icon tools remain accessible in the instance context menu');
+
 check(css.includes('UI repair pass 43')
     && css.includes('--el-p2p-dock-bottom')
     && css.includes('.fab {')

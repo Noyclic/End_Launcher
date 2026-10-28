@@ -1,0 +1,63 @@
+name: UI visual snapshots
+
+on:
+  push:
+    branches: [ui-fidelity-pass]
+  pull_request:
+    branches: [ui-fidelity-pass]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  screenshot:
+    name: Capture launcher UI screenshots
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --directory src > /tmp/end-launcher-http.log 2>&1 &
+          echo $! > /tmp/end-launcher-http.pid
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/index.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/end-launcher-http.log
+          exit 1
+      - name: Capture screenshots
+        run: |
+          mkdir -p artifacts/ui
+          node --input-type=module <<'NODE'
+          import { chromium } from 'playwright';
+          const browser = await chromium.launch({ headless: true });
+          const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
+          await page.addInitScript(() => {
+            window.__TAURI__ = { core: { invoke: async () => null } };
+          });
+          page.on('pageerror', error => console.error('PAGE ERROR:', error.message));
+          await page.goto('http://127.0.0.1:4173/index.html', { waitUntil: 'networkidle', timeout: 30000 });
+          await page.waitForTimeout(1500);
+          await page.screenshot({ path: 'artifacts/ui/launcher-desktop.png', fullPage: true });
+          await page.setViewportSize({ width: 390, height: 844 });
+          await page.waitForTimeout(500);
+          await page.screenshot({ path: 'artifacts/ui/launcher-mobile.png', fullPage: true });
+          await browser.close();
+          NODE
+      - name: Upload UI screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: end-launcher-ui-screenshots
+          path: artifacts/ui/
+          if-no-files-found: warn
+          retention-days: 14

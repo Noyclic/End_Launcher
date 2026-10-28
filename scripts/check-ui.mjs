@@ -412,7 +412,7 @@ check(css.includes(":root[data-ui='lunar'] #page-play .launcher-banner")
   'Lunar-inspired mode must distinguish the featured active profile from the regular version gallery');
 
 
-const layoutFeatureIds = [
+const layoutFeatureIds = ['prism-open-folder', 
   'prism-library-tools', 'prism-library-sort', 'prism-library-group',
   'official-library-tools', 'official-show-releases', 'official-show-snapshots',
   'official-show-modded', 'official-instance-sort',

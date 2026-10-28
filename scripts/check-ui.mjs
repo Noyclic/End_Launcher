@@ -492,10 +492,16 @@ check(html.includes('id="prism-status-bar"')
     && css.includes('grid-template-rows: 38px minmax(0, 1fr) 56px')
     && js.includes("statusBar.hidden = currentUi !== 'prism'"),
   'Prism layout must include a hidden-by-default, responsive two-row status bar');
-check(js.includes("prismLibraryGroup === 'none' ? 'Без группы'")
+check(js.includes("const groupLabel = prismGroupKey(inst)")
+    && js.includes("return prismInstanceGroups[String(inst.id)] || 'Без группы'")
+    && js.includes('PRISM_INSTANCE_GROUPS_STORE')
+    && js.includes('function savePrismInstanceGroup')
+    && js.includes('function openPrismGroupEditor')
+    && js.includes("addAction('group', '▤ Изменить группу…'")
+    && html.includes('<option value="none">Свои группы</option>')
     && css.includes(':root[data-ui=\'prism\'] #library .inst-card.add')
     && css.includes('display: none !important;'),
-  'Prism must show the ungrouped disclosure heading and avoid duplicate add-instance tiles');
+  'Prism must support persistent per-instance groups, an editor, the custom-group option and no duplicate add tile');
 
 check(css.includes(":root[data-ui='prism'] #prism-library-tools")
     && css.includes(":root[data-ui='modrinth'] #modrinth-library-tools")

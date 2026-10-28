@@ -648,7 +648,7 @@ function toggleMenu(card, inst) {
       action.click();
     };
     item('✎ Переименовать', () => beginRenameInstance(inst, card));
-    item(prismInstanceIcons[String(inst.id)] ? '▧ Сменить иконку…' : '▧ Изменить иконку…', () => choosePrismInstanceIcon(inst));
+    item(prismInstanceIcons[String(inst.id)] ? '⇧ Загрузить другое фото…' : '⇧ Загрузить своё фото…', () => choosePrismInstanceIcon(inst));
     if (prismInstanceIcons[String(inst.id)]) {
       item('× Сбросить иконку', async () => {
         const next = { ...prismInstanceIcons };
@@ -862,7 +862,7 @@ function choosePrismInstanceIcon(inst) {
   input.type = 'file';
   input.accept = 'image/png,image/jpeg,image/gif,image/webp,image/avif';
   input.tabIndex = -1;
-  input.setAttribute('aria-label', 'Выбрать пользовательскую иконку сборки');
+  input.setAttribute('aria-label', 'Загрузить собственное фото для сборки');
   input.style.position = 'fixed';
   input.style.left = '-10000px';
   input.style.width = '1px';
@@ -875,11 +875,11 @@ function choosePrismInstanceIcon(inst) {
     removeInput();
     if (!file) return;
     if (file.size > 256 * 1024) {
-      showToast('Иконка должна быть меньше 256 КБ. Выбери PNG, JPG, GIF, WebP или AVIF.', false);
+      showToast('Фото должно быть меньше 256 КБ. Выбери PNG, JPG, GIF, WebP или AVIF.', false);
       return;
     }
     if (file.type && !['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif'].includes(file.type)) {
-      showToast('Формат не поддерживается. Выбери PNG, JPG, GIF, WebP или AVIF.', false);
+      showToast('Формат фото не поддерживается. Выбери PNG, JPG, GIF, WebP или AVIF.', false);
       return;
     }
     const data = await new Promise((resolve) => {
@@ -895,7 +895,7 @@ function choosePrismInstanceIcon(inst) {
     const next = { ...prismInstanceIcons, [String(inst.id)]: data };
     if (!savePrismInstanceIcons(next)) return;
     renderLibrary();
-    showToast(`Иконка для «${inst.name || 'сборки'}» обновлена.`);
+    showToast(`Фото для «${inst.name || 'сборки'}» обновлено.`);
   }, { once: true });
   input.click();
 }
@@ -1451,7 +1451,7 @@ function syncPrismQuickActions() {
     if (deleteButton) deleteButton.textContent = '▤ Удалить';
   }
   const iconButton = actions.querySelector('[data-action="icon"]');
-  if (iconButton) iconButton.textContent = prismInstanceIcons[selectedId] ? '▧ Сменить иконку…' : '▧ Выбрать иконку…';
+  if (iconButton) iconButton.textContent = prismInstanceIcons[selectedId] ? '⇧ Загрузить другое фото…' : '⇧ Загрузить своё фото…';
   const resetIconButton = actions.querySelector('[data-action="reset-icon"]');
   if (resetIconButton) resetIconButton.hidden = !prismInstanceIcons[selectedId];
   if (actions.parentElement !== playUi) playUi.insertBefore(actions, $('pb-info') || null);

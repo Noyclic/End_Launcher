@@ -848,4 +848,10 @@ check(html.includes('<option value="quilt">Quilt</option>')
     && rs.includes('else if value.contains("quilt") { Ok(Some("quilt".into())) }'),
   'Prism create/edit dialogs and instance metadata must include Quilt alongside Fabric, Forge, and NeoForge');
 
+check(js.includes("Загрузить своё фото…")
+    && js.includes("Загрузить другое фото…")
+    && css.includes("/* Prism/Pinecone pass 38")
+    && css.includes("[data-action='icon'] {\n  display: flex !important;"),
+  'Prism must expose a custom-photo upload action and keep its quick-action buttons consistently sized');
+
 console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags, plus keyboard-navigable Prism profile tiles and search-aware collapsed groups.');

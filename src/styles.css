@@ -7177,3 +7177,38 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   border-color: #4b4b4b;
   background: #303030;
 }
+
+
+/* Prism/Pinecone pass 38 — offer custom profile photos without distorting the reference toolbar. */
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='icon'] {
+  display: flex !important;
+  order: 8;
+}
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='icon'],
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='edit'],
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='group'],
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='folder'],
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='export'],
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='duplicate'],
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='delete'],
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='shortcut'] {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+  min-height: 30px;
+  height: auto;
+  padding: 6px 9px;
+  font-size: 12px;
+  line-height: 1.25;
+  text-align: left;
+  white-space: normal;
+}
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='icon'] {
+  border: 1px solid #53616a;
+  background: #30383e;
+  color: #e3e9ed;
+}
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='icon']:hover {
+  background: #3a454d;
+  border-color: #7b8d98;
+}

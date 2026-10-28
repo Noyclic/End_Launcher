@@ -592,3 +592,39 @@
   .prism-instance-editor { padding: 13px; }
   :root[data-ui='prism'] #page-settings .prism-java-action-row button { flex: 1 1 140px; }
 }
+
+
+/* Prism/Pinecone pass 43 — accessible instance command menus and duplicate fidelity. */
+:root[data-ui='prism'] .inst-menu {
+  z-index: 1200;
+  min-width: 220px;
+  max-width: min(310px, calc(100vw - 24px));
+  padding: 5px;
+  border: 1px solid #505050;
+  border-radius: 4px;
+  background: #292929;
+  color: #e6e6e6;
+  box-shadow: 0 10px 30px #0009;
+}
+:root[data-ui='prism'] .inst-menu button {
+  display: block;
+  width: 100%;
+  min-height: 30px;
+  padding: 6px 9px;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: 12px/1.35 'Inter', sans-serif;
+  box-shadow: none;
+}
+:root[data-ui='prism'] .inst-menu button:hover,
+:root[data-ui='prism'] .inst-menu button:focus-visible {
+  outline: none;
+  background: #3c3c3c;
+  color: #fff;
+}
+:root[data-ui='prism'] .inst-menu button:focus-visible {
+  box-shadow: inset 2px 0 #91d47b;
+}

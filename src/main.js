@@ -550,6 +550,14 @@ function beginRenameInstance(inst, card) {
   input.addEventListener('blur', save);
 }
 
+let prismEmptyContextReturnFocus = null;
+function closePrismEmptyContextMenu({ restoreFocus = false } = {}) {
+  $('prism-empty-context-menu')?.remove();
+  if (restoreFocus && prismEmptyContextReturnFocus?.isConnected) {
+    prismEmptyContextReturnFocus.focus({ preventScroll: true });
+  }
+}
+
 function openPrismEmptyContextMenu(event) {
   if (currentUi !== 'prism' || event.button !== 2) return;
   const main = document.querySelector('.content main');
@@ -562,6 +570,9 @@ function openPrismEmptyContextMenu(event) {
   event.preventDefault();
   event.stopPropagation();
   closeMenus();
+  closePrismEmptyContextMenu();
+  prismEmptyContextReturnFocus = target instanceof HTMLElement ? target : page;
+  if (!prismEmptyContextReturnFocus.hasAttribute('tabindex')) prismEmptyContextReturnFocus.tabIndex = -1;
 
   const menu = mk('div', 'inst-menu');
   menu.id = 'prism-empty-context-menu';
@@ -588,7 +599,10 @@ function openPrismEmptyContextMenu(event) {
     menu.appendChild(button);
   };
 
-  addItem('＋ Добавить экземпляр…', () => openNewInstance());
+  addItem('＋ Добавить экземпляр…', async () => {
+    closePrismEmptyContextMenu({ restoreFocus: true });
+    await openNewInstance();
+  });
   addItem('⇩ Импортировать экземпляр…', () => {
     $('library-import')?.click();
   });
@@ -604,10 +618,9 @@ function openPrismEmptyContextMenu(event) {
 
 document.querySelector('.content main')?.addEventListener('contextmenu', openPrismEmptyContextMenu);
 document.addEventListener('keydown', (event) => {
-  const menu = $('prism-empty-context-menu');
-  if (event.key !== 'Escape' || !menu) return;
+  if (event.key !== 'Escape' || !$('prism-empty-context-menu')) return;
   event.preventDefault();
-  menu.remove();
+  closePrismEmptyContextMenu({ restoreFocus: true });
 });
 
 function toggleMenu(card, inst) {

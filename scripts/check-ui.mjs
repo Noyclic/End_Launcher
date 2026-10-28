@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const [html, js, css, rustConfig, rustInstances, rustMain] = await Promise.all([
+const [html, js, css, rustConfig, rustInstances, rustMain, rustJava] = await Promise.all([
   readFile(new URL('../src/index.html', import.meta.url), 'utf8'),
   readFile(new URL('../src/main.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/styles.css', import.meta.url), 'utf8'),
   readFile(new URL('../src-tauri/src/config.rs', import.meta.url), 'utf8'),
   readFile(new URL('../src-tauri/src/instances.rs', import.meta.url), 'utf8'),
   readFile(new URL('../src-tauri/src/main.rs', import.meta.url), 'utf8'),
+  readFile(new URL('../src-tauri/src/java.rs', import.meta.url), 'utf8'),
 ]);
 
 const check = (condition, message) => assert.ok(condition, message);
@@ -23,7 +24,7 @@ for (const id of ids) {
 check(duplicates.size === 0, 'Duplicate HTML id attributes: ' + [...duplicates].join(', '));
 
 for (const id of [
-  'play-ui', 'slot-page', 'slot-bar', 'launcher-banner',
+  'play-ui', 'slot-page', 'slot-bar', 'launcher-banner', 'stop-btn',
   'account-modal', 'account-modal-close', 'customizer-modal',
   'customizer-close', 'customizer-import', 'customizer-export',
   'welcome-layout', 'ui-styles'
@@ -482,6 +483,15 @@ check(/:root\[data-ui='prism'\] #library \.inst-card\s*\{[^}]*flex-direction:\s*
 check(css.includes(":root[data-ui='prism'] .playbar") && css.includes(":root[data-ui='prism'] #library .inst-name")
     && css.includes(":root[data-ui='prism'] .library-toolbar"),
   'Prism layout needs a separate launch panel, profile-label tiles, and compact toolbar');
+
+check(html.includes('id="stop-btn"')
+      && js.includes("invoke('stop_instance', { id: String(inst.id) })")
+      && js.includes("payload.stopped === true")
+      && rustMain.includes("java::stop_instance")
+      && rustJava.includes("pub fn stop_instance(id: String)")
+      && rustJava.includes("child.kill()")
+      && css.includes(":root[data-ui='prism'] .play-ui #stop-btn"),
+  'Prism Stop row must invoke the registered Rust process controller and report intentional stops separately from crashes');
 
 check(js.includes('function syncPrismSelectedInstance()')
     && js.includes('function syncPrismQuickActions()')

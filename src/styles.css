@@ -5414,3 +5414,55 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   border-color: #4c7741;
   background: #385b30;
 }
+
+
+/* Prism/Pinecone pass 7 — bring toolbar labels and action glyphs closer to the supplied 1:1 desktop capture. */
+:root[data-ui='prism'] .sidebar .nav-btn {
+  font-size: 11px;
+}
+:root[data-ui='prism'] .sidebar #library-add,
+:root[data-ui='prism'] .sidebar #prism-open-folder {
+  min-height: 27px;
+  padding: 4px 9px;
+  font-size: 11px;
+}
+:root[data-ui='prism'] .sidebar #library-add::before {
+  width: 17px;
+  height: 17px;
+  font-size: 14px;
+}
+:root[data-ui='prism'] .sidebar #library-add::after {
+  font-size: 11px;
+}
+:root[data-ui='prism'] .sidebar #prism-open-folder .prism-folder-icon {
+  width: 16px;
+  height: 12px;
+  flex-basis: 16px;
+}
+:root[data-ui='prism'] .sidebar #prism-open-folder .prism-folder-icon::before {
+  height: 9px;
+}
+:root[data-ui='prism'] .sidebar .library-toolbar-actions > button {
+  min-height: 27px;
+  padding: 4px 8px;
+  font-size: 11px;
+}
+:root[data-ui='prism'] .sidebar .library-search {
+  min-height: 27px;
+}
+:root[data-ui='prism'] .sidebar .library-search input {
+  font-size: 11px;
+}
+@media (max-width: 740px) {
+  :root[data-ui='prism'] .sidebar #library-add,
+  :root[data-ui='prism'] .sidebar #prism-open-folder {
+    min-height: 24px;
+    padding: 3px 6px;
+    font-size: 10px;
+  }
+  :root[data-ui='prism'] .sidebar .library-toolbar-actions > button {
+    min-height: 24px;
+    padding: 3px 6px;
+    font-size: 10px;
+  }
+}

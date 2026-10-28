@@ -906,6 +906,9 @@ function syncPrismQuickActions() {
         .find((element) => element.dataset.instanceId === String(inst.id));
       beginRenameInstance(inst, card);
     });
+    addAction('group', '▤ Изменить группу…', async (inst, button) => {
+      openPrismGroupEditor(inst, button, actions);
+    });
     addAction('delete', '▤ Удалить', async (inst, button) => {
       const id = String(inst.id);
       if (actions.dataset.armedDeleteId !== id) {
@@ -922,6 +925,7 @@ function syncPrismQuickActions() {
   if (actions.dataset.instanceId !== selectedId) {
     actions.dataset.instanceId = selectedId;
     actions.dataset.armedDeleteId = '';
+    actions.querySelector('.prism-group-editor')?.remove();
     const deleteButton = actions.querySelector('[data-action="delete"]');
     if (deleteButton) deleteButton.textContent = '▤ Удалить';
   }

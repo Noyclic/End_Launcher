@@ -1,5 +1,12 @@
 # Changelog
 
+## Prism/Pinecone reference pass 21
+
+- A double-click on an instance tile now selects and launches that exact Java instance in Prism mode, matching the desktop-launcher interaction pattern.
+- Click-to-select and the separate Play button remain unchanged; double-clicking embedded buttons or form controls is ignored.
+- Added a UI regression assertion for the Prism-only behavior.
+
+
 ## Prism/Pinecone reference pass 20
 
 - Preserved the AI assistant page in Prism mode by moving its existing navigation button into the overflow menu with search, sort, import, and extra controls instead of hiding it.

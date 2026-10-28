@@ -1,5 +1,13 @@
 # Changelog
 
+## Prism/Pinecone reference pass 12
+
+- Matched the Settings toolbar label to Prism's “Параметры…” wording in Prism mode; it restores “Настройки” and its original title when switching back to the other End Launcher layouts.
+- Replaced inline Help/Update glyphs with CSS-owned icon treatments: a circled question mark and a blue cloud/download indicator, preserving End Launcher functionality and avoiding copied third-party artwork.
+- Fixed the update handler to restore only the label so the pseudo-icon is not duplicated after the check completes.
+- Added UI regression assertions for the dynamic Settings label, header pseudo-icons, and the update button reset text.
+
+
 ## Prism/Pinecone reference pass 10
 
 - Play-time statistics now checkpoint every 15 seconds and again on page hide, so a sudden WebView close loses at most the most recent interval rather than the entire active session.

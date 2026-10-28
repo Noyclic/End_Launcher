@@ -59,6 +59,8 @@ jobs:
               get_accounts: { active: 'offline', microsoft: null, ely: null },
               get_ms_client_id: '',
               create_instance: { id: 'visual-test', name: 'Visual Test', version: '1.21.1', loader: 'fabric' },
+              update_instance: { id: '1001', name: 'Renamed by visual test', version: '1.21.1', loader: 'fabric' },
+              pick_local_path: null,
               list_instances: [
                 { id: 1001, name: 'Prism Preview - Fabric', version: '1.21.1', loader: 'fabric' },
                 { id: 1002, name: 'Vanilla Preview', version: '1.20.1', loader: 'vanilla' },
@@ -375,6 +377,69 @@ jobs:
           const appearanceVisible = await page.locator('#catpack-settings').evaluate((el) => !el.hidden);
           if (!appearanceVisible) throw new Error('Prism appearance settings did not expose the cat/background controls.');
           await page.screenshot({ path: 'artifacts/ui/prism-settings-appearance.png', fullPage: true });
+
+          // The Java page must wire automatic selection, file browsing, and a real version check.
+          await page.locator('[data-prism-settings-tab="java"]').click();
+          await page.locator('#adv-java-check').click();
+          const javaCheckCalled = await page.evaluate(() =>
+            window.__TAURI_CALL_LOG.some((entry) => entry.command === 'check_java' && entry.args?.id === '1.21.1'));
+          if (!javaCheckCalled) throw new Error('Prism Java check did not query the selected Minecraft version.');
+          await page.locator('#adv-java-browse').click();
+          const javaPickerCalled = await page.evaluate(() =>
+            window.__TAURI_CALL_LOG.some((entry) => entry.command === 'pick_local_path' && entry.args?.kind === 'java'));
+          if (!javaPickerCalled) throw new Error('Java browse button did not use the native path picker.');
+
+          // Verify the instance editor opens as a viewport modal and persists edits through Rust.
+          await page.evaluate(() => window.__EL_TEST__.openPrismInstanceEditor(
+            { id: '1001', name: 'Prism Preview - Fabric', version: '1.21.1', loader: 'fabric' }, null, null));
+          const editModalState = await page.evaluate(() => {
+            const overlay = document.getElementById('prism-instance-editor-modal');
+            const rect = overlay?.getBoundingClientRect();
+            return {
+              visible: !!overlay && getComputedStyle(overlay).display !== 'none',
+              ariaModal: overlay?.querySelector('[role="dialog"]')?.getAttribute('aria-modal'),
+              fields: overlay?.querySelectorAll('input,select').length || 0,
+              rect: rect ? { left: rect.left, top: rect.top, width: rect.width, height: rect.height } : null,
+            };
+          });
+          if (!editModalState.visible || editModalState.ariaModal !== 'true' || editModalState.fields !== 4
+              || Math.abs(editModalState.rect.left) > 1 || Math.abs(editModalState.rect.top) > 1
+              || Math.abs(editModalState.rect.width - 1440) > 2
+              || Math.abs(editModalState.rect.height - 900) > 2) {
+            throw new Error('Prism instance editor modal did not initialize at the full viewport.');
+          }
+          await page.screenshot({ path: 'artifacts/ui/prism-edit-instance.png', fullPage: true });
+          await page.locator('#prism-instance-editor-modal [aria-label="Имя экземпляра"]').fill('Renamed by visual test');
+          await page.locator('#prism-instance-editor-modal [aria-label="Группа экземпляра"]').fill('Edited Group');
+          await page.locator('#prism-instance-editor-modal .prism-instance-save').click();
+          await page.waitForFunction(() => {
+            try { return JSON.parse(localStorage.getItem('end-launcher-prism-instance-groups-v1') || '{}')['1001'] === 'Edited Group'; }
+            catch { return false; }
+          }, null, { timeout: 3000 });
+          const updateCall = await page.evaluate(() => window.__TAURI_CALL_LOG.some((entry) =>
+            entry.command === 'update_instance'
+              && entry.args?.id === '1001'
+              && entry.args?.name === 'Renamed by visual test'
+              && entry.args?.version === '1.21.1'
+              && entry.args?.loader === 'fabric'));
+          if (!updateCall) throw new Error('Prism instance editor did not invoke update_instance.');
+          await page.waitForFunction(() => !document.getElementById('prism-instance-editor-modal'));
+
+          await page.evaluate(async () => { await window.__EL_TEST__.openNewInstance(); });
+          await page.locator('[data-create-view="import"]').click();
+          await page.locator('#ni-import-archive').click();
+          const archivePickerCalled = await page.evaluate(() =>
+            window.__TAURI_CALL_LOG.some((entry) => entry.command === 'pick_local_path' && entry.args?.kind === 'archive'));
+          const cancelledImportMessage = await page.locator('#ni-msg').textContent();
+          if (!archivePickerCalled || !cancelledImportMessage.includes('Выбор отменён')) {
+            throw new Error('Prism archive picker did not call the native command or handle cancellation.');
+          }
+          await page.locator('#ni-import-folder').click();
+          const folderPickerCalled = await page.evaluate(() =>
+            window.__TAURI_CALL_LOG.some((entry) => entry.command === 'pick_local_path' && entry.args?.kind === 'folder'));
+          if (!folderPickerCalled) throw new Error('Prism folder picker did not call the native command.');
+          await page.evaluate(() => window.__EL_TEST__.closeNewInstance());
+
 
           await page.setViewportSize({ width: 1440, height: 900 });
           await page.evaluate(async () => {

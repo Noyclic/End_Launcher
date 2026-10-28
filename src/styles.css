@@ -6006,3 +6006,15 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 :root[data-ui='prism'] .play-ui .pb-info { order: 10; }
 :root[data-ui='prism'] .play-ui .pb-selects { order: 11; }
 :root[data-ui='prism'] .play-ui #tl-nick { order: 12; }
+
+
+/* Prism/Pinecone pass 17 — match the reference rail's final Create Shortcut entry. */
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='rename'] {
+  display: none !important;
+}
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='shortcut'] {
+  order: 7;
+}
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='mods'] { order: 8; }
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='icon'] { order: 9; }
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='reset-icon'] { order: 10; }

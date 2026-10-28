@@ -550,6 +550,66 @@ function beginRenameInstance(inst, card) {
   input.addEventListener('blur', save);
 }
 
+function openPrismEmptyContextMenu(event) {
+  if (currentUi !== 'prism' || event.button !== 2) return;
+  const main = document.querySelector('.content main');
+  const page = $('page-play');
+  if (!main || !page?.classList.contains('active')) return;
+  const target = event.target instanceof Element ? event.target : null;
+  if (target?.closest('.inst-card, button, input, select, textarea, a, [role="dialog"], .inst-menu, .prism-folders-menu, .prism-toolbar-overflow')) return;
+  if (target && !page.contains(target) && target !== main) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+  closeMenus();
+
+  const menu = mk('div', 'inst-menu');
+  menu.id = 'prism-empty-context-menu';
+  menu.dataset.contextMenu = 'true';
+  menu.setAttribute('role', 'menu');
+  menu.setAttribute('aria-label', 'Действия библиотеки экземпляров');
+  menu.addEventListener('contextmenu', (e) => e.preventDefault());
+  menu.addEventListener('click', (e) => e.stopPropagation());
+
+  const addItem = (label, action) => {
+    const button = mk('button', '', label);
+    button.type = 'button';
+    button.setAttribute('role', 'menuitem');
+    button.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeMenus();
+      try {
+        await action();
+      } catch (error) {
+        showToast('Не удалось выполнить действие: ' + String(error), false);
+      }
+    });
+    menu.appendChild(button);
+  };
+
+  addItem('＋ Добавить экземпляр…', () => openNewInstance());
+  addItem('⇩ Импортировать экземпляр…', () => {
+    $('library-import')?.click();
+  });
+  addItem('↻ Обновить список', () => loadInstances());
+
+  const width = Math.min(248, Math.max(210, window.innerWidth - 16));
+  const estimatedHeight = Math.min(180, Math.max(100, window.innerHeight - 16));
+  menu.style.left = `${Math.max(8, Math.min(event.clientX, window.innerWidth - width - 8))}px`;
+  menu.style.top = `${Math.max(8, Math.min(event.clientY, window.innerHeight - estimatedHeight - 8))}px`;
+  document.body.appendChild(menu);
+  menu.querySelector('button')?.focus();
+}
+
+document.querySelector('.content main')?.addEventListener('contextmenu', openPrismEmptyContextMenu);
+document.addEventListener('keydown', (event) => {
+  const menu = $('prism-empty-context-menu');
+  if (event.key !== 'Escape' || !menu) return;
+  event.preventDefault();
+  menu.remove();
+});
+
 function toggleMenu(card, inst) {
   const had = card.querySelector('.inst-menu');
   closeMenus();

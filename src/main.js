@@ -518,6 +518,38 @@ function closeMenus() {
 }
 document.addEventListener('click', closeMenus);
 
+function beginRenameInstance(inst, card) {
+  const nameEl = card?.querySelector('.inst-name');
+  if (!nameEl) {
+    showToast('Не удалось найти выбранный экземпляр в списке.', false);
+    return;
+  }
+  const input = mk('input');
+  input.value = inst.name;
+  input.maxLength = 40;
+  nameEl.replaceChildren(input);
+  input.focus();
+  input.select();
+  input.addEventListener('click', (e) => e.stopPropagation());
+  let saved = false;
+  const save = async () => {
+    if (saved) return;
+    saved = true;
+    try {
+      // -> Rust: instances.rs :: rename_instance(id, name)
+      await invoke('rename_instance', { id: inst.id, name: input.value });
+    } catch (e) {
+      $('play-status').textContent = String(e);
+    }
+    await loadInstances();
+  };
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') save();
+    if (e.key === 'Escape') { saved = true; loadInstances(); }
+  });
+  input.addEventListener('blur', save);
+}
+
 function toggleMenu(card, inst) {
   const had = card.querySelector('.inst-menu');
   closeMenus();
@@ -559,33 +591,7 @@ function toggleMenu(card, inst) {
       showToast(`Архив создан: ${path}`);
     } catch (e) { showToast(`Не удалось экспортировать: ${e}`, false); }
   });
-  item('✎ Переименовать', () => {
-    const nameEl = card.querySelector('.inst-name');
-    const input = mk('input');
-    input.value = inst.name;
-    input.maxLength = 40;
-    nameEl.replaceChildren(input);
-    input.focus();
-    input.select();
-    input.addEventListener('click', (e) => e.stopPropagation());
-    let saved = false;
-    const save = async () => {
-      if (saved) return;
-      saved = true;
-      try {
-        // -> Rust: instances.rs :: rename_instance(id, name)
-        await invoke('rename_instance', { id: inst.id, name: input.value });
-      } catch (e) {
-        $('play-status').textContent = String(e);
-      }
-      await loadInstances();
-    };
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') save();
-      if (e.key === 'Escape') { saved = true; loadInstances(); }
-    });
-    input.addEventListener('blur', save);
-  });
+  item('✎ Переименовать', () => beginRenameInstance(inst, card));
 
   item(favoriteInstanceIds.has(String(inst.id)) ? '★ Убрать из избранного' : '☆ В избранное', async () => {
     toggleFavoriteInstance(inst.id);
@@ -756,6 +762,84 @@ function syncPrismSelectedInstance() {
   }
   const play = $('play-ui');
   if (play && summary.parentElement !== bar) bar.insertBefore(summary, play);
+  syncPrismQuickActions();
+}
+
+function syncPrismQuickActions() {
+  const playUi = $('play-ui');
+  let actions = $('prism-quick-actions');
+  if (currentUi !== 'prism') {
+    actions?.remove();
+    return;
+  }
+  if (!playUi) return;
+  if (!actions) {
+    actions = document.createElement('div');
+    actions.id = 'prism-quick-actions';
+    actions.className = 'prism-quick-actions';
+    actions.setAttribute('aria-label', 'Действия с выбранным экземпляром');
+    const addAction = (id, label, handler) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.dataset.action = id;
+      button.textContent = label;
+      button.addEventListener('click', async () => {
+        const inst = instances.find((item) => String(item.id) === String(activeId));
+        if (!inst) {
+          showToast('Сначала выбери сборку.', false);
+          return;
+        }
+        try {
+          await handler(inst, button);
+        } catch (error) {
+          showToast(String(error), false);
+        }
+      });
+      actions.appendChild(button);
+    };
+    addAction('mods', '🧩 Моды', async (inst) => {
+      await setActive(inst.id);
+      refreshInstalled();
+      goPage('mods');
+    });
+    addAction('folder', '📂 Папка', async (inst) => {
+      await invoke('open_instance_folder', { id: inst.id });
+    });
+    addAction('export', '⇩ Экспортировать…', async (inst) => {
+      const path = await invoke('export_instance', { id: inst.id });
+      showToast(`Архив создан: ${path}`);
+    });
+    addAction('duplicate', '⧉ Копировать…', async (inst) => {
+      const created = await invoke('duplicate_instance', { id: inst.id });
+      await loadInstances();
+      await setActive(created.id);
+      showToast(`Создана копия «${created.name}»`);
+    });
+    addAction('rename', '✎ Переименовать…', async (inst) => {
+      const card = [...document.querySelectorAll('#library .inst-card[data-instance-id]')]
+        .find((element) => element.dataset.instanceId === String(inst.id));
+      beginRenameInstance(inst, card);
+    });
+    let armedForDelete = null;
+    addAction('delete', '▤ Удалить', async (inst, button) => {
+      const id = String(inst.id);
+      if (armedForDelete !== id) {
+        armedForDelete = id;
+        button.textContent = '⚠ Нажми ещё раз — удалить';
+        return;
+      }
+      await invoke('delete_instance', { id: inst.id });
+      armedForDelete = null;
+      await loadInstances();
+    });
+  }
+  const selectedId = String(activeId ?? '');
+  if (actions.dataset.instanceId !== selectedId) {
+    actions.dataset.instanceId = selectedId;
+    const deleteButton = actions.querySelector('[data-action="delete"]');
+    if (deleteButton) deleteButton.textContent = '▤ Удалить';
+  }
+  if (actions.parentElement !== playUi) playUi.insertBefore(actions, $('pb-info') || null);
 }
 
 function renderLibrary() {

@@ -636,6 +636,102 @@ let officialInstanceSort = (() => {
   try { return localStorage.getItem('el-official-instance-sort') || 'name'; } catch { return 'name'; }
 })();
 const naturalCompare = (a, b) => String(a ?? '').localeCompare(String(b ?? ''), undefined, { numeric: true, sensitivity: 'base' });
+
+const PRISM_INSTANCE_ICONS_STORE = 'end-launcher-prism-instance-icons-v1';
+const PRISM_ICON_MAX_CHARS = 360_000;
+const PRISM_ICON_TOTAL_MAX_CHARS = 1_500_000;
+const isPrismIconData = (value) => typeof value === 'string'
+  && value.length <= PRISM_ICON_MAX_CHARS
+  && /^data:image\/(?:png|jpeg|gif|webp|avif);base64,[A-Za-z0-9+/]+={0,2}$/.test(value);
+let prismInstanceIcons = (() => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(PRISM_INSTANCE_ICONS_STORE) || '{}');
+    if (!stored || typeof stored !== 'object' || Array.isArray(stored)) return {};
+    return Object.fromEntries(Object.entries(stored)
+      .filter(([id, data]) => id && isPrismIconData(data))
+      .map(([id, data]) => [String(id), data]));
+  } catch { return {}; }
+})();
+function savePrismInstanceIcons(next) {
+  const entries = Object.entries(next).filter(([id, data]) => id && isPrismIconData(data));
+  const totalChars = entries.reduce((sum, [, data]) => sum + data.length, 0);
+  if (totalChars > PRISM_ICON_TOTAL_MAX_CHARS) {
+    showToast('Суммарный размер иконок Prism слишком велик. Удали несколько пользовательских иконок.', false);
+    return false;
+  }
+  const safeNext = Object.fromEntries(entries.map(([id, data]) => [String(id), data]));
+  try {
+    localStorage.setItem(PRISM_INSTANCE_ICONS_STORE, JSON.stringify(safeNext));
+  } catch {
+    showToast('Не удалось сохранить иконку: локальное хранилище заполнено или недоступно.', false);
+    return false;
+  }
+  prismInstanceIcons = safeNext;
+  return true;
+}
+function applyPrismInstanceIcon(target, inst) {
+  if (!target || !inst) return;
+  const src = prismInstanceIcons[String(inst.id)];
+  let image = target.querySelector(':scope > img.prism-custom-instance-icon');
+  if (!isPrismIconData(src)) {
+    image?.remove();
+    target.classList.remove('has-custom-icon');
+    return;
+  }
+  target.classList.add('has-custom-icon');
+  if (!image) {
+    image = document.createElement('img');
+    image.className = 'prism-custom-instance-icon';
+    image.alt = '';
+    image.draggable = false;
+    image.setAttribute('aria-hidden', 'true');
+    target.appendChild(image);
+  }
+  if (image.src !== src) image.src = src;
+}
+function choosePrismInstanceIcon(inst) {
+  if (!inst) return;
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/png,image/jpeg,image/gif,image/webp,image/avif';
+  input.tabIndex = -1;
+  input.setAttribute('aria-label', 'Выбрать пользовательскую иконку сборки');
+  input.style.position = 'fixed';
+  input.style.left = '-10000px';
+  input.style.width = '1px';
+  input.style.height = '1px';
+  document.body.appendChild(input);
+  const removeInput = () => input.remove();
+  input.addEventListener('cancel', removeInput, { once: true });
+  input.addEventListener('change', async () => {
+    const file = input.files?.[0];
+    removeInput();
+    if (!file) return;
+    if (file.size > 256 * 1024) {
+      showToast('Иконка должна быть меньше 256 КБ. Выбери PNG, JPG, GIF, WebP или AVIF.', false);
+      return;
+    }
+    if (file.type && !['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif'].includes(file.type)) {
+      showToast('Формат не поддерживается. Выбери PNG, JPG, GIF, WebP или AVIF.', false);
+      return;
+    }
+    const data = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    });
+    if (!isPrismIconData(data)) {
+      showToast('Не удалось прочитать иконку или файл превышает лимит.', false);
+      return;
+    }
+    const next = { ...prismInstanceIcons, [String(inst.id)]: data };
+    if (!savePrismInstanceIcons(next)) return;
+    renderLibrary();
+    showToast(`Иконка для «${inst.name || 'сборки'}» обновлена.`);
+  }, { once: true });
+  input.click();
+}
 const PRISM_INSTANCE_GROUPS_STORE = 'end-launcher-prism-instance-groups-v1';
 let prismInstanceGroups = (() => {
   try {
@@ -840,6 +936,7 @@ function syncPrismSelectedInstance() {
   if (selected) {
     const loader = String(selected.loader || 'vanilla').toLowerCase();
     icon.dataset.loader = loader;
+    applyPrismInstanceIcon(icon, selected);
     name.textContent = selected.name || selected.version || 'Minecraft';
     version.textContent = selected.version ? `Minecraft ${selected.version}` : 'Minecraft';
   } else {
@@ -888,6 +985,17 @@ function syncPrismQuickActions() {
       refreshInstalled();
       goPage('mods');
     });
+
+    addAction('icon', '▧ Выбрать иконку…', async (inst) => {
+      choosePrismInstanceIcon(inst);
+    });
+    addAction('reset-icon', '× Сбросить иконку', async (inst) => {
+      const next = { ...prismInstanceIcons };
+      delete next[String(inst.id)];
+      if (!savePrismInstanceIcons(next)) return;
+      renderLibrary();
+      showToast(`Для «${inst.name || 'сборки'}» восстановлена стандартная иконка.`);
+    });
     addAction('group', '▤ Изменить группу…', async (inst, button) => {
       openPrismGroupEditor(inst, button, actions);
     });
@@ -929,6 +1037,10 @@ function syncPrismQuickActions() {
     const deleteButton = actions.querySelector('[data-action="delete"]');
     if (deleteButton) deleteButton.textContent = '▤ Удалить';
   }
+  const iconButton = actions.querySelector('[data-action="icon"]');
+  if (iconButton) iconButton.textContent = prismInstanceIcons[selectedId] ? '▧ Сменить иконку…' : '▧ Выбрать иконку…';
+  const resetIconButton = actions.querySelector('[data-action="reset-icon"]');
+  if (resetIconButton) resetIconButton.hidden = !prismInstanceIcons[selectedId];
   if (actions.parentElement !== playUi) playUi.insertBefore(actions, $('pb-info') || null);
 }
 
@@ -1028,6 +1140,7 @@ function renderLibrary() {
     });
     const icon = mk('div', 'inst-icon', (inst.name[0] || '?').toUpperCase());
     icon.dataset.loader = String(inst.loader || 'vanilla').toLowerCase();
+    if (currentUi === 'prism') applyPrismInstanceIcon(icon, inst);
     card.append(
       icon,
       mk('div', 'inst-name', inst.name),

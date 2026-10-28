@@ -1,5 +1,13 @@
 # Changelog
 
+## Prism/Pinecone reference pass 7
+
+- Aligned the floating P2P control's right offset with the narrowed 164 px desktop action rail (and 156 px compact breakpoint) so it no longer reserves space for the old 264 px panel.
+- Reduced the visible right rail to the seven reference actions: Edit, Change Group, Folder, Export, Copy, Delete, Create Shortcut.
+- Kept End Launcher features accessible: Mods, custom icon selection, and reset-icon move to the existing instance context menu, with Reset shown only when a custom icon is set.
+- Extended UI regression checks for the responsive P2P offset and for context-menu access to the moved actions.
+
+
 ## Prism/Pinecone reference pass 6
 
 - Corrected the Folders menu to match Prism's global-folder pattern: launcher root, central instances directory, and shared mods directory. The selected-instance folder remains on the right rail and in the instance context menu.

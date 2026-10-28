@@ -1,5 +1,13 @@
 # Changelog
 
+## Prism/Pinecone reference pass 2
+
+- Moved the existing Add Instance and Open Folder buttons into the compact top action strip for Prism mode, preserving their original DOM IDs and event handlers.
+- Added original CSS-only Qt-inspired button treatment and retained the search, import, extras, and list-view controls in the library area.
+- Switching away from Prism returns both buttons to their original library-toolbar positions.
+- Runtime and interaction validation are still pending.
+
+
 ## Prism/Pinecone reference pass 1
 
 - Tuned the Prism-inspired window proportions against the supplied PineconeMC screenshot: compact top strip, narrower right-side action rail, tighter toolbar spacing, and a denser instance shelf.

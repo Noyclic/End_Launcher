@@ -1743,7 +1743,7 @@ for (const id of ['library-toolbar-actions', 'prism-library-tools']) {
     prismToolbarHome[id] = marker;
   }
 }
-const prismOverflowIds = ['library-search-control', 'library-view', 'library-import', 'layout-extras-toggle', 'prism-library-tools'];
+const prismOverflowIds = ['library-search-control', 'library-view', 'library-import', 'layout-extras-toggle', 'prism-library-tools', 'nav-ai-button'];
 const prismOverflowHome = {};
 for (const id of prismOverflowIds) {
   if (id === 'prism-library-tools') continue;

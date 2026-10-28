@@ -548,8 +548,12 @@ check(js.includes('function openPrismInstanceEditor(inst, button, actions)')
 check(html.includes('id="prism-status-bar"')
     && css.includes(':root[data-ui=\'prism\'] #prism-status-bar')
     && css.includes('grid-template-rows: 38px minmax(0, 1fr) 56px')
-    && js.includes("statusBar.hidden = currentUi !== 'prism'"),
-  'Prism layout must include a hidden-by-default, responsive two-row status bar');
+    && js.includes("statusBar.hidden = currentUi !== 'prism'")
+    && html.includes('id="prism-status-news-link"')
+    && js.includes("await invoke('open_url', { url: 'https://github.com/Noyclic/End_Launcher/releases' })")
+    && css.includes(".prism-status-news-link::before")
+    && html.includes('id="prism-status-active"'),
+  'Prism footer should provide a working news/release link and keep selected-instance state in its two-row status bar');
 check(html.includes('id="nav-ai-button" class="nav-btn" data-page="ai"')
       && js.includes("'nav-ai-button'")
       && js.includes("const prismOverflowIds =")

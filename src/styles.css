@@ -4720,3 +4720,155 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
     justify-self: start;
   }
 }
+
+
+/* Prism/Pinecone reference pass 1 — proportions sampled from the supplied screenshots.
+   Keep End Launcher branding and existing handlers; tune geometry rather than copying artwork. */
+:root[data-ui='prism'] .layout {
+  grid-template-columns: minmax(0, 1fr) 164px;
+  grid-template-rows: 36px minmax(0, 1fr);
+}
+:root[data-ui='prism'] .sidebar {
+  min-height: 36px;
+  height: 36px;
+  flex-wrap: nowrap;
+  gap: 7px;
+  padding: 3px 8px;
+  border-bottom-color: #414141;
+}
+:root[data-ui='prism'] .logo-cube {
+  width: 24px;
+  height: 24px;
+  font-size: 13px;
+}
+:root[data-ui='prism'] .sidebar nav {
+  gap: 1px;
+  height: 100%;
+}
+:root[data-ui='prism'] .nav-btn {
+  align-self: stretch;
+  padding: 4px 7px;
+  font-size: 10px;
+}
+:root[data-ui='prism'] .nav-btn .ico {
+  font-size: 13px;
+}
+:root[data-ui='prism'] .account {
+  flex-basis: 154px;
+  max-width: 190px;
+  padding: 2px 5px;
+}
+:root[data-ui='prism'] .avatar {
+  width: 24px;
+  height: 24px;
+  flex-basis: 24px;
+}
+:root[data-ui='prism'] .content main {
+  padding: 3px 3px 12px;
+}
+:root[data-ui='prism'] #page-play .library-toolbar {
+  min-height: 27px;
+  margin: 0;
+  padding: 0 2px 4px;
+  border-bottom-color: #414141;
+}
+:root[data-ui='prism'] #page-play .library-toolbar-heading,
+:root[data-ui='prism'] #page-play .library-toolbar-title,
+:root[data-ui='prism'] #page-play .library-count {
+  display: none;
+}
+:root[data-ui='prism'] #page-play .library-toolbar-actions {
+  flex: 1 1 auto;
+  justify-content: flex-start;
+  gap: 4px;
+}
+:root[data-ui='prism'] #page-play .library-toolbar-actions > button {
+  min-height: 25px;
+  padding: 3px 7px;
+  font-size: 10px;
+}
+:root[data-ui='prism'] #page-play .library-search {
+  flex: 0 1 170px;
+  max-width: 210px;
+  min-height: 25px;
+}
+:root[data-ui='prism'] #prism-library-tools {
+  margin: 0;
+  padding: 3px 2px 5px;
+  border-bottom: 0;
+  gap: 6px;
+}
+:root[data-ui='prism'] #library {
+  grid-template-columns: repeat(auto-fill, minmax(108px, 108px));
+  align-content: start;
+  justify-content: start;
+  gap: 1px;
+  padding: 1px;
+}
+:root[data-ui='prism'] #library .library-group-heading {
+  margin-top: 5px;
+  padding: 3px 2px;
+}
+:root[data-ui='prism'] #library .inst-card {
+  min-height: 89px;
+  padding: 4px 1px 2px;
+  gap: 3px;
+}
+:root[data-ui='prism'] #library .inst-icon {
+  width: 44px;
+  height: 44px;
+  flex-basis: 44px;
+  border-radius: 5px;
+  font-size: 16px;
+}
+:root[data-ui='prism'] #library .inst-name {
+  min-height: 21px;
+  padding: 4px 2px 3px;
+  background: transparent;
+  font-size: 10px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+:root[data-ui='prism'] #library .inst-card.active .inst-name {
+  background: #91d85a;
+  color: #17220e;
+}
+:root[data-ui='prism'] .playbar {
+  padding: 22px 7px 10px;
+  gap: 8px;
+  border-left-color: #414141;
+}
+:root[data-ui='prism'] .play-ui {
+  gap: 7px;
+}
+:root[data-ui='prism'] .play-ui #play-btn {
+  padding: 8px 6px;
+  font-size: 12px;
+}
+:root[data-ui='prism'] .pb-selects select,
+:root[data-ui='prism'] #tl-nick {
+  padding: 6px 5px;
+  font-size: 10px;
+}
+@media (max-width: 980px) {
+  :root[data-ui='prism'] .layout {
+    grid-template-columns: minmax(0, 1fr) 156px;
+  }
+  :root[data-ui='prism'] #library {
+    grid-template-columns: repeat(auto-fill, minmax(96px, 96px));
+  }
+}
+@media (max-width: 740px) {
+  :root[data-ui='prism'] .layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  :root[data-ui='prism'] .sidebar {
+    height: auto;
+    min-height: 36px;
+  }
+  :root[data-ui='prism'] .playbar {
+    padding: 8px;
+  }
+}

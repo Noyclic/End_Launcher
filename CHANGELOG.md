@@ -1,5 +1,12 @@
 # Changelog
 
+## Prism/Pinecone — selection cue refinement
+
+- Removed the legacy blue border/background cue from the selected tile icon in Prism mode; the reference's green label strip is the main active-selection marker.
+- Limited the change to the Prism selector so all other End Launcher layouts retain their current selection styling.
+- Added a regression assertion for the neutral icon and green name-strip combination.
+
+
 ## Prism/Pinecone — compact right rail and accessible launch selectors
 
 - Moved the existing Java/Bedrock and instance selectors as a single DOM-preserved control group into the toolbar overflow menu in Prism mode, and restores the group to its original slot when switching styles.

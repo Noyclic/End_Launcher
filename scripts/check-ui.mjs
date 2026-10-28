@@ -765,4 +765,13 @@ check(html.includes('id="prism-play-selects"')
     && css.includes("@media (max-width: 520px)"),
   'Prism right rail must stay focused on instance actions while Java/Bedrock and instance selectors remain available in the responsive overflow menu');
 
+
+check(css.includes("/* Prism/Pinecone pass 31")
+    && css.includes(":root[data-ui='prism'] #library .inst-card.active .inst-icon")
+    && css.includes("border-color: #3e3e3e;")
+    && css.includes("background-color: #363636;")
+    && css.includes("#library .inst-card.active .inst-name")
+    && css.includes("background: #91d85a;"),
+  'Prism selected tiles should use the green label strip as the primary selection cue and keep the icon border neutral');
+
 console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags.');

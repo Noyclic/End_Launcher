@@ -6463,3 +6463,12 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+
+/* Prism/Pinecone pass 31 — the green name strip is the selection marker; keep the tile icon neutral. */
+:root[data-ui='prism'] #library .inst-card.active .inst-icon {
+  border-color: #3e3e3e;
+  background-color: #363636;
+  color: transparent;
+  box-shadow: none;
+}

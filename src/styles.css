@@ -5647,3 +5647,8 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
     grid-column: 1 / -1;
   }
 }
+
+
+:root:not([data-ui='prism']) .prism-header-action {
+  display: none !important;
+}

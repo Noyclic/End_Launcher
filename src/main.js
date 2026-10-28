@@ -888,6 +888,9 @@ function syncPrismQuickActions() {
       refreshInstalled();
       goPage('mods');
     });
+    addAction('group', '▤ Изменить группу…', async (inst, button) => {
+      openPrismGroupEditor(inst, button, actions);
+    });
     addAction('folder', '📂 Папка', async (inst) => {
       await invoke('open_instance_folder', { id: inst.id });
     });
@@ -905,9 +908,6 @@ function syncPrismQuickActions() {
       const card = [...document.querySelectorAll('#library .inst-card[data-instance-id]')]
         .find((element) => element.dataset.instanceId === String(inst.id));
       beginRenameInstance(inst, card);
-    });
-    addAction('group', '▤ Изменить группу…', async (inst, button) => {
-      openPrismGroupEditor(inst, button, actions);
     });
     addAction('delete', '▤ Удалить', async (inst, button) => {
       const id = String(inst.id);

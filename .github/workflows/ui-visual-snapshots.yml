@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   screenshot:
-    name: Capture launcher UI screenshots
+    name: Capture Prism and End Launcher screenshots
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -27,7 +27,6 @@ jobs:
       - name: Start static server
         run: |
           python3 -m http.server 4173 --directory src > /tmp/end-launcher-http.log 2>&1 &
-          echo $! > /tmp/end-launcher-http.pid
           for i in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:4173/index.html >/dev/null; then exit 0; fi
             sleep 1
@@ -43,14 +42,34 @@ jobs:
           const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
           await page.addInitScript(() => {
             window.__TAURI__ = { core: { invoke: async () => null } };
+            localStorage.setItem('el-first-run-complete', '1');
+            localStorage.setItem('el-ui-style', 'prism');
+            localStorage.setItem('el-ui-style-v2', 'prism');
           });
           page.on('pageerror', error => console.error('PAGE ERROR:', error.message));
           await page.goto('http://127.0.0.1:4173/index.html', { waitUntil: 'networkidle', timeout: 30000 });
-          await page.waitForTimeout(1500);
-          await page.screenshot({ path: 'artifacts/ui/launcher-desktop.png', fullPage: true });
+          await page.waitForTimeout(1200);
+          // Explicitly apply Prism through the actual settings card if present, then return to Play.
+          const settingsNav = page.locator('#nav-settings-button');
+          if (await settingsNav.count()) await settingsNav.click();
+          const prismCard = page.locator('#ui-styles .theme-card').filter({ hasText: 'Prism / PineconeMC' }).first();
+          if (await prismCard.count()) await prismCard.click();
+          await page.waitForTimeout(700);
+          const playNav = page.locator('.nav-btn[data-page="play"]').first();
+          if (await playNav.count()) await playNav.click();
+          await page.waitForTimeout(1200);
+          await page.screenshot({ path: 'artifacts/ui/prism-pinecone-desktop.png', fullPage: true });
           await page.setViewportSize({ width: 390, height: 844 });
           await page.waitForTimeout(500);
-          await page.screenshot({ path: 'artifacts/ui/launcher-mobile.png', fullPage: true });
+          await page.screenshot({ path: 'artifacts/ui/prism-pinecone-mobile.png', fullPage: true });
+          // Also capture the classic End layout for comparison.
+          await page.setViewportSize({ width: 1440, height: 900 });
+          await page.locator('#nav-settings-button').click();
+          const endCard = page.locator('#ui-styles .theme-card').filter({ hasText: 'End (классический)' }).first();
+          if (await endCard.count()) await endCard.click();
+          await page.locator('.nav-btn[data-page="play"]').first().click();
+          await page.waitForTimeout(700);
+          await page.screenshot({ path: 'artifacts/ui/end-classic-desktop.png', fullPage: true });
           await browser.close();
           NODE
       - name: Upload UI screenshots

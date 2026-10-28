@@ -1,5 +1,12 @@
 # Changelog
 
+## Prism/Pinecone reference pass 12
+
+- The project-owned mark now acts as an accessible “Open instance library” navigation shortcut in Prism mode. This keeps the reference toolbar compact without trapping users on Settings or the AI page after the main Play shortcut is hidden.
+- The Settings toolbar label changes to “Параметры…” in Prism mode and restores to “Настройки” in other layouts.
+- Verified the changes are isolated to the Prism layout; a fresh Windows build and screenshot comparison remain the visual acceptance step.
+
+
 ## Prism/Pinecone reference pass 11
 
 - Reordered the compact desktop toolbar to follow the supplied capture: Add Instance, Folder, Settings, Help, Update, project-owned mark, overflow, and account.

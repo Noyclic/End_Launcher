@@ -1,0 +1,225 @@
+/* Prism/Pinecone visual repair pass — loaded after styles.css so the intended icon-first grid wins over legacy layout rules. */
+:root[data-ui='prism'] #library.grid:not(.list-view) .inst-card:not(.add) {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch;
+  justify-content: flex-start;
+  width: 108px;
+  min-width: 0;
+  min-height: 73px;
+  box-sizing: border-box;
+  gap: 3px;
+  padding: 3px 3px 0;
+  overflow: hidden;
+  text-align: center;
+}
+:root[data-ui='prism'] #library.grid:not(.list-view) .inst-card:not(.add) > .inst-icon {
+  display: grid;
+  place-items: center;
+  align-self: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  flex: 0 0 44px;
+  margin: 0;
+  box-sizing: border-box;
+}
+:root[data-ui='prism'] #library.grid:not(.list-view) .inst-card:not(.add) > .inst-name {
+  display: block;
+  align-self: stretch;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 22px;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 4px 2px 3px;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  background: transparent;
+  color: #dddddd;
+  font: 500 10px/1.15 'Inter', sans-serif;
+}
+:root[data-ui='prism'] #library.grid:not(.list-view) .inst-card.active:not(.add) > .inst-name {
+  min-height: 22px;
+  background: #91d85a;
+  color: #17220e;
+  font-weight: 600;
+}
+:root[data-ui='prism'] #library.grid:not(.list-view) .inst-card:not(.add) > .chip,
+:root[data-ui='prism'] #library.grid:not(.list-view) .inst-card:not(.add) > .inst-play,
+:root[data-ui='prism'] #library.grid:not(.list-view) .inst-card:not(.add) > .inst-more {
+  display: none !important;
+}
+
+/* The visible text is already provided by main.js; never duplicate it with a pseudo-element. */
+:root[data-ui='prism'] .sidebar #library-add {
+  font-size: 10px !important;
+}
+:root[data-ui='prism'] .sidebar #library-add::after {
+  content: none !important;
+}
+
+/* Reflow Prism for narrow screens: top command strip, scrollable library, launch rail, status footer. */
+@media (max-width: 740px) {
+  :root[data-ui='prism'] .layout {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    height: 100vh;
+    min-height: 0;
+    overflow: hidden;
+  }
+  :root[data-ui='prism'] .sidebar {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    align-content: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 4px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 38px;
+    padding: 6px;
+    box-sizing: border-box;
+    border-right: 0;
+    border-bottom: 1px solid #454545;
+  }
+  :root[data-ui='prism'] .content {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    height: auto;
+    overflow: hidden;
+  }
+  :root[data-ui='prism'] .content main {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    padding: 6px;
+    overflow: auto;
+  }
+  :root[data-ui='prism'] #library.grid:not(.list-view) {
+    grid-template-columns: repeat(auto-fill, minmax(84px, 108px));
+    justify-content: start;
+    gap: 4px 3px;
+    min-width: 0;
+    width: 100%;
+  }
+  :root[data-ui='prism'] #library.grid:not(.list-view) .inst-card:not(.add) {
+    width: 100%;
+    min-width: 0;
+  }
+  :root[data-ui='prism'] .playbar {
+    display: flex;
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+    max-height: 36vh;
+    box-sizing: border-box;
+    padding: 8px 10px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border: 0;
+    border-top: 1px solid #414141;
+  }
+  :root[data-ui='prism'] .prism-selected-instance {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    margin: 0 0 4px;
+    text-align: left;
+  }
+  :root[data-ui='prism'] .prism-selected-icon {
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+  }
+  :root[data-ui='prism'] .play-ui {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    flex-wrap: nowrap;
+    gap: 5px;
+    width: 100%;
+    min-width: 0;
+  }
+  :root[data-ui='prism'] .play-ui #play-btn {
+    order: 1;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+  :root[data-ui='prism'] .play-ui #stop-btn {
+    order: 2;
+    width: 100%;
+    min-width: 0;
+  }
+  :root[data-ui='prism'] .play-ui .pb-info {
+    order: 3;
+    flex: none;
+    width: 100%;
+    min-width: 0;
+  }
+  :root[data-ui='prism'] .play-ui .prism-quick-actions {
+    order: 4;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+    width: 100%;
+    min-width: 0;
+  }
+  :root[data-ui='prism'] .play-ui .prism-quick-actions button {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  :root[data-ui='prism'] .prism-status-bar {
+    display: flex;
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 48px;
+    height: auto;
+    box-sizing: border-box;
+  }
+  :root[data-ui='prism'] .prism-status-news-row,
+  :root[data-ui='prism'] .prism-status-meta-row {
+    min-width: 0;
+    padding-inline: 8px;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 420px) {
+  :root[data-ui='prism'] .sidebar .library-toolbar-actions {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+  :root[data-ui='prism'] .sidebar .library-search {
+    flex: 1 1 100%;
+    max-width: none;
+  }
+  :root[data-ui='prism'] .prism-status-news-row,
+  :root[data-ui='prism'] .prism-status-meta-row {
+    align-items: flex-start;
+  }
+}

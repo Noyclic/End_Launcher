@@ -146,9 +146,14 @@ jobs:
             const label = card?.querySelector(':scope > .inst-name');
             const add = document.querySelector('.sidebar #library-add');
             const sidebar = document.querySelector('.sidebar');
+            const fab = document.getElementById('p2p-fab');
+            const status = document.querySelector('.prism-status-bar');
+            const pet = document.querySelector('.pet');
             const cardRect = card?.getBoundingClientRect();
             const iconRect = icon?.getBoundingClientRect();
             const labelRect = label?.getBoundingClientRect();
+            const fabRect = fab?.getBoundingClientRect();
+            const statusRect = status?.getBoundingClientRect();
             return {
               cardDisplay: card ? getComputedStyle(card).display : 'missing',
               cardDirection: card ? getComputedStyle(card).flexDirection : 'missing',
@@ -157,6 +162,8 @@ jobs:
                 && labelRect.left >= cardRect.left - 1 && labelRect.right <= cardRect.right + 1,
               addAfterContent: add ? getComputedStyle(add, '::after').content : 'missing',
               sidebarOverflow: !!sidebar && sidebar.scrollWidth > sidebar.clientWidth + 2,
+              petDisplay: pet ? getComputedStyle(pet).display : 'missing',
+              p2pClearOfStatus: !!fabRect && !!statusRect && fabRect.bottom <= statusRect.top - 2,
               documentOverflow: document.documentElement.scrollWidth > window.innerWidth + 2,
             };
           });
@@ -167,6 +174,8 @@ jobs:
               || !prismGeometry.labelInsideCard
               || prismGeometry.addAfterContent !== 'none'
               || prismGeometry.sidebarOverflow
+              || prismGeometry.petDisplay !== 'none'
+              || !prismGeometry.p2pClearOfStatus
               || prismGeometry.documentOverflow) {
             throw new Error('Prism desktop geometry is broken; refusing to publish misleading screenshots.');
           }
@@ -186,6 +195,8 @@ jobs:
             const main = document.querySelector('.content main');
             const playbar = document.querySelector('.playbar');
             const status = document.querySelector('.prism-status-bar');
+            const fab = document.getElementById('p2p-fab');
+            const pet = document.querySelector('.pet');
             const rect = (element) => {
               if (!element) return null;
               const r = element.getBoundingClientRect();
@@ -202,6 +213,9 @@ jobs:
               main: rect(main),
               playbar: rect(playbar),
               status: rect(status),
+              p2pFab: rect(fab),
+              petDisplay: pet ? getComputedStyle(pet).display : 'missing',
+              p2pClearOfPlaybar: !!fab && !!playbar && fab.getBoundingClientRect().bottom <= playbar.getBoundingClientRect().top - 2,
               tileColumn: activeCard ? getComputedStyle(activeCard).flexDirection : 'missing',
               labelBelowIcon: !!iconRect && !!labelRect && labelRect.top >= iconRect.bottom - 1,
               playbarContained: !!playbar && playbar.scrollWidth <= playbar.clientWidth + 2,
@@ -220,6 +234,8 @@ jobs:
               || !prismMobileGeometry.playbarContained
               || !prismMobileGeometry.playbarVerticalFit
               || !prismMobileGeometry.layoutContained
+              || prismMobileGeometry.petDisplay !== 'none'
+              || !prismMobileGeometry.p2pClearOfPlaybar
               || !mobilePlaybar || !mobileStatus
               || mobilePlaybar.right > 392
               || mobileStatus.right > 392

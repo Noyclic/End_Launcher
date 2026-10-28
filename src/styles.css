@@ -6359,14 +6359,22 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   font: 700 10px/1 'Inter', sans-serif;
 }
 :root[data-ui='prism'] .sidebar #prism-update::before {
-  content: '☁↓';
+  content: '☁';
   display: inline-block;
   flex: 0 0 auto;
-  margin-right: 5px;
   color: #84b9ef;
-  font: 500 14px/1 'Inter', sans-serif;
-  letter-spacing: -3px;
-  white-space: nowrap;
+  font: 500 15px/1 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .sidebar #prism-update::after {
+  content: '↓';
+  display: inline-block;
+  flex: 0 0 auto;
+  position: relative;
+  margin-left: -6px;
+  margin-right: 5px;
+  transform: translateY(2px);
+  color: #84b9ef;
+  font: 600 10px/1 'Inter', sans-serif;
 }
 :root[data-ui='prism'] .sidebar #prism-help,
 :root[data-ui='prism'] .sidebar #prism-update {

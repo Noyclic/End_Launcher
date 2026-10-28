@@ -757,6 +757,101 @@ function savePrismInstanceGroup(inst, rawGroup) {
   prismInstanceGroups = next;
   return true;
 }
+function openPrismInstanceEditor(inst, button, actions) {
+  const existing = actions.querySelector('.prism-instance-editor');
+  if (existing) {
+    existing.remove();
+    return;
+  }
+  actions.querySelector('.prism-group-editor')?.remove();
+  const editor = document.createElement('section');
+  editor.className = 'prism-instance-editor';
+  editor.setAttribute('aria-label', 'Изменить параметры экземпляра');
+  const heading = document.createElement('strong');
+  heading.textContent = 'Редактировать экземпляр';
+  const makeField = (labelText, control) => {
+    const label = document.createElement('label');
+    label.className = 'prism-instance-edit-field';
+    const caption = document.createElement('span');
+    caption.textContent = labelText;
+    label.append(caption, control);
+    return label;
+  };
+  const nameInput = document.createElement('input');
+  nameInput.type = 'text';
+  nameInput.value = inst.name || '';
+  nameInput.maxLength = 40;
+  nameInput.autocomplete = 'off';
+  nameInput.setAttribute('aria-label', 'Имя экземпляра');
+  const versionInput = document.createElement('input');
+  versionInput.type = 'text';
+  versionInput.value = inst.version || '';
+  versionInput.maxLength = 32;
+  versionInput.autocomplete = 'off';
+  versionInput.setAttribute('aria-label', 'Версия Minecraft');
+  const loaderSelect = document.createElement('select');
+  loaderSelect.setAttribute('aria-label', 'Загрузчик Minecraft');
+  for (const [value, label] of [
+    ['vanilla', 'Vanilla'],
+    ['fabric', 'Fabric'],
+    ['forge', 'Forge'],
+    ['neoforge', 'NeoForge'],
+  ]) {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = label;
+    loaderSelect.appendChild(option);
+  }
+  loaderSelect.value = inst.loader || 'vanilla';
+  const note = document.createElement('p');
+  note.className = 'prism-instance-edit-note';
+  note.textContent = 'При смене версии или загрузчика проверь совместимость модов и миров.';
+  const buttons = document.createElement('div');
+  buttons.className = 'prism-instance-edit-buttons';
+  const save = document.createElement('button');
+  save.type = 'button';
+  save.textContent = 'Сохранить';
+  const cancel = document.createElement('button');
+  cancel.type = 'button';
+  cancel.textContent = 'Отмена';
+  cancel.addEventListener('click', () => editor.remove());
+  save.addEventListener('click', async () => {
+    const name = nameInput.value.trim();
+    const version = versionInput.value.trim();
+    const loader = loaderSelect.value;
+    if (!name || !version) {
+      showToast('Укажи имя и версию Minecraft.', false);
+      (!name ? nameInput : versionInput).focus();
+      return;
+    }
+    save.disabled = true;
+    cancel.disabled = true;
+    save.textContent = 'Сохраняю…';
+    try {
+      await invoke('update_instance', { id: inst.id, name, version, loader });
+      editor.remove();
+      await loadInstances();
+      showToast(`Параметры экземпляра «${name}» обновлены.`);
+    } catch (error) {
+      showToast('Не удалось изменить экземпляр: ' + String(error), false);
+      save.disabled = false;
+      cancel.disabled = false;
+      save.textContent = 'Сохранить';
+    }
+  });
+  buttons.append(save, cancel);
+  editor.append(
+    heading,
+    makeField('Имя', nameInput),
+    makeField('Версия Minecraft', versionInput),
+    makeField('Загрузчик', loaderSelect),
+    note,
+    buttons,
+  );
+  button.insertAdjacentElement('afterend', editor);
+  nameInput.focus();
+  nameInput.select();
+}
 function openPrismGroupEditor(inst, button, actions) {
   const existing = actions.querySelector('.prism-group-editor');
   if (existing) {
@@ -980,6 +1075,9 @@ function syncPrismQuickActions() {
       });
       actions.appendChild(button);
     };
+    addAction('edit', '✎ Изменить…', async (inst, button) => {
+      openPrismInstanceEditor(inst, button, actions);
+    });
     addAction('mods', '🧩 Моды', async (inst) => {
       await setActive(inst.id);
       refreshInstalled();

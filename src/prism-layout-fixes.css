@@ -223,3 +223,91 @@
     align-items: flex-start;
   }
 }
+
+
+/* Prism visual repair pass 2 — keep the selected profile's generated icon art visible.
+   Earlier selected-state shorthand rules reset background-image to none. */
+:root[data-ui='prism'] #library.grid:not(.list-view) .inst-card.active:not(.add) > .inst-icon:not(.has-custom-icon) {
+  background-color: #846447;
+  background-image:
+    linear-gradient(90deg, #0002, transparent 18%, transparent 82%, #fff1),
+    linear-gradient(#6d8e3b 0 0),
+    linear-gradient(#b8d66e 0 0),
+    linear-gradient(#789c43 0 0),
+    linear-gradient(#c2df7b 0 0),
+    linear-gradient(#6b8d3f 0 0),
+    linear-gradient(#a7cb5e 0 0),
+    linear-gradient(#74563e 0 0),
+    linear-gradient(#a1825a 0 0),
+    linear-gradient(#70523b 0 0),
+    linear-gradient(to bottom, #a8d064 0 35%, #9a7954 35%, #896849 62%, #79583d 100%);
+  background-size: 100% 100%, 17% 14%, 18% 11%, 13% 12%, 16% 9%, 12% 13%, 14% 12%, 18% 13%, 17% 12%, 12% 15%, 100% 100%;
+  background-position: 0 0, 0 5%, 36% 0, 73% 8%, 18% 22%, 82% 25%, 51% 24%, 4% 59%, 47% 72%, 81% 55%, 0 0;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+:root[data-ui='prism'] #library.grid:not(.list-view) .inst-card.active:not(.add) > .inst-icon[data-loader='fabric']:not(.has-custom-icon) {
+  background-color: #80c6ad;
+  background-image:
+    linear-gradient(90deg, #0002, transparent 18%, transparent 82%, #fff1),
+    linear-gradient(#8ad4bf 0 0),
+    linear-gradient(#b7e1d2 0 0),
+    linear-gradient(#579c89 0 0),
+    linear-gradient(#c1e6d9 0 0),
+    linear-gradient(#579c89 0 0),
+    linear-gradient(#b1ded0 0 0),
+    linear-gradient(to bottom, #80c6ad 0 35%, #7e7160 35%, #665a4b 100%);
+  background-size: 100% 100%, 17% 14%, 18% 11%, 13% 12%, 16% 9%, 12% 13%, 14% 12%, 100% 100%;
+  background-position: 0 0, 0 5%, 36% 0, 73% 8%, 18% 22%, 82% 25%, 51% 24%, 0 0;
+  background-repeat: no-repeat;
+}
+:root[data-ui='prism'] #library.grid:not(.list-view) .inst-card.active:not(.add) > .inst-icon[data-loader='forge']:not(.has-custom-icon) {
+  background-color: #a9604d;
+  background-image:
+    linear-gradient(90deg, #0002, transparent 18%, transparent 82%, #fff1),
+    linear-gradient(#b96b55 0 0),
+    linear-gradient(#db9e7b 0 0),
+    linear-gradient(#8f4d3d 0 0),
+    linear-gradient(#e0ab88 0 0),
+    linear-gradient(#8b4937 0 0),
+    linear-gradient(#ca8666 0 0),
+    linear-gradient(to bottom, #a9604d 0 35%, #7e6658 35%, #614a3e 100%);
+  background-size: 100% 100%, 17% 14%, 18% 11%, 13% 12%, 16% 9%, 12% 13%, 14% 12%, 100% 100%;
+  background-position: 0 0, 0 5%, 36% 0, 73% 8%, 18% 22%, 82% 25%, 51% 24%, 0 0;
+  background-repeat: no-repeat;
+}
+:root[data-ui='prism'] #library.grid:not(.list-view) .inst-card.active:not(.add) > .inst-icon[data-loader='neoforge']:not(.has-custom-icon) {
+  background-color: #c9a14d;
+  background-image:
+    linear-gradient(90deg, #0002, transparent 18%, transparent 82%, #fff1),
+    linear-gradient(#c69a4b 0 0),
+    linear-gradient(#e3cb7c 0 0),
+    linear-gradient(#96723b 0 0),
+    linear-gradient(#e9d18a 0 0),
+    linear-gradient(#8c6d37 0 0),
+    linear-gradient(#d1ae5e 0 0),
+    linear-gradient(to bottom, #c9a14d 0 35%, #7d6951 35%, #65523d 100%);
+  background-size: 100% 100%, 17% 14%, 18% 11%, 13% 12%, 16% 9%, 12% 13%, 14% 12%, 100% 100%;
+  background-position: 0 0, 0 5%, 36% 0, 73% 8%, 18% 22%, 82% 25%, 51% 24%, 0 0;
+  background-repeat: no-repeat;
+}
+
+@media (max-width: 740px) {
+  :root[data-ui='prism'] .playbar {
+    max-height: 40vh;
+  }
+  :root[data-ui='prism'] .play-ui .prism-quick-actions [data-action] {
+    min-height: 23px !important;
+    height: auto;
+    padding: 3px 5px !important;
+    font: 500 10px/1.15 'Inter', sans-serif !important;
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* CatPack remains available in Settings without adding a non-reference button to Prism's toolbar. */
+:root[data-ui='prism'] .sidebar #prism-cat-toggle {
+  display: none !important;
+}

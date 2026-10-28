@@ -1,5 +1,14 @@
 # Changelog
 
+## Prism/Pinecone reference pass 3
+
+- Reworked the top Folders action into a real dropdown instead of redundantly opening the selected instance directory.
+- Added menu actions for the selected instance folder, shared mods folder, and launcher folder using the existing Rust commands.
+- The folder menu closes on outside click, Escape, layout switching, and window resize; it positions itself against the trigger and has keyboard-accessible menu items.
+- Added UI regression checks for Settings toolbar relocation, restoring its original navigation slot in other modes, and the three folder actions.
+- Visual comparison with the running Windows build is still pending at the agreed 10-request checkpoint.
+
+
 ## Prism/Pinecone reference pass 2
 
 - Moved the Settings/Parameters control out of generic navigation and into the Prism-style top command strip; switching away from Prism restores the original navigation placement rather than cloning the control.

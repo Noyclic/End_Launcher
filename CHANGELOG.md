@@ -1,5 +1,12 @@
 # Changelog
 
+## Prism/Pinecone reference pass 10
+
+- Play-time statistics now checkpoint every 15 seconds and again on page hide, so a sudden WebView close loses at most the most recent interval rather than the entire active session.
+- The active session keeps its starting total separately, preventing periodic checkpoints from being counted twice when the game-exit event finalizes the session.
+- Extended the regression check to require the checkpoint function, page-hide handler and stable base-total accounting.
+
+
 ## Prism/Pinecone reference pass 11
 
 - The per-instance play-time tracker now finalizes and saves an active session on window/page close too, so a launcher exit before the Java process exit event does not discard the session accumulated so far.

@@ -1200,6 +1200,12 @@ function syncPrismToolbar(mode) {
       if (marker?.parentNode) marker.parentNode.insertBefore(element, marker.nextSibling);
     }
   }
+  const addButton = $('library-add');
+  if (addButton) {
+    const isPrism = mode === 'prism';
+    addButton.textContent = isPrism ? 'Добавить экземпляр…' : '＋ Добавить';
+    addButton.title = isPrism ? 'Добавить новый экземпляр Minecraft' : 'Создать новую сборку';
+  }
 }
 
 function applyUi(mode) {

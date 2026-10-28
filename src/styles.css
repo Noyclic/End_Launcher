@@ -5865,3 +5865,16 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
     flex-wrap: wrap;
   }
 }
+
+
+/* Prism/Pinecone pass 13 — put common selected-instance actions first, retain End extras afterwards. */
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='edit'] { order: 1; }
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='group'] { order: 2; }
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='folder'] { order: 3; }
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='export'] { order: 4; }
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='duplicate'] { order: 5; }
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='rename'] { order: 6; }
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='delete'] { order: 7; }
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='mods'] { order: 8; }
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='icon'] { order: 9; }
+:root[data-ui='prism'] .play-ui .prism-quick-actions [data-action='reset-icon'] { order: 10; }

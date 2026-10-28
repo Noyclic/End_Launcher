@@ -6232,3 +6232,22 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 :root[data-ui='prism'] .sidebar #prism-open-folder {
   gap: 4px;
 }
+
+
+/* Prism/Pinecone pass 23 — prevent the moved Settings control inheriting the full-width sidebar-nav rule. */
+:root[data-ui='prism'] .sidebar #nav-settings-button {
+  width: auto;
+  gap: 5px;
+}
+:root[data-ui='prism'] .sidebar #nav-settings-button .ico {
+  width: 14px;
+  flex: 0 0 14px;
+  font-size: 12px;
+  text-align: center;
+}
+:root[data-ui='prism'] .sidebar #nav-settings-button .lbl {
+  display: inline;
+  width: auto;
+  font-size: 10px;
+  white-space: nowrap;
+}

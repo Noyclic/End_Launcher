@@ -304,7 +304,7 @@ check(!!historyResetBlock && historyResetBlock[1].includes('localStorage.removeI
     && historyResetBlock[1].includes('queueHistoryCheckpoint();')
     && historyResetBlock[1].indexOf('state = createDefaultState();') < historyResetBlock[1].indexOf('queueHistoryCheckpoint();'),
   'Resetting the customization must itself be undoable without storing default values unnecessarily');
-check(css.includes('.customizer-history button:disabled{opacity:.38;cursor:not-allowed}'),
+check(/\.customizer-history button:disabled\{[^}]*opacity:\.38;[^}]*cursor:not-allowed/.test(css),
   'History buttons need a visible disabled state');
 
 console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags.');

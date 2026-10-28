@@ -952,3 +952,14 @@ check(html.includes('id="adv-java-browse"')
     && js.includes("invoke('check_java', { id: instance.version })")
     && js.includes("invoke('set_advanced', { jvmArgs: $('adv-jvm').value, javaPath: '' })"),
   'Prism Java settings must provide file browsing, automatic Java discovery, and version-aware checks');
+
+
+// Prism/Pinecone pass 42: export asks for a native destination and writes the archive there.
+check(js.includes('async function exportInstanceWithDialog(inst)')
+    && js.includes("invoke('pick_local_path', { kind: 'export' })")
+    && js.includes("invoke('export_instance_to_path', { id: inst.id, path })")
+    && rustInstances.includes('pub fn export_instance_to_path(id: String, path: String)')
+    && rustMain.includes('instances::export_instance_to_path,')
+    && rustInstances.includes('New-Object System.Windows.Forms.SaveFileDialog')
+    && rustInstances.includes('--confirm-overwrite'),
+  'Prism instance export must use a native Save As dialog and persist the archive to the selected ZIP path');

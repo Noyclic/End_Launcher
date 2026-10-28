@@ -1197,6 +1197,11 @@ function finishPrismPlaySession() {
   renderPrismFooterStats(selected);
 }
 
+// Persist a partial session if the launcher window closes before the game-exit event arrives.
+window.addEventListener('pagehide', () => {
+  finishPrismPlaySession();
+}, { once: true });
+
 window.setInterval(() => {
   if (currentUi !== 'prism' || !prismActivePlaySession) return;
   renderPrismFooterStats(instances.find((item) => String(item.id) === String(activeId)));

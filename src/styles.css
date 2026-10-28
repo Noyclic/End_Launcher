@@ -4305,3 +4305,37 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
     transition: none;
   }
 }
+
+
+/* The folder action uses a project-owned CSS icon and is exposed only in Prism mode. */
+:root:not([data-ui='prism']) #prism-open-folder { display: none !important; }
+:root[data-ui='prism'] .library-toolbar-actions > #library-add { order: 1; }
+:root[data-ui='prism'] .library-toolbar-actions > #prism-open-folder { order: 2; display: inline-flex; align-items: center; gap: 4px; }
+:root[data-ui='prism'] .library-toolbar-actions > .library-search { order: 3; }
+:root[data-ui='prism'] .library-toolbar-actions > #library-view { order: 4; }
+:root[data-ui='prism'] .library-toolbar-actions > #library-import { order: 5; }
+:root[data-ui='prism'] .library-toolbar-actions > #layout-extras-toggle { order: 6; }
+:root[data-ui='prism'] .prism-folder-icon { color: #b7c9d3; }
+.prism-folder-icon {
+  position: relative;
+  display: inline-block;
+  width: 12px;
+  height: 9px;
+  flex: 0 0 12px;
+  margin: 0 2px 0 0;
+  border: 1px solid currentColor;
+  border-radius: 1px;
+  vertical-align: -1px;
+  opacity: .9;
+}
+.prism-folder-icon::before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: 0;
+  width: 5px;
+  height: 3px;
+  border: 1px solid currentColor;
+  border-bottom: 0;
+  border-radius: 1px 1px 0 0;
+}

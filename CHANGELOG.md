@@ -1,5 +1,14 @@
 # Changelog
 
+## Prism/Pinecone reference pass 4
+
+- Consolidated the library action controls and Prism sort/group controls into the top application strip; the library now begins directly below it.
+- Preserved original nodes and handlers, with comment anchors returning the controls to their original positions when the user switches to another layout.
+- Always show the “Без группы” disclosure heading when Prism grouping is disabled, and hide the duplicate “new instance” tile because Add Instance is in the toolbar.
+- Added a two-row bottom status strip with the selected instance name/version and launcher status.
+- The active UI check and Windows build for the latest layout commits must finish before the pass can be considered validated; visual comparison remains pending.
+
+
 ## Prism/Pinecone reference pass 3
 
 - Added a live selected-instance preview to the right action rail (instance name and Minecraft version), updated whenever the selected instance changes.

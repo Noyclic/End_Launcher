@@ -3715,3 +3715,184 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   .layout-feature-tools button { flex:1 1 auto; }
   :root[data-ui='lunar'] #lunar-library-tools > span { flex-basis:100%; }
 }
+
+
+/* Prism fidelity pass: compact, Qt-like desktop controls without changing behavior. */
+:root[data-ui='prism'] .content main {
+  padding: 18px 22px;
+  background: #25292c;
+  color: #d9dfe3;
+}
+:root[data-ui='prism'] #page-play > h1,
+:root[data-ui='prism'] #page-play > .greet,
+:root[data-ui='prism'] #launcher-banner {
+  display: none;
+}
+:root[data-ui='prism'] .library-toolbar {
+  margin: 0 0 7px;
+  padding: 0 0 8px;
+  border-bottom: 1px solid #41464b;
+  gap: 8px;
+}
+:root[data-ui='prism'] .library-toolbar-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: #e4e8eb;
+}
+:root[data-ui='prism'] .library-count { color: #9da8af; }
+:root[data-ui='prism'] .library-toolbar-actions { gap: 5px; }
+:root[data-ui='prism'] .library-toolbar-actions > button {
+  padding: 6px 9px;
+  border: 1px solid #464d52;
+  border-radius: 4px;
+  background: #303539;
+  color: #d7dde1;
+  font-size: 11px;
+  box-shadow: none;
+}
+:root[data-ui='prism'] .library-toolbar-actions > button:hover {
+  background: #3b4247;
+  border-color: #66727a;
+  filter: none;
+}
+:root[data-ui='prism'] .library-search {
+  max-width: 250px;
+  border-radius: 4px;
+  border-color: #464d52;
+  background: #1d2124;
+}
+:root[data-ui='prism'] .library-search input {
+  color: #e0e5e8;
+  font-size: 12px;
+}
+:root[data-ui='prism'] #library {
+  gap: 4px;
+}
+:root[data-ui='prism'] #library .inst-card {
+  min-height: 54px;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 48px 7px 8px;
+  border: 1px solid #3b4146;
+  border-radius: 4px;
+  background: #2b3034;
+  box-shadow: none;
+  transform: none;
+}
+:root[data-ui='prism'] #library .inst-card:hover,
+:root[data-ui='prism'] #library .inst-card:focus-visible {
+  border-color: #687780;
+  background: #343b40;
+}
+:root[data-ui='prism'] #library .inst-card.active {
+  border-color: #7d9eb1;
+  background: #35434b;
+}
+:root[data-ui='prism'] #library .inst-icon {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 3px;
+  font-size: 15px;
+  background: #3c454b;
+  color: #dce5e9;
+  box-shadow: none;
+}
+:root[data-ui='prism'] #library .inst-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: #e1e6e9;
+}
+:root[data-ui='prism'] #library .chip {
+  align-self: center;
+  margin: 0;
+  padding: 2px 5px;
+  border: 1px solid #454f55;
+  border-radius: 3px;
+  background: #252b2f;
+  color: #aebbc2;
+  font: 10px 'Inter', sans-serif;
+}
+:root[data-ui='prism'] #library .inst-play {
+  top: 50%;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+  transform: translateY(-50%);
+  border: 1px solid #4d626e;
+  border-radius: 4px;
+  background: #34444c;
+  color: #dce7ec;
+  box-shadow: none;
+}
+:root[data-ui='prism'] #library .inst-card.add {
+  min-height: 42px;
+  justify-content: flex-start;
+  border-style: dashed;
+  background: transparent;
+}
+:root[data-ui='prism'] #library .inst-card.add .inst-icon { display: none; }
+:root[data-ui='prism'] .library-group-heading {
+  margin-top: 9px;
+  padding: 5px 2px;
+  border-color: #41484d;
+  color: #aebbc2;
+  font: 600 10px 'Inter', sans-serif;
+  letter-spacing: .04em;
+}
+:root[data-ui='prism'] .playbar {
+  background: #202427;
+  border-left-color: #41464b;
+}
+:root[data-ui='prism'] .play-ui #play-btn {
+  border: 1px solid #55717f;
+  border-radius: 4px;
+  background: #344a55;
+  color: #e3edf1;
+  box-shadow: none;
+  font-size: 14px;
+}
+:root[data-ui='prism'] .play-ui #play-btn::before { display: none; }
+:root[data-ui='prism'] .play-ui #play-btn:hover { background: #405b67; filter: none; }
+:root[data-ui='prism'] .pb-selects select,
+:root[data-ui='prism'] #tl-nick {
+  border: 1px solid #464d52;
+  border-radius: 4px;
+  background: #1d2124;
+  color: #dce2e6;
+}
+:root[data-ui='prism'] .progress {
+  height: 5px;
+  border-radius: 2px;
+  background: #3a4145;
+}
+:root[data-ui='prism'] #progress-bar { border-radius: 2px; }
+:root[data-ui='prism'] .account {
+  border-color: #41484d;
+  border-radius: 4px;
+  background: #252a2e;
+}
+:root[data-ui='prism'] .avatar {
+  border-radius: 3px;
+  background: #3c454b;
+  box-shadow: none;
+}
+@media (max-width: 900px) {
+  :root[data-ui='prism'] .layout { grid-template-columns: minmax(0, 1fr) 220px; }
+  :root[data-ui='prism'] .content main { padding: 14px; }
+  :root[data-ui='prism'] .library-toolbar-actions { flex-basis: 100%; justify-content: flex-start; flex-wrap: wrap; }
+}
+@media (max-width: 680px) {
+  :root[data-ui='prism'] .layout { display: flex; flex-direction: column; }
+  :root[data-ui='prism'] .sidebar { flex-wrap: wrap; }
+  :root[data-ui='prism'] .content { display: flex; min-height: 0; }
+  :root[data-ui='prism'] .playbar {
+    border-left: 0;
+    border-top: 1px solid #41464b;
+    max-height: 34vh;
+  }
+}

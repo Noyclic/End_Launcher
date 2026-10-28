@@ -925,17 +925,44 @@ function savePrismInstanceGroup(inst, rawGroup) {
   return true;
 }
 function openPrismInstanceEditor(inst, button, actions) {
-  const existing = actions.querySelector('.prism-instance-editor');
-  if (existing) {
-    existing.remove();
+  const current = document.getElementById('prism-instance-editor-modal');
+  if (current) {
+    const sameInstance = current.dataset.instanceId === String(inst?.id ?? '');
+    current.remove();
+    if (sameInstance) {
+      if (button?.isConnected) button.focus();
+      return;
+    }
+  }
+  if (!inst) {
+    showToast('Сначала выбери экземпляр.', false);
     return;
   }
-  actions.querySelector('.prism-group-editor')?.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'prism-instance-editor-modal';
+  overlay.className = 'prism-instance-editor-overlay';
+  overlay.dataset.instanceId = String(inst.id);
   const editor = document.createElement('section');
   editor.className = 'prism-instance-editor';
-  editor.setAttribute('aria-label', 'Изменить параметры экземпляра');
-  const heading = document.createElement('strong');
-  heading.textContent = 'Редактировать экземпляр';
+  editor.setAttribute('role', 'dialog');
+  editor.setAttribute('aria-modal', 'true');
+  editor.setAttribute('aria-labelledby', 'prism-instance-editor-title');
+  editor.tabIndex = -1;
+  const top = document.createElement('div');
+  top.className = 'prism-instance-editor-heading';
+  const titleWrap = document.createElement('div');
+  const heading = document.createElement('h2');
+  heading.id = 'prism-instance-editor-title';
+  heading.textContent = 'Параметры экземпляра';
+  const subtitle = document.createElement('p');
+  subtitle.textContent = String(inst.name || 'Minecraft') + ' · ' + String(inst.version || 'версия не указана');
+  titleWrap.append(heading, subtitle);
+  const close = document.createElement('button');
+  close.type = 'button';
+  close.className = 'prism-instance-editor-close';
+  close.textContent = '×';
+  close.setAttribute('aria-label', 'Закрыть параметры экземпляра');
+  top.append(titleWrap, close);
   const makeField = (labelText, control) => {
     const label = document.createElement('label');
     label.className = 'prism-instance-edit-field';
@@ -971,18 +998,43 @@ function openPrismInstanceEditor(inst, button, actions) {
     loaderSelect.appendChild(option);
   }
   loaderSelect.value = inst.loader || 'vanilla';
+  const groupInput = document.createElement('input');
+  groupInput.type = 'text';
+  groupInput.value = prismInstanceGroups[String(inst.id)] || '';
+  groupInput.maxLength = 32;
+  groupInput.autocomplete = 'off';
+  groupInput.placeholder = 'Без группы';
+  groupInput.setAttribute('aria-label', 'Группа экземпляра');
   const note = document.createElement('p');
   note.className = 'prism-instance-edit-note';
-  note.textContent = 'При смене версии или загрузчика проверь совместимость модов и миров.';
+  note.textContent = 'Смена версии или загрузчика может потребовать повторной установки модов. Сохранения и папка экземпляра не перемещаются.';
   const buttons = document.createElement('div');
   buttons.className = 'prism-instance-edit-buttons';
   const save = document.createElement('button');
   save.type = 'button';
+  save.className = 'prism-instance-save';
   save.textContent = 'Сохранить';
   const cancel = document.createElement('button');
   cancel.type = 'button';
+  cancel.className = 'prism-instance-cancel';
   cancel.textContent = 'Отмена';
-  cancel.addEventListener('click', () => editor.remove());
+  const closeDialog = () => {
+    overlay.remove();
+    if (button?.isConnected) button.focus();
+  };
+  close.addEventListener('click', closeDialog);
+  cancel.addEventListener('click', closeDialog);
+  overlay.addEventListener('click', (event) => {
+    if (event.target === overlay) closeDialog();
+  });
+  overlay.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeDialog();
+      return;
+    }
+    trapModalFocus(event, editor);
+  });
   save.addEventListener('click', async () => {
     const name = nameInput.value.trim();
     const version = versionInput.value.trim();
@@ -994,29 +1046,36 @@ function openPrismInstanceEditor(inst, button, actions) {
     }
     save.disabled = true;
     cancel.disabled = true;
+    close.disabled = true;
     save.textContent = 'Сохраняю…';
     try {
-      await invoke('update_instance', { id: inst.id, name, version, loader });
-      editor.remove();
+      const updated = await invoke('update_instance', { id: inst.id, name, version, loader });
+      const savedGroup = savePrismInstanceGroup({ ...inst, ...updated, id: inst.id }, groupInput.value);
+      overlay.remove();
       await loadInstances();
-      showToast(`Параметры экземпляра «${name}» обновлены.`);
+      showToast(savedGroup
+        ? 'Параметры экземпляра «' + name + '» сохранены.'
+        : 'Экземпляр «' + name + '» обновлён, но группу сохранить не удалось.');
     } catch (error) {
       showToast('Не удалось изменить экземпляр: ' + String(error), false);
       save.disabled = false;
       cancel.disabled = false;
+      close.disabled = false;
       save.textContent = 'Сохранить';
     }
   });
   buttons.append(save, cancel);
   editor.append(
-    heading,
-    makeField('Имя', nameInput),
+    top,
+    makeField('Имя экземпляра', nameInput),
     makeField('Версия Minecraft', versionInput),
     makeField('Загрузчик', loaderSelect),
+    makeField('Группа (необязательно)', groupInput),
     note,
     buttons,
   );
-  button.insertAdjacentElement('afterend', editor);
+  overlay.appendChild(editor);
+  document.body.appendChild(overlay);
   nameInput.focus();
   nameInput.select();
 }
@@ -1767,6 +1826,24 @@ document.querySelectorAll('[data-create-view]').forEach((button) => {
     setPrismCreateMode(tabs[next]?.dataset.createView);
   });
 });
+async function pickAndImportLocalPath(kind) {
+  const status = $('ni-msg');
+  try {
+    if (status) status.textContent = kind === 'folder' ? 'Ожидаю выбор папки…' : 'Ожидаю выбор файла…';
+    const path = await invoke('pick_local_path', { kind });
+    if (!path) {
+      if (status) status.textContent = 'Выбор отменён. Можно выбрать другой файл или перетащить его вручную.';
+      return;
+    }
+    closeNewInstance();
+    await processDroppedPaths([path]);
+  } catch (error) {
+    if (status) status.textContent = String(error);
+    showToast('Не удалось выбрать путь для импорта: ' + String(error), false);
+  }
+}
+$('ni-import-archive')?.addEventListener('click', () => pickAndImportLocalPath('archive'));
+$('ni-import-folder')?.addEventListener('click', () => pickAndImportLocalPath('folder'));
 $('ni-import-start')?.addEventListener('click', () => {
   closeNewInstance();
   const guide = $('library-import-guide');
@@ -2587,7 +2664,7 @@ async function chooseUi(mode) {
 
 // Test-only bridge: exposed only when the screenshot workflow explicitly opts in via ?ui-test=1.
 if (new URLSearchParams(window.location.search).get('ui-test') === '1') {
-  window.__EL_TEST__ = Object.freeze({ chooseUi, goPage, openNewInstance, closeNewInstance, setPrismCreateMode, syncPrismSettingsPage });
+  window.__EL_TEST__ = Object.freeze({ chooseUi, goPage, openNewInstance, closeNewInstance, setPrismCreateMode, syncPrismSettingsPage, openPrismInstanceEditor });
 }
 $('ui-restart')?.addEventListener('click', () => {
   const status = $('ui-restart-status');
@@ -3599,6 +3676,53 @@ $('adv-save').addEventListener('click', async () => {
     st.textContent = '✓ сохранено';
   } catch (e) {
     st.textContent = String(e);
+  }
+});
+
+$('adv-java-browse')?.addEventListener('click', async () => {
+  const status = $('adv-status');
+  try {
+    const path = await invoke('pick_local_path', { kind: 'java' });
+    if (!path) {
+      status.textContent = 'Выбор Java отменён.';
+      return;
+    }
+    $('adv-java').value = path;
+    $('adv-save').click();
+  } catch (error) {
+    status.textContent = 'Не удалось выбрать Java: ' + String(error);
+  }
+});
+$('adv-java-auto')?.addEventListener('click', async () => {
+  $('adv-java').value = '';
+  try {
+    const result = await invoke('set_advanced', { jvmArgs: $('adv-jvm').value, javaPath: '' });
+    $('adv-java').value = result.java_path || '';
+    $('adv-status').textContent = '✓ Java будет выбрана автоматически для версии Minecraft.';
+  } catch (error) {
+    $('adv-status').textContent = String(error);
+  }
+});
+$('adv-java-check')?.addEventListener('click', async () => {
+  const status = $('adv-status');
+  const instance = currentInstance();
+  if (!instance?.version) {
+    status.textContent = 'Сначала создай или выбери экземпляр Minecraft.';
+    return;
+  }
+  const button = $('adv-java-check');
+  button.disabled = true;
+  status.textContent = 'Проверяю Java для Minecraft ' + instance.version + '…';
+  try {
+    const result = await invoke('check_java', { id: instance.version });
+    const path = result.path ? ' · ' + result.path : '';
+    status.textContent = result.source === 'missing'
+      ? 'Java ' + result.required_major + ' не найдена для Minecraft ' + instance.version + '.' + path
+      : '✓ Java ' + result.required_major + ': ' + result.source + path;
+  } catch (error) {
+    status.textContent = 'Проверка Java не удалась: ' + String(error);
+  } finally {
+    button.disabled = false;
   }
 });
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## Prism/Pinecone — context-menu focus refinement
+
+- The empty-library context menu now restores focus to the clicked background region on Escape and transfers focus into the creation dialog through the Add Instance button path.
+- The regression test follows the focus-aware close helper so keyboard behavior remains checked alongside the pointer-positioned menu.
+
+
 ## Prism/Pinecone — context menu on empty library space
 
 - Added the official Prism-style right-click affordance to blank space in the active Instances page, offering “Добавить экземпляр…”, import guidance, and refresh.

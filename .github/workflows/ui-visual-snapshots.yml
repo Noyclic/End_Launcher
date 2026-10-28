@@ -58,6 +58,7 @@ jobs:
               get_palette: null,
               get_accounts: { active: 'offline', microsoft: null, ely: null },
               get_ms_client_id: '',
+              create_instance: { id: 'visual-test', name: 'Visual Test', version: '1.21.1', loader: 'fabric' },
               list_instances: [
                 { id: 1001, name: 'Prism Preview - Fabric', version: '1.21.1', loader: 'fabric' },
                 { id: 1002, name: 'Vanilla Preview', version: '1.20.1', loader: 'vanilla' },
@@ -305,6 +306,22 @@ jobs:
             throw new Error('Prism Add Instance wizard did not initialize its in-app tabs and version choices.');
           }
           await page.screenshot({ path: 'artifacts/ui/prism-add-instance.png', fullPage: true });
+
+          await page.locator('#ni-name').fill('Visual Test');
+          await page.locator('#ni-group').fill('Survival Test');
+          await page.locator('#ni-create').click();
+          await page.waitForFunction(() => {
+            try { return JSON.parse(localStorage.getItem('end-launcher-prism-instance-groups-v1') || '{}')['visual-test'] === 'Survival Test'; }
+            catch { return false; }
+          }, null, { timeout: 3000 });
+          const createCall = await page.evaluate(() => window.__TAURI_CALL_LOG.some((entry) =>
+            entry.command === 'create_instance'
+              && entry.args?.name === 'Visual Test'
+              && entry.args?.version === document.getElementById('ni-version')?.value
+              && entry.args?.loader === document.getElementById('ni-loader')?.value));
+          if (!createCall) throw new Error('Create Instance did not call the native create_instance action.');
+          await page.waitForFunction(() => getComputedStyle(document.getElementById('new-instance')).display === 'none');
+
 
           await page.locator('[data-create-view="import"]').click();
           const importVisible = await page.locator('[data-create-panel="import"]').evaluate((el) => !el.hidden);

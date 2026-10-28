@@ -1364,6 +1364,7 @@ function applyUi(mode) {
   renderUiCards();
   syncTlNick();
   renderLibrary();
+  updatePlayBtn();
 }
 let uiChoiceRevision = 0;
 async function chooseUi(mode) {

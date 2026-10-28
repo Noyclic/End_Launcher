@@ -809,4 +809,18 @@ check(css.includes('/* Cross-launcher pass 34')
     && css.includes('@media (prefers-reduced-motion: reduce)'),
   'Non-Prism launcher layouts must have distinct active-card styling, keyboard focus, narrow-window layouts, and reduced-motion support');
 
+
+// Prism/Pinecone pass 35: keep the reference's desktop geometry and the compact icon library.
+check(css.includes('/* Prism/Pinecone pass 35') 
+    && css.includes(":root[data-ui='prism'] #library.grid:not(.list-view)")
+    && css.includes('grid-template-columns: repeat(auto-fill, 108px)')
+    && css.includes('width: 44px;')
+    && css.includes('grid-template-columns: minmax(0, 1fr) 164px')
+    && css.includes('grid-template-rows: 38px minmax(0, 1fr) 56px')
+    && css.includes(":root[data-ui='prism'] #library .inst-card.active .inst-name")
+    && css.includes(":root[data-ui='prism'] .playbar")
+    && css.includes("@media (max-width: 740px)")
+    && css.includes("@media (prefers-reduced-motion: reduce)"),
+  'Prism must keep the dense 108 px icon grid, 44 px profile icons, lime selection strip, fixed action rail, bottom status row, and compact responsive behavior');
+
 console.log('UI regression checks passed: unique IDs, keyboard triggers, eight layouts across JS/HTML/Rust, first-run persistence, focus trapping, separate particle/global animation toggles, compact dialogs, bounded theme import, customizer baseline restoration, and safe edit-mode selection and pointer-drag target resolution and click-through media overlay and actionable custom widgets, shared navigation, lazy-news section visibility, and stable live property controls and theme-palette precedence, stable customizer IDs, safe layer deletion, dynamic content customization, keyboard nudging, and linear-time customizer refresh that preserves active drags, plus keyboard-navigable Prism profile tiles and search-aware collapsed groups.');

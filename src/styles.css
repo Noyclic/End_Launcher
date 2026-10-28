@@ -6679,3 +6679,329 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
     animation: none !important;
   }
 }
+
+
+/* Prism/Pinecone pass 35 — correct the real desktop geometry: dense 108 px instance tiles,
+   flat Qt-like surfaces, and a fixed-width selected-instance rail. */
+:root[data-ui='prism'] .layout {
+  grid-template-columns: minmax(0, 1fr) 164px;
+  grid-template-rows: 38px minmax(0, 1fr) 56px;
+  min-width: 0;
+  overflow: hidden;
+}
+:root[data-ui='prism'] .content main {
+  min-width: 0;
+  min-height: 0;
+  padding: 7px 6px 12px;
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+:root[data-ui='prism'] #page-play {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  margin: 0;
+}
+:root[data-ui='prism'] #page-play > h1,
+:root[data-ui='prism'] #page-play > .greet,
+:root[data-ui='prism'] #page-play .library-help,
+:root[data-ui='prism'] #page-play .home-extra,
+:root[data-ui='prism'] #page-play .library-toolbar {
+  display: none !important;
+}
+:root[data-ui='prism'] #page-play .library-wrap {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+:root[data-ui='prism'] #library.grid:not(.list-view) {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 108px);
+  grid-auto-rows: max-content;
+  align-content: start;
+  justify-content: start;
+  gap: 5px 4px;
+  width: 100%;
+  min-width: 0;
+  margin-top: 0;
+}
+:root[data-ui='prism'] #library .library-group-heading {
+  grid-column: 1 / -1;
+  min-width: 0;
+  min-height: 20px;
+  margin: 3px 0 0;
+  padding: 4px 2px 3px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #d1d1d1;
+  font: 600 11px/1.2 'Inter', sans-serif;
+  letter-spacing: 0;
+}
+:root[data-ui='prism'] #library .library-group-heading::before {
+  content: '⌄';
+  display: inline-block;
+  margin-right: 6px;
+  color: #c8c8c8;
+  font: 600 12px/1 'Inter', sans-serif;
+}
+:root[data-ui='prism'] #library .library-group-heading[data-collapsed='true']::before {
+  content: '›';
+}
+:root[data-ui='prism'] #library .inst-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  width: 108px;
+  min-width: 0;
+  min-height: 73px;
+  gap: 3px;
+  padding: 3px 3px 0;
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+  transition: background-color .12s ease, border-color .12s ease;
+}
+:root[data-ui='prism'] #library .inst-card:hover {
+  border-color: #484848;
+  background: #292929;
+  transform: none;
+}
+:root[data-ui='prism'] #library .inst-card .inst-icon {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  flex: 0 0 44px;
+  align-self: center;
+  border: 1px solid #3c3c3c;
+  border-radius: 2px;
+  box-shadow: none;
+}
+:root[data-ui='prism'] #library .inst-card .inst-name {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 22px;
+  margin: 0;
+  padding: 4px 2px 3px;
+  overflow: hidden;
+  border-radius: 0;
+  color: #dddddd;
+  font: 500 10px/1.15 'Inter', sans-serif;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:root[data-ui='prism'] #library .inst-card.active {
+  border-color: #454545;
+  background: #2c2c2c;
+  box-shadow: none;
+}
+:root[data-ui='prism'] #library .inst-card.active .inst-icon {
+  border-color: #3c3c3c;
+  background-color: #363636;
+  box-shadow: none;
+}
+:root[data-ui='prism'] #library .inst-card.active .inst-name {
+  min-height: 22px;
+  background: #91d85a;
+  color: #17220e;
+  font-weight: 600;
+}
+:root[data-ui='prism'] #library .inst-card .chip,
+:root[data-ui='prism'] #library .inst-card .inst-play,
+:root[data-ui='prism'] #library .inst-card .inst-more,
+:root[data-ui='prism'] #library .inst-card.add {
+  display: none !important;
+}
+:root[data-ui='prism'] #library .inst-card[hidden] {
+  display: none !important;
+}
+:root[data-ui='prism'] .playbar {
+  grid-column: 2;
+  grid-row: 2;
+  width: 164px;
+  min-width: 164px;
+  min-height: 0;
+  max-height: none;
+  padding: 8px 6px 10px;
+  gap: 10px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 0;
+  border-left: 1px solid #454545;
+  border-radius: 0;
+  background: #303030;
+  box-shadow: none;
+}
+:root[data-ui='prism'] .prism-selected-instance {
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  min-width: 0;
+  margin: 0 0 3px;
+  padding: 0 2px 8px;
+  border-bottom: 1px solid #424242;
+  text-align: center;
+}
+:root[data-ui='prism'] .prism-selected-icon {
+  width: 72px;
+  height: 72px;
+  flex: 0 0 72px;
+  border: 1px solid #424242;
+  border-radius: 2px;
+}
+:root[data-ui='prism'] .prism-selected-name {
+  max-width: 100%;
+  color: #e5e5e5;
+  font-size: 11px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+:root[data-ui='prism'] .prism-selected-version {
+  max-width: 100%;
+  color: #aaaaaa;
+  font: 9px/1.3 'JetBrains Mono', monospace;
+  overflow-wrap: anywhere;
+}
+:root[data-ui='prism'] .play-ui #play-btn,
+:root[data-ui='prism'] .play-ui #stop-btn {
+  width: 100%;
+  min-width: 0;
+  min-height: 27px;
+  padding: 5px 3px;
+  border: 1px solid #505050;
+  border-radius: 2px;
+  background: linear-gradient(#414141, #333333);
+  color: #f0f0f0;
+  font: 600 10px/1.2 'Inter', sans-serif;
+  letter-spacing: 0;
+  box-shadow: none;
+}
+:root[data-ui='prism'] .play-ui #play-btn {
+  border-color: #73975b;
+  background: linear-gradient(#3f6536, #31532c);
+  color: #e8f5e2;
+}
+:root[data-ui='prism'] .play-ui #play-btn:hover:not(:disabled) {
+  border-color: #91d85a;
+  background: linear-gradient(#4a7540, #385f31);
+  filter: none;
+}
+:root[data-ui='prism'] .play-ui #stop-btn:hover:not(:disabled) {
+  border-color: #747474;
+  filter: none;
+}
+:root[data-ui='prism'] .play-ui .pb-info {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+:root[data-ui='prism'] .play-ui #play-status {
+  overflow-wrap: anywhere;
+  font-size: 9px;
+}
+:root[data-ui='prism'] .play-ui .prism-quick-actions {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  gap: 1px;
+  margin-top: 2px;
+  padding-top: 7px;
+  border-top: 1px solid #424242;
+}
+:root[data-ui='prism'] .play-ui .prism-quick-actions button {
+  width: 100%;
+  min-width: 0;
+  min-height: 25px;
+  padding: 4px 5px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: transparent;
+  color: #dddddd;
+  font: 500 10px/1.2 'Inter', sans-serif;
+  text-align: left;
+  white-space: normal;
+  box-shadow: none;
+}
+:root[data-ui='prism'] .play-ui .prism-quick-actions button:hover,
+:root[data-ui='prism'] .play-ui .prism-quick-actions button:focus-visible {
+  border-color: #4b4b4b;
+  background: #3b3b3b;
+  outline: 1px solid #585858;
+  outline-offset: -1px;
+}
+:root[data-ui='prism'] .play-ui .prism-instance-editor {
+  margin: 4px 0 0;
+}
+:root[data-ui='prism'] .prism-status-bar {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  width: 100%;
+  min-width: 0;
+  border-top: 1px solid #454545;
+  background: #222222;
+  color: #bdbdbd;
+}
+@media (max-width: 1180px) and (min-width: 741px) {
+  :root[data-ui='prism'] #library.grid:not(.list-view) {
+    grid-template-columns: repeat(auto-fill, 100px);
+  }
+  :root[data-ui='prism'] #library .inst-card {
+    width: 100px;
+  }
+  :root[data-ui='prism'] .playbar {
+    width: 156px;
+    min-width: 156px;
+    padding-inline: 5px;
+  }
+}
+@media (max-width: 740px) {
+  :root[data-ui='prism'] .layout {
+    overflow: hidden;
+  }
+  :root[data-ui='prism'] .content main {
+    padding: 6px 5px;
+  }
+  :root[data-ui='prism'] #library.grid:not(.list-view) {
+    grid-template-columns: repeat(auto-fill, minmax(84px, 108px));
+    gap: 4px 3px;
+  }
+  :root[data-ui='prism'] #library .inst-card {
+    width: 100%;
+  }
+  :root[data-ui='prism'] .playbar {
+    width: 100%;
+    min-width: 0;
+    max-height: 34vh;
+    padding: 8px 10px;
+    border-top: 1px solid #414141;
+    border-left: 0;
+  }
+  :root[data-ui='prism'] .prism-selected-instance {
+    flex-direction: row;
+    justify-content: flex-start;
+    text-align: left;
+  }
+  :root[data-ui='prism'] .prism-selected-icon {
+    width: 46px;
+    height: 46px;
+    flex-basis: 46px;
+  }
+  :root[data-ui='prism'] .play-ui .prism-quick-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-ui='prism'] #library .inst-card {
+    transition: none !important;
+    animation: none !important;
+  }
+}

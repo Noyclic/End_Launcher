@@ -116,6 +116,8 @@ fn main() {
             instances::delete_instance,
             instances::get_active_instance,
             instances::set_active_instance,
+            instances::create_instance_shortcut,
+            instances::get_startup_instance,
             instances::open_instance_folder,
             instances::open_launcher_folder,
             diag::system_info,

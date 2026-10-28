@@ -21,7 +21,7 @@ pub struct Instance {
     pub name: String,
     /// Версия игры Mojang, например "1.20.1"
     pub version: String,
-    /// "vanilla" | "fabric" | "forge" | "neoforge"
+    /// "vanilla" | "fabric" | "quilt" | "forge" | "neoforge"
     pub loader: String,
 }
 
@@ -98,7 +98,7 @@ pub fn create_instance(name: String, version: String, loader: String) -> Result<
         return Err("название сборки: от 1 до 40 символов".into());
     }
     crate::mc::check_id(&version)?;
-    if !["vanilla", "fabric", "forge", "neoforge"].contains(&loader.as_str()) {
+    if !["vanilla", "fabric", "quilt", "forge", "neoforge"].contains(&loader.as_str()) {
         return Err(format!("неизвестный загрузчик: {loader}"));
     }
 
@@ -142,7 +142,7 @@ pub fn update_instance(id: String, name: String, version: String, loader: String
         return Err("название сборки: от 1 до 40 символов".into());
     }
     crate::mc::check_id(&version)?;
-    if !["vanilla", "fabric", "forge", "neoforge"].contains(&loader.as_str()) {
+    if !["vanilla", "fabric", "quilt", "forge", "neoforge"].contains(&loader.as_str()) {
         return Err(format!("неизвестный загрузчик: {loader}"));
     }
     let mut inst = get(&id).ok_or("сборка не найдена")?;
@@ -469,10 +469,8 @@ fn version_prefix(raw: &str) -> Option<String> {
 
 fn loader_from_text(value: &str) -> Result<Option<String>, String> {
     let value = value.to_lowercase();
-    if value.contains("quilt") {
-        return Err("Эта сборка использует Quilt. Импорт этого формата уже распознан, но запуск Quilt пока не поддерживается End Launcher; чтобы не создать нерабочую сборку, импорт отменён.".into());
-    }
     if value.contains("neoforge") { Ok(Some("neoforge".into())) }
+    else if value.contains("quilt") { Ok(Some("quilt".into())) }
     else if value.contains("fabric") { Ok(Some("fabric".into())) }
     else if value.contains("forge") { Ok(Some("forge".into())) }
     else if value.contains("vanilla") { Ok(Some("vanilla".into())) }
@@ -530,7 +528,7 @@ fn spec_from_json(value: &serde_json::Value, fallback_name: &str) -> Result<Opti
             } else if uid.contains("neoforge") { loader = Some("neoforge".into()); }
             else if uid.contains("fabric-loader") { loader = Some("fabric".into()); }
             else if uid.contains("forge") { loader = Some("forge".into()); }
-            else if uid.contains("quilt") { return Err("Сборки Quilt пока нельзя запускать в End Launcher; импорт отменён, чтобы избежать некорректной настройки.".into()); }
+            else if uid.contains("quilt") { loader = Some("quilt".into()); }
         }
     }
     let version = version.or_else(|| {
@@ -621,7 +619,7 @@ fn create_import_spec(name: &str, version: &str, loader: &str) -> Result<Instanc
     if name.chars().count() > 40 { name = name.chars().take(40).collect(); }
     let version = version_prefix(version).ok_or_else(|| format!("Не удалось определить версию Minecraft по значению «{version}». Укажите версию в исходном лаунчере и экспортируйте сборку повторно."))?;
     crate::mc::check_id(&version)?;
-    if !["vanilla", "fabric", "forge", "neoforge"].contains(&loader) {
+    if !["vanilla", "fabric", "quilt", "forge", "neoforge"].contains(&loader) {
         return Err(format!("Не поддерживаемый загрузчик: {loader}"));
     }
     let original_name = name.clone();

@@ -422,7 +422,7 @@ $('ms-logout').addEventListener('click', async () => {
 });
 
 // ─────────────── СБОРКИ (instances) ───────────────
-const LOADER_NAME = { vanilla: 'Vanilla', fabric: 'Fabric', forge: 'Forge', neoforge: 'NeoForge' };
+const LOADER_NAME = { vanilla: 'Vanilla', fabric: 'Fabric', quilt: 'Quilt', forge: 'Forge', neoforge: 'NeoForge' };
 let instances = [];
 let activeId = null;
 let installedCache = [];
@@ -961,6 +961,7 @@ function openPrismInstanceEditor(inst, button, actions) {
   for (const [value, label] of [
     ['vanilla', 'Vanilla'],
     ['fabric', 'Fabric'],
+    ['quilt', 'Quilt'],
     ['forge', 'Forge'],
     ['neoforge', 'NeoForge'],
   ]) {

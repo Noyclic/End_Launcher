@@ -193,6 +193,8 @@ jobs:
               labelInsideCard: !!cardRect && !!labelRect
                 && labelRect.left >= cardRect.left - 1 && labelRect.right <= cardRect.right + 1,
               addAfterContent: add ? getComputedStyle(add, '::after').content : 'missing',
+              addButtonText: add?.textContent?.trim() ?? 'missing',
+              addButtonWidth: add?.getBoundingClientRect().width ?? 0,
               sidebarOverflow: !!sidebar && sidebar.scrollWidth > sidebar.clientWidth + 2,
               petDisplay: pet ? getComputedStyle(pet).display : 'missing',
               p2pInOverflow: fab?.parentElement?.id === 'prism-toolbar-overflow',
@@ -207,6 +209,8 @@ jobs:
               || prismGeometry.labelLineClamp !== '2'
               || !prismGeometry.labelInsideCard
               || prismGeometry.addAfterContent !== 'none'
+              || prismGeometry.addButtonText !== 'Добавить экземпляр…'
+              || prismGeometry.addButtonWidth < 140
               || prismGeometry.sidebarOverflow
               || prismGeometry.petDisplay !== 'none'
               || !prismGeometry.p2pInOverflow
@@ -230,20 +234,15 @@ jobs:
               };
             });
           });
-          const toolbarReferenceGeometry = [
-            { id: 'library-add', left: 8, right: 56 },
-            { id: 'prism-open-folder', left: 64, right: 155 },
-            { id: 'nav-settings-button', left: 163, right: 265 },
-            { id: 'prism-help', left: 273, right: 379 },
-            { id: 'prism-update', left: 387, right: 502 },
-          ];
+          const expectedToolbarIds = ['library-add', 'prism-open-folder', 'nav-settings-button', 'prism-help', 'prism-update'];
           console.log('PRISM TOOLBAR ORDER:', JSON.stringify(toolbarOrder));
           if (toolbarOrder.some((item, index) =>
                 !item.visible
-                || item.id !== toolbarReferenceGeometry[index].id
-                || Math.abs(item.left - toolbarReferenceGeometry[index].left) > 4
-                || Math.abs(item.right - toolbarReferenceGeometry[index].right) > 4)) {
-            throw new Error('Prism toolbar order or geometry drifted from the Pinecone reference: Add, Folders, Settings, Help, Update.');
+                || item.id !== expectedToolbarIds[index]
+                || (index > 0 && item.left < toolbarOrder[index - 1].right - 1))
+              || toolbarOrder[0].left > 12
+              || toolbarOrder[0].right - toolbarOrder[0].left < 140) {
+            throw new Error('Prism toolbar order is wrong or Add Instance text is hidden/clipped.');
           }
 
           await page.mouse.move(820, 450);

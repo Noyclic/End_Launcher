@@ -7264,3 +7264,11 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 :root[data-ui='prism'] #page-settings .catpack-heading-row h2 { font-size: 12px; }
 :root[data-ui='prism'] #page-settings .catpack-controls button,
 :root[data-ui='prism'] #page-settings .catpack-controls select { border-radius: 2px; }
+
+
+/* Prism/Pinecone reference lock — preserve the exact top-strip action order from the supplied screenshot. */
+:root[data-ui='prism'] .sidebar #prism-help { order: 1 !important; }
+:root[data-ui='prism'] .sidebar #prism-update { order: 2 !important; }
+:root[data-ui='prism'] .sidebar #library-add { order: 3 !important; }
+:root[data-ui='prism'] .sidebar #prism-open-folder { order: 4 !important; }
+:root[data-ui='prism'] .sidebar #nav-settings-button { order: 5 !important; }

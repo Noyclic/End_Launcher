@@ -215,6 +215,22 @@ jobs:
             throw new Error('Prism desktop geometry is broken; refusing to publish misleading screenshots.');
           }
 
+          // Assert the literal left-to-right order from the user's Pinecone reference screenshot.
+          const toolbarOrder = await page.evaluate(() => {
+            const ids = ['prism-help', 'prism-update', 'library-add', 'prism-open-folder', 'nav-settings-button'];
+            return ids.map((id) => {
+              const el = document.getElementById(id);
+              const rect = el?.getBoundingClientRect();
+              const style = el ? getComputedStyle(el) : null;
+              return { id, left: rect?.left ?? null, right: rect?.right ?? null, visible: !!rect && rect.width > 0 && rect.height > 0 && style.display !== 'none' };
+            });
+          });
+          console.log('PRISM TOOLBAR ORDER:', JSON.stringify(toolbarOrder));
+          if (toolbarOrder.some((item) => !item.visible)
+              || toolbarOrder.some((item, index) => index > 0 && item.left < toolbarOrder[index - 1].left)) {
+            throw new Error('Prism toolbar buttons do not match the Pinecone reference order: Help, Update, Add, Folders, Settings.');
+          }
+
           await page.mouse.move(820, 450);
           await page.screenshot({
             path: 'artifacts/ui/prism-pinecone-desktop.png',

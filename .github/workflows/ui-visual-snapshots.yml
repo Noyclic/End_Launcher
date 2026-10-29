@@ -250,6 +250,47 @@ jobs:
             path: 'artifacts/ui/prism-pinecone-desktop.png',
             fullPage: true,
           });
+
+          // Capture the real Folders menu from the Pinecone reference and verify the functional destinations.
+          await page.locator('#prism-open-folder').click();
+          const foldersMenuState = await page.evaluate(() => ({
+            visible: !document.getElementById('prism-folders-menu')?.hidden,
+            labels: [...document.querySelectorAll('#prism-folders-menu [role="menuitem"]')].map((item) => item.textContent.trim()),
+          }));
+          console.log('PRISM FOLDERS MENU:', JSON.stringify(foldersMenuState));
+          const expectedFolderLabels = [
+            'Корневая папка лаунчера', 'Экземпляры', 'Основная папка модов', 'Скины', 'Java',
+            'Набор значков', 'Темы для виджетов', 'Наборы котиков', 'Значки экземпляров', 'Журналы',
+          ];
+          if (!foldersMenuState.visible || foldersMenuState.labels.join('|') !== expectedFolderLabels.join('|')) {
+            throw new Error('Prism Folders menu does not match the reference destinations.');
+          }
+          await page.screenshot({ path: 'artifacts/ui/prism-folders-menu.png', fullPage: true });
+          await page.keyboard.press('Escape');
+          if (await page.locator('#prism-folders-menu').evaluate((el) => !el.hidden)) {
+            throw new Error('Prism Folders menu did not close on Escape.');
+          }
+
+          // Help is a drop-down menu, not a direct navigation link; all rows are End Launcher-owned actions.
+          await page.locator('#prism-help').click();
+          const helpMenuState = await page.evaluate(() => ({
+            visible: !document.getElementById('prism-help-menu')?.hidden,
+            labels: [...document.querySelectorAll('#prism-help-menu [role="menuitem"]')].map((item) => item.textContent.trim()),
+          }));
+          console.log('PRISM HELP MENU:', JSON.stringify(helpMenuState));
+          const expectedHelpLabels = [
+            'Обновить метаданные версий', 'Сообщить об ошибке или предложить функцию', 'Просмотр журналов',
+            'Обсуждения End Launcher', 'Больше новостей…', 'Справка End Launcher', 'О проекте End Launcher',
+          ];
+          if (!helpMenuState.visible || helpMenuState.labels.join('|') !== expectedHelpLabels.join('|')) {
+            throw new Error('Prism Help menu does not expose the expected project actions.');
+          }
+          await page.screenshot({ path: 'artifacts/ui/prism-help-menu.png', fullPage: true });
+          await page.keyboard.press('Escape');
+          if (await page.locator('#prism-help-menu').evaluate((el) => !el.hidden)) {
+            throw new Error('Prism Help menu did not close on Escape.');
+          }
+
           await page.setViewportSize({ width: 390, height: 844 });
           await page.mouse.move(320, 420);
           await page.waitForTimeout(250);
@@ -342,7 +383,10 @@ jobs:
           const wizardState = await page.evaluate(() => ({
             visible: getComputedStyle(document.getElementById('new-instance')).display !== 'none',
             title: document.getElementById('create-instance-title')?.textContent,
-            sidebarButtons: document.querySelectorAll('[data-create-view]').length,
+            providerLabels: [...document.querySelectorAll('#new-instance [data-create-view] > span:last-child')].map((item) => item.textContent.trim()),
+            sidebarButtons: document.querySelectorAll('#new-instance [data-create-view]').length,
+            versionRows: document.querySelectorAll('#ni-version-rows tr[data-version]').length,
+            versionBrowserVisible: !!document.querySelector('.prism-version-browser') && getComputedStyle(document.querySelector('.prism-version-browser')).display !== 'none',
             overlayRect: (() => { const r = document.getElementById('new-instance').getBoundingClientRect(); return { left: r.left, top: r.top, width: r.width, height: r.height }; })(),
             minecraftPanelVisible: !document.querySelector('[data-create-panel="minecraft"]')?.hidden,
             importPanelHidden: !!document.querySelector('[data-create-panel="import"]')?.hidden,
@@ -350,7 +394,7 @@ jobs:
           }));
           console.log('PRISM CREATE WIZARD ASSERTIONS:', JSON.stringify(wizardState));
           if (!wizardState.visible || wizardState.title !== 'Добавить экземпляр'
-              || wizardState.sidebarButtons !== 4 || !wizardState.minecraftPanelVisible
+              || wizardState.sidebarButtons !== 9 || !wizardState.versionBrowserVisible || wizardState.versionRows < 1 || !wizardState.minecraftPanelVisible
               || !wizardState.importPanelHidden || wizardState.versionOptions < 1
               || Math.abs(wizardState.overlayRect.left) > 1 || Math.abs(wizardState.overlayRect.top) > 1
               || Math.abs(wizardState.overlayRect.width - 1440) > 2
@@ -408,13 +452,26 @@ jobs:
 
 
           await page.locator('#nav-settings-button').click();
-          const settingsVisible = await page.evaluate(() => ({
-            pageActive: document.getElementById('page-settings')?.classList.contains('active'),
-            tabsVisible: !document.getElementById('prism-settings-tabs')?.hidden,
-            selectedTab: document.querySelector('[data-prism-settings-tab][aria-selected="true"]')?.dataset.prismSettingsTab,
-            generalVisible: !document.querySelector('[data-prism-settings-section="general"]')?.hidden,
-            javaHidden: !!document.querySelector('[data-prism-settings-section="java"]')?.hidden,
-          }));
+          const settingsVisible = await page.evaluate(() => {
+            const dialog = document.getElementById('prism-settings-window');
+            const r = dialog?.getBoundingClientRect();
+            return {
+              pageActive: document.getElementById('page-settings')?.classList.contains('active'),
+              dialogVisible: !!dialog && getComputedStyle(dialog).display !== 'none' && !!r && r.width > 0 && r.height > 0,
+              dialogRole: dialog?.getAttribute('role'),
+              dialogWidth: r?.width ?? 0,
+              dialogHeight: r?.height ?? 0,
+              dialogCentered: !!r && Math.abs((r.left + r.width / 2) - innerWidth / 2) < 8
+                && Math.abs((r.top + r.height / 2) - innerHeight / 2) < 8,
+              tabsVisible: !document.getElementById('prism-settings-tabs')?.hidden,
+              tabCount: document.querySelectorAll('#prism-settings-tabs [data-prism-settings-tab]').length,
+              selectedTab: document.querySelector('[data-prism-settings-tab][aria-selected="true"]')?.dataset.prismSettingsTab,
+              generalVisible: !document.querySelector('[data-prism-settings-section="general"]')?.hidden,
+              javaHidden: !!document.querySelector('[data-prism-settings-section="java"]')?.hidden,
+              hasAccountsAction: !!document.getElementById('prism-settings-account-open'),
+              hasProxyInfo: !!document.querySelector('[data-prism-settings-fixed-section="proxy"]'),
+            };
+          });
           console.log('PRISM SETTINGS ASSERTIONS:', JSON.stringify(settingsVisible));
           if (!settingsVisible.pageActive || !settingsVisible.tabsVisible
               || settingsVisible.selectedTab !== 'general' || !settingsVisible.generalVisible
@@ -423,6 +480,17 @@ jobs:
           }
           await page.waitForTimeout(500); // Wait for the application page transition animation before capturing.
           await page.screenshot({ path: 'artifacts/ui/prism-settings-general.png', fullPage: true });
+          await page.locator('[data-prism-settings-tab="accounts"]').click();
+          if (await page.locator('[data-prism-settings-fixed-section="accounts"]').evaluate((el) => el.hidden)) {
+            throw new Error('Prism Accounts settings category did not show its real account-manager action.');
+          }
+          await page.screenshot({ path: 'artifacts/ui/prism-settings-accounts.png', fullPage: true });
+          await page.locator('[data-prism-settings-tab="proxy"]').click();
+          if (await page.locator('[data-prism-settings-fixed-section="proxy"]').evaluate((el) => el.hidden)) {
+            throw new Error('Prism Proxy settings category did not show its capability note.');
+          }
+          await page.screenshot({ path: 'artifacts/ui/prism-settings-proxy.png', fullPage: true });
+          await page.locator('[data-prism-settings-tab="general"]').click();
           await page.locator('[data-prism-settings-tab="java"]').click();
           const javaState = await page.evaluate(() => ({
             selected: document.querySelector('[data-prism-settings-tab][aria-selected="true"]')?.dataset.prismSettingsTab,

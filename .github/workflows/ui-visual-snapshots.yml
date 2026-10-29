@@ -275,7 +275,7 @@ jobs:
           await page.locator('#prism-help').click();
           const helpMenuState = await page.evaluate(() => ({
             visible: !document.getElementById('prism-help-menu')?.hidden,
-            labels: [...document.querySelectorAll('#prism-help-menu [role="menuitem"]')].map((item) => item.textContent.trim()),
+            labels: [...document.querySelectorAll('#prism-help-menu [role="menuitem"]')].map((item) => item.querySelector('.prism-menu-item-label')?.textContent.trim() || item.textContent.trim()),
           }));
           console.log('PRISM HELP MENU:', JSON.stringify(helpMenuState));
           const expectedHelpLabels = [

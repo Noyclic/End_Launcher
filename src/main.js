@@ -430,7 +430,56 @@ let installedCache = [];
 const currentInstance = () => instances.find((i) => i.id === activeId) || null;
 
 // переход на страницу без кнопки в меню (моды открываются из «⋯» у сборки)
+let prismSettingsReturnFocus = null;
+
+function openPrismSettingsDialog() {
+  const page = $('page-settings');
+  const dialog = page?.querySelector('.prism-settings-window');
+  if (!page || !dialog || currentUi !== 'prism') return false;
+  if (root.classList.contains('prism-settings-open')) return true;
+  prismSettingsReturnFocus = document.activeElement;
+  closePrismFoldersMenu();
+  closePrismHelpMenu();
+  closePrismOverflow();
+  page.classList.add('active');
+  page.setAttribute('aria-hidden', 'false');
+  page.setAttribute('aria-modal', 'true');
+  $('page-play')?.classList.add('active');
+  root.classList.add('prism-settings-open');
+  syncPrismSettingsPage('prism');
+  document.querySelectorAll('.nav-btn').forEach((button) => {
+    button.classList.toggle('active', button.dataset.page === 'settings');
+  });
+  $('prism-settings-close')?.focus({ preventScroll: true });
+  return true;
+}
+
+function closePrismSettingsDialog({ restoreFocus = true } = {}) {
+  const page = $('page-settings');
+  if (!page || !root.classList.contains('prism-settings-open')) return false;
+  root.classList.remove('prism-settings-open');
+  page.classList.remove('active');
+  page.removeAttribute('aria-modal');
+  page.setAttribute('aria-hidden', 'true');
+  document.querySelectorAll('.page').forEach((element) => element.classList.toggle('active', element.id === 'page-play'));
+  document.querySelectorAll('.nav-btn').forEach((button) => {
+    button.classList.toggle('active', button.dataset.page === 'play');
+  });
+  if (restoreFocus && prismSettingsReturnFocus && typeof prismSettingsReturnFocus.focus === 'function') {
+    prismSettingsReturnFocus.focus({ preventScroll: true });
+  }
+  prismSettingsReturnFocus = null;
+  return true;
+}
+
 function goPage(name) {
+  if (currentUi === 'prism' && name === 'settings') {
+    if (root.classList.contains('prism-settings-open')) closePrismSettingsDialog();
+    else openPrismSettingsDialog();
+    return;
+  }
+  const settingsWasOpen = root.classList.contains('prism-settings-open');
+  if (settingsWasOpen) closePrismSettingsDialog({ restoreFocus: false });
   document.querySelectorAll('.page').forEach((p) => p.classList.toggle('active', p.id === 'page-' + name));
   const navName = name === 'mods' ? 'play' : name;
   document.querySelectorAll('.nav-btn').forEach((b) => b.classList.toggle('active', b.dataset.page === navName));
@@ -2798,11 +2847,12 @@ function syncPrismSettingsPage(mode) {
   const prism = mode === 'prism';
   const tabs = $('prism-settings-tabs');
   if (tabs) tabs.hidden = !prism;
-  const title = page.querySelector(':scope > h1');
+  const title = page.querySelector('.prism-settings-titlebar h1');
   if (title) title.textContent = prism ? 'Параметры' : 'НАСТРОЙКИ';
 
   let group = 'appearance';
-  for (const child of [...page.children]) {
+  const settingsContent = page.querySelector('.prism-settings-content') || page;
+  for (const child of [...settingsContent.children]) {
     if (child.id === 'prism-settings-tabs' || child.tagName === 'H1') continue;
     if (child.tagName === 'H2') {
       const label = child.textContent.toLocaleUpperCase();
@@ -2831,16 +2881,42 @@ document.querySelectorAll('[data-prism-settings-tab]').forEach((button) => {
     syncPrismSettingsPage(currentUi);
   });
   button.addEventListener('keydown', (event) => {
-    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
     event.preventDefault();
     const tabs = [...document.querySelectorAll('[data-prism-settings-tab]')];
     const index = tabs.indexOf(button);
+    const forward = event.key === 'ArrowDown' || event.key === 'ArrowRight';
     const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1
-      : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+      : (index + (forward ? 1 : -1) + tabs.length) % tabs.length;
     prismSettingsActiveTab = tabs[next]?.dataset.prismSettingsTab || 'general';
     syncPrismSettingsPage(currentUi);
     tabs[next]?.focus();
   });
+});
+
+for (const id of ['prism-settings-close', 'prism-settings-cancel', 'prism-settings-ok']) {
+  $(id)?.addEventListener('click', () => closePrismSettingsDialog());
+}
+$('prism-settings-help')?.addEventListener('click', async () => {
+  try {
+    await invoke('open_url', { url: 'https://github.com/Noyclic/End_Launcher/blob/main/README.ru.md' });
+  } catch (error) {
+    showToast('Не удалось открыть справку End Launcher: ' + String(error), false);
+  }
+});
+$('page-settings')?.addEventListener('click', (event) => {
+  if (currentUi === 'prism' && root.classList.contains('prism-settings-open') && event.target === $('page-settings')) {
+    closePrismSettingsDialog();
+  }
+});
+document.addEventListener('keydown', (event) => {
+  if (currentUi !== 'prism' || !root.classList.contains('prism-settings-open')) return;
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    closePrismSettingsDialog();
+    return;
+  }
+  trapModalFocus(event, $('prism-settings-window'));
 });
 
 function applyUi(mode) {

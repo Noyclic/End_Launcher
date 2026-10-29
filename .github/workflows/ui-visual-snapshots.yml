@@ -215,20 +215,35 @@ jobs:
             throw new Error('Prism desktop geometry is broken; refusing to publish misleading screenshots.');
           }
 
-          // Assert the literal left-to-right order from the user's Pinecone reference screenshot.
+          // Assert the literal left-to-right order and measured spacing from the supplied Pinecone reference.
           const toolbarOrder = await page.evaluate(() => {
             const ids = ['prism-help', 'prism-update', 'library-add', 'prism-open-folder', 'nav-settings-button'];
             return ids.map((id) => {
               const el = document.getElementById(id);
               const rect = el?.getBoundingClientRect();
               const style = el ? getComputedStyle(el) : null;
-              return { id, left: rect?.left ?? null, right: rect?.right ?? null, visible: !!rect && rect.width > 0 && rect.height > 0 && style.display !== 'none' };
+              return {
+                id,
+                left: rect?.left ?? null,
+                right: rect?.right ?? null,
+                visible: !!rect && rect.width > 0 && rect.height > 0 && style.display !== 'none',
+              };
             });
           });
+          const toolbarReferenceGeometry = [
+            { id: 'prism-help', left: 8, right: 114 },
+            { id: 'prism-update', left: 122, right: 237 },
+            { id: 'library-add', left: 245, right: 293 },
+            { id: 'prism-open-folder', left: 301, right: 392 },
+            { id: 'nav-settings-button', left: 400, right: 502 },
+          ];
           console.log('PRISM TOOLBAR ORDER:', JSON.stringify(toolbarOrder));
-          if (toolbarOrder.some((item) => !item.visible)
-              || toolbarOrder.some((item, index) => index > 0 && item.left < toolbarOrder[index - 1].left)) {
-            throw new Error('Prism toolbar buttons do not match the Pinecone reference order: Help, Update, Add, Folders, Settings.');
+          if (toolbarOrder.some((item, index) =>
+                !item.visible
+                || item.id !== toolbarReferenceGeometry[index].id
+                || Math.abs(item.left - toolbarReferenceGeometry[index].left) > 4
+                || Math.abs(item.right - toolbarReferenceGeometry[index].right) > 4)) {
+            throw new Error('Prism toolbar order or geometry drifted from the Pinecone reference: Help, Update, Add, Folders, Settings.');
           }
 
           await page.mouse.move(820, 450);
@@ -279,6 +294,23 @@ jobs:
             };
           });
           console.log('PRISM MOBILE GEOMETRY:', JSON.stringify(prismMobileGeometry));
+          const mobileToolbarOrder = await page.evaluate(() => {
+            const ids = ['prism-help', 'prism-update', 'library-add', 'prism-open-folder', 'nav-settings-button'];
+            return ids.map((id) => {
+              const el = document.getElementById(id);
+              const rect = el?.getBoundingClientRect();
+              const style = el ? getComputedStyle(el) : null;
+              return { id, top: rect?.top ?? null, left: rect?.left ?? null, visible: !!rect && rect.width > 0 && rect.height > 0 && style.display !== 'none' };
+            });
+          });
+          const mobileVisualReadingOrder = [...mobileToolbarOrder]
+            .sort((a, b) => a.top - b.top || a.left - b.left)
+            .map((item) => item.id);
+          console.log('PRISM MOBILE TOOLBAR ORDER:', JSON.stringify({ measured: mobileToolbarOrder, readingOrder: mobileVisualReadingOrder }));
+          if (mobileToolbarOrder.some((item) => !item.visible)
+              || mobileVisualReadingOrder.join(',') !== 'prism-help,prism-update,library-add,prism-open-folder,nav-settings-button') {
+            throw new Error('Prism mobile toolbar order drifted from the Pinecone reference.');
+          }
           const mobilePlaybar = prismMobileGeometry.playbar;
           const mobileStatus = prismMobileGeometry.status;
           if (prismMobileGeometry.documentWidth > 392

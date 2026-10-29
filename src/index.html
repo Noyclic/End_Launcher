@@ -160,7 +160,7 @@
                   <div class="prism-create-titlebar">
                     <span class="prism-create-title-icon" aria-hidden="true">＋</span>
                     <h2 id="create-instance-title">Добавить экземпляр</h2>
-                    <button id="ni-cancel" class="ghost create-instance-close" type="button" aria-label="Закрыть окно">×</button>
+                    <button id="ni-window-close" class="ghost create-instance-close" type="button" aria-label="Закрыть окно">×</button>
                   </div>
                   <div class="prism-create-identity">
                     <div id="ni-preview-icon" class="prism-create-preview" aria-hidden="true"><span></span></div>
@@ -253,8 +253,9 @@
                   <footer class="prism-create-footer">
                     <span class="prism-create-footer-note">Выбери источник, версию и загрузчик</span>
                     <div class="prism-create-footer-actions">
+                      <button id="ni-create" type="button">ОК</button>
+                      <button id="ni-cancel" type="button">Отмена</button>
                       <button id="ni-help" class="ghost" type="button">Справка</button>
-                      <button id="ni-create" type="button">Создать экземпляр</button>
                     </div>
                   </footer>
                 </div>
@@ -594,9 +595,9 @@
           <footer class="prism-settings-footer">
             <span id="prism-settings-footer-status">Изменения применяются сразу</span>
             <div class="prism-settings-footer-actions">
-              <button id="prism-settings-help" type="button">Справка</button>
-              <button id="prism-settings-cancel" type="button">Закрыть</button>
               <button id="prism-settings-ok" type="button" class="primary">ОК</button>
+              <button id="prism-settings-cancel" type="button">Отмена</button>
+              <button id="prism-settings-help" type="button">Справка</button>
             </div>
           </footer>
           </div>

@@ -978,3 +978,66 @@ check(js.includes("item('⇩ Экспортировать…', async () => {\n  
     && js.includes("b.setAttribute('role', 'menuitem')")
     && repairCss.includes(':root[data-ui=\'prism\'] .inst-menu button:focus-visible'),
   'Prism context menu must use Save As export, expose the selected instance mods folder, and support keyboard focus');
+
+
+// Prism/Pinecone interior reference regression checks: nine settings categories, native-feeling dialogs and working catalog controls.
+const expectedPrismSettingsTabs = [
+  'general', 'language', 'appearance', 'minecraft', 'java', 'accounts', 'services', 'tools', 'proxy',
+];
+for (const tab of expectedPrismSettingsTabs) {
+  check(html.includes(`data-prism-settings-tab="${tab}"`), `Prism settings category is missing: ${tab}`);
+}
+check(html.includes('id="prism-settings-window"')
+    && html.includes('class="prism-settings-titlebar"')
+    && html.includes('class="prism-settings-dialog-body"')
+    && html.includes('class="prism-settings-footer"')
+    && html.includes('data-prism-settings-fixed-section="language"')
+    && html.includes('data-prism-settings-fixed-section="accounts"')
+    && html.includes('data-prism-settings-fixed-section="proxy"')
+    && js.includes('function openPrismSettingsDialog()')
+    && js.includes('function closePrismSettingsDialog(')
+    && js.includes('child.dataset.prismSettingsFixedSection')
+    && repairCss.includes('.prism-settings-window')
+    && repairCss.includes('.prism-settings-footer-actions'),
+  'Prism settings must be a reference-style modal with working category navigation, an account shortcut and an honest proxy capability note');
+
+const expectedCreateSources = [
+  'minecraft', 'import', 'atlauncher', 'curseforge', 'ftb', 'ftb-legacy', 'ftb-app', 'modrinth', 'technic',
+];
+for (const source of expectedCreateSources) {
+  check(html.includes(`data-create-view="${source}"`), `Prism creation source is missing: ${source}`);
+  check(html.includes(`data-create-panel="${source}"`), `Prism creation panel is missing: ${source}`);
+}
+check(html.includes('id="ni-version-rows"')
+    && html.includes('id="ni-version-search"')
+    && html.includes('id="ni-version-refresh"')
+    && html.includes('id="ni-filter-releases"')
+    && html.includes('id="ni-filter-snapshots"')
+    && html.includes('id="ni-loader"')
+    && js.includes('function renderPrismCreateVersionBrowser()')
+    && js.includes('function prismCreateVersionKind(id)')
+    && js.includes("document.querySelectorAll('[data-provider-url]')")
+    && js.includes("document.querySelectorAll('[data-switch-create-view]')")
+    && repairCss.includes('.prism-create-layout')
+    && repairCss.includes('.prism-version-table')
+    && repairCss.includes('.prism-create-sidebar'),
+  'Prism Add Instance must expose nine source choices, a searchable/filterable version catalog and responsive desktop-style geometry');
+
+check(html.includes('id="prism-settings-open-root"')
+    && html.includes('id="prism-settings-check-update"')
+    && html.includes('id="prism-settings-account-open"')
+    && js.includes("invoke('open_launcher_resource_folder', { kind: action })")
+    && js.includes("{ action: 'icon-themes'")
+    && js.includes("{ action: 'widget-themes'")
+    && js.includes("{ action: 'cat-packs'")
+    && js.includes("{ action: 'instance-icons'")
+    && js.includes("{ action: 'logs'")
+    && js.includes("togglePrismHelpMenu();")
+    && js.includes("id = 'prism-help-menu'")
+    && js.includes("id = 'prism-folders-menu'")
+    && repairCss.includes('.prism-help-menu')
+    && repairCss.includes('.prism-folders-menu-item:hover'),
+  'Prism Folders and Help drop-downs must match the inner reference menus and keep their End Launcher actions functional');
+check(rustInstances.includes('pub fn open_launcher_resource_folder(kind: String)')
+    && rustMain.includes('instances::open_launcher_resource_folder,'),
+  'Prism resource-folder menu must map to a registered native folder-opening command');

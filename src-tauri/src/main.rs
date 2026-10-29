@@ -124,6 +124,7 @@ fn main() {
             instances::open_instances_folder,
             instances::open_launcher_folder,
             instances::open_game_folder,
+            instances::open_launcher_resource_folder,
             diag::system_info,
             ai::ai_install_state,
             ai::ai_install,

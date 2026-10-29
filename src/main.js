@@ -2520,24 +2520,42 @@ function ensurePrismFoldersMenu(sidebar) {
     prismFoldersMenu.setAttribute('role', 'menu');
     prismFoldersMenu.setAttribute('aria-label', 'Папки лаунчера');
 
+    // Keep the user's Pinecone reference order, but map every item to End Launcher-owned paths.
     const choices = [
-      { action: 'root', icon: '▰', label: 'Корневая папка', title: 'Открыть корневой игровой каталог' },
-      { action: 'instances', icon: '▣', label: 'Папка экземпляров', title: 'Открыть каталог всех сборок Minecraft' },
-      { action: 'mods', icon: '▧', label: 'Общие моды', title: 'Открыть общую папку модов' },
-      { action: 'config', icon: '⚙', label: 'Папка настроек', title: 'Открыть конфигурацию End Launcher' },
+      { action: 'root', icon: '▰', label: 'Корневая папка лаунчера', title: 'Открыть общий игровой каталог' },
+      { action: 'instances', icon: '▣', label: 'Экземпляры', title: 'Открыть каталог всех экземпляров Minecraft' },
+      { action: 'mods', icon: '▧', label: 'Основная папка модов', title: 'Открыть общую папку модов' },
+      { action: 'skins', icon: '♟', label: 'Скины', title: 'Открыть папку пользовательских скинов' },
+      { action: 'java', icon: '☕', label: 'Java', title: 'Открыть папку управляемых сред Java' },
+      { separator: true },
+      { action: 'icon-themes', icon: '▦', label: 'Набор значков', title: 'Открыть папку наборов значков интерфейса' },
+      { action: 'widget-themes', icon: '▤', label: 'Темы для виджетов', title: 'Открыть пользовательские темы виджетов' },
+      { action: 'cat-packs', icon: '◇', label: 'Наборы котиков', title: 'Открыть папку CatPack' },
+      { action: 'instance-icons', icon: '▧', label: 'Значки экземпляров', title: 'Открыть пользовательские значки сборок' },
+      { separator: true },
+      { action: 'logs', icon: '☰', label: 'Журналы', title: 'Открыть папку журналов Minecraft' },
     ];
     for (const choice of choices) {
+      if (choice.separator) {
+        const separator = document.createElement('div');
+        separator.className = 'prism-menu-separator';
+        separator.setAttribute('role', 'separator');
+        prismFoldersMenu.appendChild(separator);
+        continue;
+      }
       const item = document.createElement('button');
       item.type = 'button';
       item.className = 'prism-folders-menu-item';
       item.dataset.folderAction = choice.action;
       item.setAttribute('role', 'menuitem');
+      item.tabIndex = -1;
       item.title = choice.title;
       const icon = document.createElement('span');
       icon.className = 'prism-folders-menu-icon';
       icon.setAttribute('aria-hidden', 'true');
       icon.textContent = choice.icon;
       const label = document.createElement('span');
+      label.className = 'prism-menu-item-label';
       label.textContent = choice.label;
       item.append(icon, label);
       item.addEventListener('click', async (event) => {
@@ -2545,22 +2563,32 @@ function ensurePrismFoldersMenu(sidebar) {
         const action = item.dataset.folderAction;
         closePrismFoldersMenu();
         try {
-          if (action === 'root') {
-            await invoke('open_game_folder');
-          } else if (action === 'instances') {
-            await invoke('open_instances_folder');
-          } else if (action === 'mods') {
-            await invoke('open_mods_folder');
-          } else if (action === 'config') {
-            await invoke('open_launcher_folder');
-          }
+          if (action === 'root') await invoke('open_game_folder');
+          else if (action === 'instances') await invoke('open_instances_folder');
+          else if (action === 'mods') await invoke('open_mods_folder');
+          else if (action === 'logs') await invoke('open_latest_minecraft_logs');
+          else await invoke('open_launcher_resource_folder', { kind: action });
         } catch (error) {
-          const label = action === 'root' ? 'корневую папку' : action === 'instances' ? 'папку экземпляров' : action === 'mods' ? 'общую папку модов' : 'папку настроек';
-          showToast('Не удалось открыть ' + label + ': ' + String(error), false);
+          const label = choices.find((entry) => entry.action === action)?.label || 'папку';
+          showToast('Не удалось открыть «' + label + '»: ' + String(error), false);
         }
       });
       prismFoldersMenu.appendChild(item);
     }
+
+    prismFoldersMenu.addEventListener('keydown', (event) => {
+      const items = [...prismFoldersMenu.querySelectorAll('[role="menuitem"]')];
+      const index = items.indexOf(document.activeElement);
+      let next = null;
+      if (event.key === 'ArrowDown') next = (index + 1 + items.length) % items.length;
+      else if (event.key === 'ArrowUp') next = (index - 1 + items.length) % items.length;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = items.length - 1;
+      if (next !== null) {
+        event.preventDefault();
+        items[next]?.focus();
+      }
+    });
   }
   if (prismFoldersMenu.parentElement !== sidebar) sidebar.appendChild(prismFoldersMenu);
   const trigger = $('prism-open-folder');

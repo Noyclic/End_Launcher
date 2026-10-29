@@ -2621,25 +2621,167 @@ function syncPrismFoldersMenu(mode) {
   const trigger = $('prism-open-folder');
   if (mode !== 'prism') {
     closePrismFoldersMenu();
+    closePrismHelpMenu();
     trigger?.setAttribute('aria-expanded', 'false');
     return;
   }
   const sidebar = document.querySelector('.sidebar');
   if (!sidebar) return;
   ensurePrismFoldersMenu(sidebar);
+  ensurePrismHelpMenu(sidebar);
+}
+
+let prismHelpMenu = null;
+
+function closePrismHelpMenu({ restoreFocus = false } = {}) {
+  if (prismHelpMenu) prismHelpMenu.hidden = true;
+  $('prism-help')?.setAttribute('aria-expanded', 'false');
+  if (restoreFocus) $('prism-help')?.focus();
+}
+
+function ensurePrismHelpMenu(sidebar) {
+  if (!prismHelpMenu) {
+    prismHelpMenu = document.createElement('div');
+    prismHelpMenu.id = 'prism-help-menu';
+    prismHelpMenu.className = 'prism-help-menu';
+    prismHelpMenu.hidden = true;
+    prismHelpMenu.setAttribute('role', 'menu');
+    prismHelpMenu.setAttribute('aria-label', 'Справка End Launcher');
+    const choices = [
+      { action: 'refresh-metadata', icon: '⟳', label: 'Обновить метаданные версий', title: 'Заново запросить список версий Minecraft' },
+      { action: 'report', icon: '✎', label: 'Сообщить об ошибке или предложить функцию', title: 'Открыть форму предложения или сообщения об ошибке' },
+      { action: 'logs', icon: '▤', label: 'Просмотр журналов', title: 'Открыть журналы Minecraft для диагностики' },
+      { separator: true },
+      { action: 'community', icon: '◉', label: 'Обсуждения End Launcher', title: 'Открыть обсуждения проекта' },
+      { action: 'news', icon: '▤', label: 'Больше новостей…', title: 'Открыть новости и релизы End Launcher' },
+      { separator: true },
+      { action: 'wiki', icon: '?', label: 'Справка End Launcher', title: 'Открыть документацию End Launcher' },
+      { action: 'about', icon: 'ⓘ', label: 'О проекте End Launcher', title: 'Открыть репозиторий проекта' },
+    ];
+    for (const choice of choices) {
+      if (choice.separator) {
+        const separator = document.createElement('div');
+        separator.className = 'prism-menu-separator';
+        separator.setAttribute('role', 'separator');
+        prismHelpMenu.appendChild(separator);
+        continue;
+      }
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'prism-help-menu-item';
+      item.dataset.helpAction = choice.action;
+      item.setAttribute('role', 'menuitem');
+      item.tabIndex = -1;
+      item.title = choice.title;
+      const icon = document.createElement('span');
+      icon.className = 'prism-help-menu-icon';
+      icon.setAttribute('aria-hidden', 'true');
+      icon.textContent = choice.icon;
+      const label = document.createElement('span');
+      label.className = 'prism-menu-item-label';
+      label.textContent = choice.label;
+      item.append(icon, label);
+      item.addEventListener('click', async (event) => {
+        event.stopPropagation();
+        const action = item.dataset.helpAction;
+        closePrismHelpMenu();
+        try {
+          if (action === 'refresh-metadata') {
+            releaseIds = [];
+            const refreshed = await loadReleases();
+            showToast(refreshed.length
+              ? 'Метаданные версий обновлены (' + refreshed.length + ').'
+              : 'Не удалось загрузить метаданные версий. Проверь подключение к интернету.', !!refreshed.length);
+          } else if (action === 'logs') {
+            await invoke('open_latest_minecraft_logs');
+          } else {
+            const urls = {
+              report: 'https://github.com/Noyclic/End_Launcher/issues/new/choose',
+              community: 'https://github.com/Noyclic/End_Launcher/discussions',
+              news: 'https://github.com/Noyclic/End_Launcher/releases',
+              wiki: 'https://github.com/Noyclic/End_Launcher/blob/main/README.ru.md',
+              about: 'https://github.com/Noyclic/End_Launcher',
+            };
+            await invoke('open_url', { url: urls[action] });
+          }
+        } catch (error) {
+          const label = choices.find((entry) => entry.action === action)?.label || 'действие';
+          showToast('Не удалось выполнить «' + label + '»: ' + String(error), false);
+        }
+      });
+      prismHelpMenu.appendChild(item);
+    }
+    prismHelpMenu.addEventListener('keydown', (event) => {
+      const items = [...prismHelpMenu.querySelectorAll('[role="menuitem"]')];
+      const index = items.indexOf(document.activeElement);
+      let next = null;
+      if (event.key === 'ArrowDown') next = (index + 1 + items.length) % items.length;
+      else if (event.key === 'ArrowUp') next = (index - 1 + items.length) % items.length;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = items.length - 1;
+      if (next !== null) {
+        event.preventDefault();
+        items[next]?.focus();
+      }
+    });
+  }
+  if (prismHelpMenu.parentElement !== sidebar) sidebar.appendChild(prismHelpMenu);
+  const trigger = $('prism-help');
+  trigger?.setAttribute('aria-haspopup', 'menu');
+  trigger?.setAttribute('aria-controls', 'prism-help-menu');
+}
+
+function togglePrismHelpMenu() {
+  const trigger = $('prism-help');
+  if (currentUi !== 'prism' || !trigger || !prismHelpMenu) return;
+  closePrismFoldersMenu();
+  if (prismOverflowPanel && !prismOverflowPanel.hidden) {
+    prismOverflowPanel.hidden = true;
+    prismOverflowToggle?.setAttribute('aria-expanded', 'false');
+  }
+  const shouldOpen = prismHelpMenu.hidden;
+  closePrismHelpMenu();
+  if (!shouldOpen) return;
+  const rect = trigger.getBoundingClientRect();
+  const width = Math.min(410, Math.max(300, window.innerWidth - 16));
+  prismHelpMenu.style.position = 'fixed';
+  prismHelpMenu.style.width = width + 'px';
+  prismHelpMenu.style.maxHeight = Math.max(180, window.innerHeight - 16) + 'px';
+  prismHelpMenu.hidden = false;
+  const menuRect = prismHelpMenu.getBoundingClientRect();
+  const below = window.innerHeight - rect.bottom - 8;
+  const above = rect.top - 8;
+  const top = menuRect.height <= below || below >= above
+    ? Math.min(rect.bottom + 2, window.innerHeight - menuRect.height - 8)
+    : Math.max(8, rect.top - menuRect.height - 2);
+  prismHelpMenu.style.top = Math.max(8, top) + 'px';
+  prismHelpMenu.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8)) + 'px';
+  trigger.setAttribute('aria-expanded', 'true');
+  prismHelpMenu.querySelector('[role="menuitem"]')?.focus();
 }
 
 document.addEventListener('click', (event) => {
-  if (currentUi !== 'prism' || !prismFoldersMenu || prismFoldersMenu.hidden) return;
-  if (prismFoldersMenu.contains(event.target) || $('prism-open-folder')?.contains(event.target)) return;
-  closePrismFoldersMenu();
+  if (currentUi === 'prism' && prismFoldersMenu && !prismFoldersMenu.hidden
+      && !prismFoldersMenu.contains(event.target) && !$('prism-open-folder')?.contains(event.target)) {
+    closePrismFoldersMenu();
+  }
+  if (currentUi === 'prism' && prismHelpMenu && !prismHelpMenu.hidden
+      && !prismHelpMenu.contains(event.target) && !$('prism-help')?.contains(event.target)) {
+    closePrismHelpMenu();
+  }
 });
 document.addEventListener('keydown', (event) => {
-  if (event.key !== 'Escape' || !prismFoldersMenu || prismFoldersMenu.hidden) return;
-  event.preventDefault();
-  closePrismFoldersMenu({ restoreFocus: true });
+  if (event.key !== 'Escape') return;
+  if (prismFoldersMenu && !prismFoldersMenu.hidden) {
+    event.preventDefault();
+    closePrismFoldersMenu({ restoreFocus: true });
+  }
+  if (prismHelpMenu && !prismHelpMenu.hidden) {
+    event.preventDefault();
+    closePrismHelpMenu({ restoreFocus: true });
+  }
 });
-window.addEventListener('resize', () => { closePrismFoldersMenu(); closePrismOverflow(); });
+window.addEventListener('resize', () => { closePrismFoldersMenu(); closePrismHelpMenu(); closePrismOverflow(); });
 
 let prismSettingsActiveTab = 'general';
 function syncPrismSettingsPage(mode) {

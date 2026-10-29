@@ -2007,7 +2007,7 @@ function setPrismCreateMode(mode) {
   const create = $('ni-create');
   if (create) {
     create.hidden = next !== 'minecraft';
-    create.textContent = currentUi === 'prism' ? 'Создать экземпляр' : '＋ Создать сборку';
+    create.textContent = currentUi === 'prism' ? 'ОК' : '＋ Создать сборку';
   }
   const note = document.querySelector('.prism-create-footer-note');
   if (note) note.textContent = next === 'minecraft'
@@ -2113,12 +2113,26 @@ async function openNewInstance() {
   if (title) title.textContent = currentUi === 'prism' ? 'Добавить экземпляр' : 'Новая сборка';
   $('ni-msg').textContent = '';
   setPrismCreateMode('minecraft');
+  const groupList = $('ni-group-options');
+  if (groupList) {
+    groupList.replaceChildren();
+    try {
+      const stored = JSON.parse(localStorage.getItem(PRISM_INSTANCE_GROUPS_STORE) || '{}');
+      const groups = [...new Set(Object.values(stored).map((value) => String(value || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+      for (const group of groups) {
+        const option = document.createElement('option');
+        option.value = group;
+        groupList.appendChild(option);
+      }
+    } catch {}
+  }
   const ids = await loadReleases();
   renderPrismCreateVersionBrowser();
   if (!ids.length) $('ni-msg').textContent = 'Не удалось получить список версий (нет интернета?)';
   $('ni-name').focus();
 }
 $('ni-cancel').addEventListener('click', closeNewInstance);
+$('ni-window-close')?.addEventListener('click', closeNewInstance);
 $('new-instance').addEventListener('click', (event) => {
   if (currentUi === 'prism' && event.target === $('new-instance')) closeNewInstance();
 });
@@ -2164,7 +2178,7 @@ $('ni-create').addEventListener('click', async () => {
     $('ni-msg').textContent = String(e);
   } finally {
     btn.disabled = false;
-    btn.textContent = currentUi === 'prism' ? 'Создать экземпляр' : '＋ Создать сборку';
+    btn.textContent = currentUi === 'prism' ? 'ОК' : '＋ Создать сборку';
   }
 });
 

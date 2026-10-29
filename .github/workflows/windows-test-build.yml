@@ -1,5 +1,7 @@
 name: Windows test build
 
+# Manual-build fallback: a workflow-file update also triggers the branch build.
+
 on:
   push:
     branches: [ui-fidelity-pass]

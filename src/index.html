@@ -156,68 +156,107 @@
             </div>
             <div id="new-instance" class="create-instance-modal" style="display:none" aria-hidden="true">
               <div class="panel create-instance-panel" role="dialog" aria-labelledby="create-instance-title" tabindex="-1">
-                <div class="create-instance-layout">
-                  <nav class="create-instance-sidebar" role="tablist" aria-label="Способ создания экземпляра">
-                    <button class="active" type="button" role="tab" aria-selected="true" data-create-view="minecraft">▣ <span>Minecraft</span></button>
-                    <button type="button" role="tab" aria-selected="false" data-create-view="import">⇩ <span>Импорт</span></button>
-                    <button type="button" role="tab" aria-selected="false" data-create-view="modrinth">M <span>Modrinth</span></button>
-                    <button type="button" role="tab" aria-selected="false" data-create-view="curseforge">C <span>CurseForge</span></button>
-                  </nav>
-                  <div class="create-instance-workspace">
-                    <div class="create-instance-heading">
-                      <div class="create-instance-mark" aria-hidden="true">＋</div>
-                      <div><h2 id="create-instance-title">Добавить экземпляр</h2><p class="dim small" id="ni-description">Создай отдельную установку Minecraft с выбранной версией и загрузчиком.</p></div>
-                      <button id="ni-cancel" class="ghost create-instance-close" type="button" aria-label="Закрыть окно">×</button>
-                    </div>
-                    <div class="create-instance-mode" data-create-panel="minecraft">
-                      <div class="create-instance-fields">
-                        <label class="create-field"><span>Название экземпляра</span><input id="ni-name" placeholder="Например, Survival 1.21" maxlength="40" autocomplete="off" /></label>
-                        <label class="create-field"><span>Версия Minecraft</span><select id="ni-version" title="Версия игры"></select></label>
-                        <label class="create-field"><span>Загрузчик модов</span><select id="ni-loader" data-seg title="Загрузчик">
+                <div class="create-instance-layout prism-create-layout">
+                  <div class="prism-create-titlebar">
+                    <span class="prism-create-title-icon" aria-hidden="true">＋</span>
+                    <h2 id="create-instance-title">Добавить экземпляр</h2>
+                    <button id="ni-cancel" class="ghost create-instance-close" type="button" aria-label="Закрыть окно">×</button>
+                  </div>
+                  <div class="prism-create-identity">
+                    <div id="ni-preview-icon" class="prism-create-preview" aria-hidden="true"><span></span></div>
+                    <label class="prism-create-identity-field prism-create-name-field"><span>Имя</span><input id="ni-name" placeholder="Например, Survival 1.21" maxlength="40" autocomplete="off" /></label>
+                    <label class="prism-create-identity-field prism-create-group-field"><span>Группа</span><input id="ni-group" list="ni-group-options" placeholder="Без группы" maxlength="32" autocomplete="off" /></label>
+                    <datalist id="ni-group-options"></datalist>
+                  </div>
+                  <div class="prism-create-body">
+                    <nav class="create-instance-sidebar prism-create-sidebar" role="tablist" aria-label="Источник экземпляра">
+                      <button class="active" type="button" role="tab" aria-selected="true" data-create-view="minecraft"><span class="create-provider-icon grass">▰</span><span>Пользовательский</span></button>
+                      <button type="button" role="tab" aria-selected="false" data-create-view="import"><span class="create-provider-icon folder">▰</span><span>Импорт</span></button>
+                      <button type="button" role="tab" aria-selected="false" data-create-view="atlauncher"><span class="create-provider-icon at">A</span><span>ATLauncher</span></button>
+                      <button type="button" role="tab" aria-selected="false" data-create-view="curseforge"><span class="create-provider-icon curse">C</span><span>CurseForge</span></button>
+                      <button type="button" role="tab" aria-selected="false" data-create-view="ftb"><span class="create-provider-icon ftb">FTB</span><span>FTB</span></button>
+                      <button type="button" role="tab" aria-selected="false" data-create-view="ftb-legacy"><span class="create-provider-icon ftb">FTB</span><span>FTB Legacy</span></button>
+                      <button type="button" role="tab" aria-selected="false" data-create-view="ftb-app"><span class="create-provider-icon ftb">FTB</span><span>Импорт из приложения FTB</span></button>
+                      <button type="button" role="tab" aria-selected="false" data-create-view="modrinth"><span class="create-provider-icon modrinth">M</span><span>Modrinth</span></button>
+                      <button type="button" role="tab" aria-selected="false" data-create-view="technic"><span class="create-provider-icon technic">T</span><span>Technic</span></button>
+                    </nav>
+                    <div class="create-instance-workspace prism-create-workspace">
+                      <p class="dim small" id="ni-description">Создай отдельную установку Minecraft с выбранной версией и загрузчиком.</p>
+                      <div class="create-instance-mode prism-create-custom-mode" data-create-panel="minecraft">
+                        <div class="prism-version-browser">
+                          <div class="prism-version-table-wrap">
+                            <table class="prism-version-table" aria-label="Версии Minecraft">
+                              <thead><tr><th>Версия</th><th>Тип</th></tr></thead>
+                              <tbody id="ni-version-rows"><tr><td colspan="2" class="dim">Загружаю список версий…</td></tr></tbody>
+                            </table>
+                          </div>
+                          <div class="prism-version-filters">
+                            <strong>Показывать</strong>
+                            <label><input id="ni-filter-releases" type="checkbox" checked /> Релизы</label>
+                            <label><input id="ni-filter-snapshots" type="checkbox" /> Снапшоты</label>
+                            <label><input id="ni-filter-betas" type="checkbox" /> Беты</label>
+                            <label><input id="ni-filter-alphas" type="checkbox" /> Альфы</label>
+                            <label><input id="ni-filter-experimental" type="checkbox" /> Экспериментальные</label>
+                          </div>
+                          <div class="prism-version-search-row">
+                            <input id="ni-version-search" type="search" placeholder="Поиск версии…" autocomplete="off" aria-label="Поиск версии Minecraft" />
+                            <button id="ni-version-refresh" class="ghost" type="button">Обновить</button>
+                          </div>
+                        </div>
+                        <label class="create-field prism-create-loader-field"><span>Загрузчик модов</span><select id="ni-loader" data-seg title="Загрузчик">
                           <option value="vanilla">Vanilla</option>
                           <option value="fabric">Fabric</option>
                           <option value="quilt">Quilt</option>
                           <option value="forge">Forge</option>
                           <option value="neoforge">NeoForge</option>
                         </select></label>
-                        <label class="create-field"><span>Группа (необязательно)</span><input id="ni-group" placeholder="Например, Survival" maxlength="32" autocomplete="off" /></label>
+                        <p class="create-instance-note dim small">Vanilla — чистая игра; Fabric и Quilt — лёгкие моды и оптимизация; Forge и NeoForge — загрузчики для модов и модпаков.</p>
+                        <select id="ni-version" title="Версия игры" aria-label="Выбранная версия Minecraft" hidden></select>
                       </div>
-                      <p class="create-instance-note dim small">Vanilla — чистая игра; Fabric и Quilt — лёгкие моды и оптимизация; Forge и NeoForge — модпаки и моды, рассчитанные на эти загрузчики.</p>
-                      <div class="row create-instance-actions">
-                        <button id="ni-create" type="button">＋ Создать экземпляр</button>
-                      </div>
-                    </div>
-                    <div class="create-instance-mode" data-create-panel="import" hidden>
-                      <div class="create-provider-card">
-                        <div class="create-provider-symbol">⇩</div>
-                        <h3>Импорт готовой сборки</h3>
-                        <p>Поддерживаются архивы <code>.mrpack</code> и <code>.zip</code>, а также папки из Prism, MultiMC и других лаунчеров. Исходные файлы не изменяются.</p>
-                        <p class="dim small">Выбери архив модпака или папку экспорта Prism / MultiMC. Можно также перетащить файл в окно лаунчера.</p>
-                        <div class="create-import-actions">
-                          <button id="ni-import-archive" type="button">Выбрать архив…</button>
-                          <button id="ni-import-folder" class="ghost" type="button">Выбрать папку…</button>
-                          <button id="ni-import-start" class="ghost" type="button">Перетащить вручную</button>
+                      <div class="create-instance-mode" data-create-panel="import" hidden>
+                        <div class="create-provider-card">
+                          <div class="create-provider-symbol">⇩</div>
+                          <h3>Импорт готовой сборки</h3>
+                          <p>Поддерживаются архивы <code>.mrpack</code> и <code>.zip</code>, а также папки из Prism, MultiMC и других лаунчеров. Исходные файлы не изменяются.</p>
+                          <p class="dim small">Выбери архив модпака или папку экспорта. Можно также перетащить файл в окно лаунчера.</p>
+                          <div class="create-import-actions">
+                            <button id="ni-import-archive" type="button">Выбрать архив…</button>
+                            <button id="ni-import-folder" class="ghost" type="button">Выбрать папку…</button>
+                            <button id="ni-import-start" class="ghost" type="button">Перетащить вручную</button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div class="create-instance-mode" data-create-panel="modrinth" hidden>
-                      <div class="create-provider-card">
-                        <div class="create-provider-symbol">M</div>
-                        <h3>Модпаки Modrinth</h3>
-                        <p>Открой каталог модпаков Modrinth, скачай файл <code>.mrpack</code>, а затем импортируй его через эту же вкладку.</p>
-                        <button id="ni-open-modrinth" type="button">Открыть каталог Modrinth ↗</button>
+                      <div class="create-instance-mode" data-create-panel="atlauncher" hidden>
+                        <div class="create-provider-card"><div class="create-provider-symbol">A</div><h3>Модпаки ATLauncher</h3><p>Открой каталог ATLauncher в браузере. После скачивания поддерживаемый архив или экспортированную папку можно добавить через «Импорт».</p><button type="button" data-provider-url="https://atlauncher.com/">Открыть каталог ATLauncher ↗</button></div>
                       </div>
-                    </div>
-                    <div class="create-instance-mode" data-create-panel="curseforge" hidden>
-                      <div class="create-provider-card">
-                        <div class="create-provider-symbol">C</div>
-                        <h3>Модпаки CurseForge</h3>
-                        <p>Перейди в каталог CurseForge. Поддерживаемый экспортированный ZIP можно импортировать через вкладку «Импорт».</p>
-                        <button id="ni-open-curseforge" type="button">Открыть каталог CurseForge ↗</button>
+                      <div class="create-instance-mode" data-create-panel="curseforge" hidden>
+                        <div class="create-provider-card"><div class="create-provider-symbol">C</div><h3>Модпаки CurseForge</h3><p>Перейди в каталог CurseForge. Поддерживаемый экспортированный ZIP можно импортировать через вкладку «Импорт».</p><button id="ni-open-curseforge" type="button">Открыть каталог CurseForge ↗</button></div>
                       </div>
+                      <div class="create-instance-mode" data-create-panel="ftb" hidden>
+                        <div class="create-provider-card"><div class="create-provider-symbol">FTB</div><h3>Модпаки FTB</h3><p>Выбери модпак на официальном сайте FTB. End Launcher пока не устанавливает закрытые манифесты напрямую; используй совместимый экспорт или перенос папки через «Импорт».</p><button type="button" data-provider-url="https://www.feed-the-beast.com/modpacks">Открыть модпаки FTB ↗</button></div>
+                      </div>
+                      <div class="create-instance-mode" data-create-panel="ftb-legacy" hidden>
+                        <div class="create-provider-card"><div class="create-provider-symbol">FTB</div><h3>FTB Legacy</h3><p>Для старых сборок FTB используй официальный каталог и затем импортируй доступную папку или архив. Автоматическая установка старых FTB-пакетов пока не поддерживается.</p><button type="button" data-provider-url="https://www.feed-the-beast.com/legacy">Открыть FTB Legacy ↗</button></div>
+                      </div>
+                      <div class="create-instance-mode" data-create-panel="ftb-app" hidden>
+                        <div class="create-provider-card"><div class="create-provider-symbol">FTB</div><h3>Импорт из приложения FTB</h3><p>Выбери экспортированную папку экземпляра или поддерживаемый архив из FTB App. Исходная сборка останется нетронутой.</p><button type="button" data-provider-url="https://www.feed-the-beast.com/">Открыть сайт FTB ↗</button><button type="button" class="ghost" data-switch-create-view="import">Перейти к импорту…</button></div>
+                      </div>
+                      <div class="create-instance-mode" data-create-panel="modrinth" hidden>
+                        <div class="create-provider-card"><div class="create-provider-symbol">M</div><h3>Модпаки Modrinth</h3><p>Открой каталог Modrinth, скачай файл <code>.mrpack</code>, а затем импортируй его через вкладку «Импорт».</p><button id="ni-open-modrinth" type="button">Открыть каталог Modrinth ↗</button><button type="button" class="ghost" data-switch-create-view="import">Перейти к импорту…</button></div>
+                      </div>
+                      <div class="create-instance-mode" data-create-panel="technic" hidden>
+                        <div class="create-provider-card"><div class="create-provider-symbol">T</div><h3>Модпаки Technic</h3><p>Открой каталог Technic. End Launcher не загружает пакеты Technic автоматически; для совместимых экспортов используй «Импорт».</p><button type="button" data-provider-url="https://www.technicpack.net/modpacks">Открыть каталог Technic ↗</button></div>
+                      </div>
+                      <p class="mono small" id="ni-msg" role="status" aria-live="polite"></p>
                     </div>
-                    <p class="mono small" id="ni-msg" role="status" aria-live="polite"></p>
                   </div>
+                  <footer class="prism-create-footer">
+                    <span class="prism-create-footer-note">Выбери источник, версию и загрузчик</span>
+                    <div class="prism-create-footer-actions">
+                      <button id="ni-help" class="ghost" type="button">Справка</button>
+                      <button id="ni-create" type="button">Создать экземпляр</button>
+                    </div>
+                  </footer>
                 </div>
               </div>
             </div>

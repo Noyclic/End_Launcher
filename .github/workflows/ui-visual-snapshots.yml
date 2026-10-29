@@ -217,7 +217,7 @@ jobs:
 
           // Assert the literal left-to-right order and measured spacing from the supplied Pinecone reference.
           const toolbarOrder = await page.evaluate(() => {
-            const ids = ['prism-help', 'prism-update', 'library-add', 'prism-open-folder', 'nav-settings-button'];
+            const ids = ['library-add', 'prism-open-folder', 'nav-settings-button', 'prism-help', 'prism-update'];
             return ids.map((id) => {
               const el = document.getElementById(id);
               const rect = el?.getBoundingClientRect();
@@ -231,11 +231,11 @@ jobs:
             });
           });
           const toolbarReferenceGeometry = [
-            { id: 'prism-help', left: 8, right: 114 },
-            { id: 'prism-update', left: 122, right: 237 },
-            { id: 'library-add', left: 245, right: 293 },
-            { id: 'prism-open-folder', left: 301, right: 392 },
-            { id: 'nav-settings-button', left: 400, right: 502 },
+            { id: 'library-add', left: 8, right: 56 },
+            { id: 'prism-open-folder', left: 64, right: 155 },
+            { id: 'nav-settings-button', left: 163, right: 265 },
+            { id: 'prism-help', left: 273, right: 379 },
+            { id: 'prism-update', left: 387, right: 502 },
           ];
           console.log('PRISM TOOLBAR ORDER:', JSON.stringify(toolbarOrder));
           if (toolbarOrder.some((item, index) =>
@@ -243,7 +243,7 @@ jobs:
                 || item.id !== toolbarReferenceGeometry[index].id
                 || Math.abs(item.left - toolbarReferenceGeometry[index].left) > 4
                 || Math.abs(item.right - toolbarReferenceGeometry[index].right) > 4)) {
-            throw new Error('Prism toolbar order or geometry drifted from the Pinecone reference: Help, Update, Add, Folders, Settings.');
+            throw new Error('Prism toolbar order or geometry drifted from the Pinecone reference: Add, Folders, Settings, Help, Update.');
           }
 
           await page.mouse.move(820, 450);
@@ -295,7 +295,7 @@ jobs:
           });
           console.log('PRISM MOBILE GEOMETRY:', JSON.stringify(prismMobileGeometry));
           const mobileToolbarOrder = await page.evaluate(() => {
-            const ids = ['prism-help', 'prism-update', 'library-add', 'prism-open-folder', 'nav-settings-button'];
+            const ids = ['library-add', 'prism-open-folder', 'nav-settings-button', 'prism-help', 'prism-update'];
             return ids.map((id) => {
               const el = document.getElementById(id);
               const rect = el?.getBoundingClientRect();
@@ -308,7 +308,7 @@ jobs:
             .map((item) => item.id);
           console.log('PRISM MOBILE TOOLBAR ORDER:', JSON.stringify({ measured: mobileToolbarOrder, readingOrder: mobileVisualReadingOrder }));
           if (mobileToolbarOrder.some((item) => !item.visible)
-              || mobileVisualReadingOrder.join(',') !== 'prism-help,prism-update,library-add,prism-open-folder,nav-settings-button') {
+              || mobileVisualReadingOrder.join(',') !== 'library-add,prism-open-folder,nav-settings-button,prism-help,prism-update') {
             throw new Error('Prism mobile toolbar order drifted from the Pinecone reference.');
           }
           const mobilePlaybar = prismMobileGeometry.playbar;

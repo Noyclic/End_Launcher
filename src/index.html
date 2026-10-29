@@ -360,15 +360,22 @@
         </section>
 
         <section class="page" id="page-settings">
-          <h1>НАСТРОЙКИ</h1>
-          <div id="prism-settings-tabs" class="prism-settings-tabs" role="tablist" aria-label="Разделы параметров" hidden>
-            <button type="button" role="tab" data-prism-settings-tab="general" aria-selected="true" class="active">Общие</button>
-            <button type="button" role="tab" data-prism-settings-tab="java" aria-selected="false">Java</button>
-            <button type="button" role="tab" data-prism-settings-tab="appearance" aria-selected="false">Внешний вид</button>
-            <button type="button" role="tab" data-prism-settings-tab="ai" aria-selected="false">ИИ</button>
-            <button type="button" role="tab" data-prism-settings-tab="security" aria-selected="false">Безопасность</button>
-            <button type="button" role="tab" data-prism-settings-tab="diagnostics" aria-selected="false">Диагностика</button>
+          <div class="prism-settings-window">
+          <div class="prism-settings-titlebar">
+            <span class="prism-settings-title-icon" aria-hidden="true">E</span>
+            <h1>НАСТРОЙКИ</h1>
+            <button id="prism-settings-close" class="prism-settings-window-close" type="button" aria-label="Закрыть параметры">×</button>
           </div>
+          <div class="prism-settings-dialog-body">
+          <div id="prism-settings-tabs" class="prism-settings-tabs" role="tablist" aria-label="Разделы параметров" hidden>
+            <button type="button" role="tab" data-prism-settings-tab="general" aria-selected="true" class="active"><span class="prism-settings-tab-icon" aria-hidden="true">▣</span><span>Главное</span></button>
+            <button type="button" role="tab" data-prism-settings-tab="java" aria-selected="false"><span class="prism-settings-tab-icon" aria-hidden="true">☕</span><span>Java</span></button>
+            <button type="button" role="tab" data-prism-settings-tab="appearance" aria-selected="false"><span class="prism-settings-tab-icon" aria-hidden="true">▤</span><span>Внешний вид</span></button>
+            <button type="button" role="tab" data-prism-settings-tab="ai" aria-selected="false"><span class="prism-settings-tab-icon" aria-hidden="true">✦</span><span>ИИ</span></button>
+            <button type="button" role="tab" data-prism-settings-tab="security" aria-selected="false"><span class="prism-settings-tab-icon" aria-hidden="true">⬡</span><span>Безопасность</span></button>
+            <button type="button" role="tab" data-prism-settings-tab="diagnostics" aria-selected="false"><span class="prism-settings-tab-icon" aria-hidden="true">⌁</span><span>Диагностика</span></button>
+          </div>
+          <div class="prism-settings-content">
           <div class="customize-launcher-card"><div><strong>🎨 Измените на свой вкус</strong><p class="dim small">Перетаскивайте элементы, добавляйте GIF, картинки, мемы, фон и эффекты.</p></div><button id="open-customizer" class="big-btn">ОТКРЫТЬ КАСТОМИЗАЦИЮ</button></div>
           <section class="catpack-settings panel" id="catpack-settings" aria-labelledby="catpack-heading">
             <div class="catpack-heading-row"><div><h2 id="catpack-heading" class="mono dim">КОТИК НА ФОНЕ · CATPACK</h2><p class="dim small">Котик появляется за списком сборок, как в Prism Launcher. Поддерживаются PNG, JPG, WebP и анимированные GIF.</p></div><button id="catpack-toggle" class="ghost" type="button" aria-pressed="false">Показать котика</button></div>
@@ -517,7 +524,18 @@
             Ключ шифруется Rust'ом и хранится только локально. Ответы кэшируются — повторные
             запросы не тратят токены.
           </p>
-        </section>
+        </div>
+          </div>
+          <footer class="prism-settings-footer">
+            <span id="prism-settings-footer-status">Изменения применяются сразу</span>
+            <div class="prism-settings-footer-actions">
+              <button id="prism-settings-help" type="button">Справка</button>
+              <button id="prism-settings-cancel" type="button">Закрыть</button>
+              <button id="prism-settings-ok" type="button" class="primary">ОК</button>
+            </div>
+          </footer>
+          </div>
+          </section>
       </main>
 
       </div>

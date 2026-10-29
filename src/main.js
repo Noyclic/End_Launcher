@@ -1836,17 +1836,129 @@ function fillSelect(sel, ids, selected) {
   }
   if (selected) sel.value = selected; // если такой версии нет в списке, обёртка добавит её сама
 }
-async function loadReleases() {
-  if (releaseIds.length) return releaseIds;
-  // -> Rust: java.rs :: list_java_versions()
-  const rel = await invoke('list_java_versions').catch(() => []);
-  releaseIds = rel.map((v) => v.id);
-  if (releaseIds.length) {
-    fillSelect($('mod-version'), releaseIds, $('mod-version').value);
-    fillSelect($('ni-version'), releaseIds, releaseIds[0]);
+function prismCreateVersionKind(id) {
+  const value = String(id || '').toLowerCase();
+  if (/experimental|combat|test/.test(value)) return 'experimental';
+  if (/alpha/.test(value)) return 'alphas';
+  if (/beta/.test(value)) return 'betas';
+  if (/snapshot|w\\d{2,}/.test(value)) return 'snapshots';
+  return 'releases';
+}
+
+function renderPrismCreateVersionBrowser() {
+  const body = $('ni-version-rows');
+  const select = $('ni-version');
+  if (!body || !select) return;
+  const query = String($('ni-version-search')?.value || '').trim().toLowerCase();
+  const allowed = ['releases', 'snapshots', 'betas', 'alphas', 'experimental']
+    .filter((key) => $('ni-filter-' + key)?.checked);
+  const selected = select.value;
+  const visible = releaseIds.filter((id) => {
+    if (query && !String(id).toLowerCase().includes(query)) return false;
+    return allowed.includes(prismCreateVersionKind(id));
+  });
+  body.replaceChildren();
+  if (!visible.length) {
+    const row = document.createElement('tr');
+    const cell = document.createElement('td');
+    cell.colSpan = 2;
+    cell.className = 'dim';
+    cell.textContent = releaseIds.length
+      ? 'Нет версий по выбранным фильтрам.'
+      : 'Список версий пока недоступен.';
+    row.appendChild(cell);
+    body.appendChild(row);
+    return;
   }
+  const kindLabels = {
+    releases: 'release',
+    snapshots: 'snapshot',
+    betas: 'beta',
+    alphas: 'alpha',
+    experimental: 'experimental',
+  };
+  for (const id of visible) {
+    const kind = prismCreateVersionKind(id);
+    const row = document.createElement('tr');
+    row.tabIndex = 0;
+    row.dataset.version = id;
+    row.dataset.kind = kind;
+    row.setAttribute('aria-selected', String(id === selected));
+    row.classList.toggle('active', id === selected);
+    const versionCell = document.createElement('td');
+    versionCell.textContent = id;
+    const typeCell = document.createElement('td');
+    typeCell.textContent = kindLabels[kind] || 'release';
+    row.append(versionCell, typeCell);
+    const choose = () => {
+      select.value = id;
+      if (select.value !== id) {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = id;
+        select.appendChild(option);
+        select.value = id;
+      }
+      body.querySelectorAll('tr[data-version]').forEach((item) => {
+        const active = item.dataset.version === id;
+        item.classList.toggle('active', active);
+        item.setAttribute('aria-selected', String(active));
+      });
+      const note = $('ni-msg');
+      if (note && /выбери версию|список версий|загружаю список/i.test(note.textContent)) note.textContent = '';
+    };
+    row.addEventListener('click', choose);
+    row.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        choose();
+      }
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        const rows = [...body.querySelectorAll('tr[data-version]')];
+        const index = rows.indexOf(row);
+        rows[(index + (event.key === 'ArrowDown' ? 1 : -1) + rows.length) % rows.length]?.focus();
+      }
+    });
+    body.appendChild(row);
+  }
+}
+
+async function loadReleases({ refresh = false } = {}) {
+  if (refresh) releaseIds = [];
+  if (!releaseIds.length) {
+    // -> Rust: java.rs :: list_java_versions()
+    const rel = await invoke('list_java_versions').catch(() => []);
+    releaseIds = rel.map((v) => v.id).filter(Boolean);
+    if (releaseIds.length) {
+      fillSelect($('mod-version'), releaseIds, $('mod-version').value);
+      const current = $('ni-version')?.value;
+      fillSelect($('ni-version'), releaseIds, current && releaseIds.includes(current) ? current : releaseIds[0]);
+    }
+  }
+  renderPrismCreateVersionBrowser();
   return releaseIds;
 }
+
+for (const id of ['ni-version-search', 'ni-filter-releases', 'ni-filter-snapshots', 'ni-filter-betas', 'ni-filter-alphas', 'ni-filter-experimental']) {
+  $(id)?.addEventListener(id === 'ni-version-search' ? 'input' : 'change', renderPrismCreateVersionBrowser);
+}
+$('ni-version-refresh')?.addEventListener('click', async () => {
+  const button = $('ni-version-refresh');
+  if (button) button.disabled = true;
+  const body = $('ni-version-rows');
+  if (body) body.innerHTML = '<tr><td colspan="2" class="dim">Обновляю список версий…</td></tr>';
+  try {
+    const ids = await loadReleases({ refresh: true });
+    if (ids.length) {
+      if ($('ni-msg')) $('ni-msg').textContent = 'Список версий обновлён.';
+    } else if ($('ni-msg')) {
+      $('ni-msg').textContent = 'Не удалось загрузить список версий. Проверь подключение к интернету.';
+    }
+  } finally {
+    if (button) button.disabled = false;
+  }
+});
 
 // ── создание сборки ──
 let createInstanceReturnFocus = null;
@@ -1868,7 +1980,7 @@ function closeNewInstance() {
   createInstanceReturnFocus = null;
 }
 function setPrismCreateMode(mode) {
-  const supported = ['minecraft', 'import', 'modrinth', 'curseforge'];
+  const supported = ['minecraft', 'import', 'atlauncher', 'curseforge', 'ftb', 'ftb-legacy', 'ftb-app', 'modrinth', 'technic'];
   const next = supported.includes(mode) ? mode : 'minecraft';
   document.querySelectorAll('[data-create-view]').forEach((button) => {
     const active = button.dataset.createView === next;
@@ -1880,15 +1992,30 @@ function setPrismCreateMode(mode) {
     panel.hidden = panel.dataset.createPanel !== next;
   });
   const description = {
-    minecraft: 'Создай отдельную установку Minecraft с выбранной версией и загрузчиком.',
-    import: 'Перенеси готовую сборку без ручного копирования файлов.',
-    modrinth: 'Найди модпак в каталоге Modrinth и затем импортируй его архив.',
-    curseforge: 'Найди модпак в каталоге CurseForge и затем импортируй его архив.',
+    minecraft: 'Выбери версию Minecraft и загрузчик модов для отдельного экземпляра.',
+    import: 'Импортируй совместимый архив или папку существующей сборки.',
+    atlauncher: 'Каталог ATLauncher откроется в браузере; совместимую сборку затем можно импортировать.',
+    curseforge: 'Открой CurseForge и импортируй совместимый экспортированный ZIP.',
+    ftb: 'Открой каталог FTB. Прямое развёртывание закрытого манифеста FTB пока не поддерживается.',
+    'ftb-legacy': 'Для старой сборки выбери совместимый экспорт или папку для импорта.',
+    'ftb-app': 'Перенеси экспортированную папку из приложения FTB через общий импорт.',
+    modrinth: 'Открой каталог Modrinth, затем добавь скачанный файл .mrpack через импорт.',
+    technic: 'Открой каталог Technic; совместимые архивы или папки добавляются через импорт.',
   }[next];
   const desc = $('ni-description');
   if (desc) desc.textContent = description;
   const create = $('ni-create');
-  if (create) create.textContent = currentUi === 'prism' ? '＋ Создать экземпляр' : '＋ Создать сборку';
+  if (create) {
+    create.hidden = next !== 'minecraft';
+    create.textContent = currentUi === 'prism' ? 'Создать экземпляр' : '＋ Создать сборку';
+  }
+  const note = document.querySelector('.prism-create-footer-note');
+  if (note) note.textContent = next === 'minecraft'
+    ? 'Выбери источник, версию и загрузчик'
+    : next === 'import' || next === 'ftb-app'
+      ? 'Исходная сборка останется нетронутой'
+      : 'Используй официальный каталог и совместимый импорт';
+  renderPrismCreateVersionBrowser();
 }
 document.querySelectorAll('[data-create-view]').forEach((button) => {
   button.addEventListener('click', () => setPrismCreateMode(button.dataset.createView));
@@ -1955,6 +2082,21 @@ $('ni-open-curseforge')?.addEventListener('click', async () => {
   try { await invoke('open_url', { url: 'https://www.curseforge.com/minecraft/search?class=modpacks' }); }
   catch (error) { showToast('Не удалось открыть CurseForge: ' + String(error), false); }
 });
+document.querySelectorAll('[data-provider-url]').forEach((button) => {
+  button.addEventListener('click', async () => {
+    const url = button.dataset.providerUrl;
+    if (!url) return;
+    try { await invoke('open_url', { url }); }
+    catch (error) { showToast('Не удалось открыть каталог: ' + String(error), false); }
+  });
+});
+document.querySelectorAll('[data-switch-create-view]').forEach((button) => {
+  button.addEventListener('click', () => setPrismCreateMode(button.dataset.switchCreateView));
+});
+$('ni-help')?.addEventListener('click', async () => {
+  try { await invoke('open_url', { url: 'https://github.com/Noyclic/End_Launcher/blob/main/README.ru.md' }); }
+  catch (error) { showToast('Не удалось открыть справку: ' + String(error), false); }
+});
 async function openNewInstance() {
   const wrapper = $('new-instance');
   createInstanceReturnFocus = document.activeElement;
@@ -1972,6 +2114,7 @@ async function openNewInstance() {
   $('ni-msg').textContent = '';
   setPrismCreateMode('minecraft');
   const ids = await loadReleases();
+  renderPrismCreateVersionBrowser();
   if (!ids.length) $('ni-msg').textContent = 'Не удалось получить список версий (нет интернета?)';
   $('ni-name').focus();
 }
@@ -2021,7 +2164,7 @@ $('ni-create').addEventListener('click', async () => {
     $('ni-msg').textContent = String(e);
   } finally {
     btn.disabled = false;
-    btn.textContent = '＋ Создать сборку';
+    btn.textContent = currentUi === 'prism' ? 'Создать экземпляр' : '＋ Создать сборку';
   }
 });
 

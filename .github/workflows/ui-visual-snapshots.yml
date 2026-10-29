@@ -255,7 +255,7 @@ jobs:
           await page.locator('#prism-open-folder').click();
           const foldersMenuState = await page.evaluate(() => ({
             visible: !document.getElementById('prism-folders-menu')?.hidden,
-            labels: [...document.querySelectorAll('#prism-folders-menu [role="menuitem"]')].map((item) => item.textContent.trim()),
+            labels: [...document.querySelectorAll('#prism-folders-menu [role="menuitem"]')].map((item) => item.querySelector('.prism-menu-item-label')?.textContent.trim() || item.textContent.trim()),
           }));
           console.log('PRISM FOLDERS MENU:', JSON.stringify(foldersMenuState));
           const expectedFolderLabels = [

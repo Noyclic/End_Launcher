@@ -2921,6 +2921,9 @@ document.addEventListener('keydown', (event) => {
 
 function applyUi(mode) {
   if (!UI_STYLES[mode]) mode = 'end';
+  if (mode !== 'prism' && root.classList.contains('prism-settings-open')) {
+    closePrismSettingsDialog({ restoreFocus: false });
+  }
   currentUi = mode;
   root.dataset.ui = mode;
   syncPrismSettingsPage(mode);

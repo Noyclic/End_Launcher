@@ -2999,15 +2999,16 @@ function syncPrismSettingsPage(mode) {
     if (child.id === 'prism-settings-tabs' || child.tagName === 'H1') continue;
     if (child.tagName === 'H2') {
       const label = child.textContent.toLocaleUpperCase();
-      if (label.includes('ИГРОК') || label.includes('ОФЛАЙН')) group = 'general';
+      if (label.includes('ИГРОК') || label.includes('ОФЛАЙН')) group = 'minecraft';
       else if (label.includes('JAVA')) group = 'java';
-      else if (label.includes('БЕЗОПАСНОСТЬ') || label.includes('END SHIELD')) group = 'security';
-      else if (label.includes('ДИАГНОСТИКА')) group = 'diagnostics';
-      else if (label.includes('ИИ-ПОМОЩНИК') || label.includes('ЭНДЕР-МОЗГ')) group = 'ai';
+      else if (label.includes('БЕЗОПАСНОСТЬ') || label.includes('END SHIELD')) group = 'services';
+      else if (label.includes('ДИАГНОСТИКА')) group = 'tools';
+      else if (label.includes('ИИ-ПОМОЩНИК') || label.includes('ЭНДЕР-МОЗГ')) group = 'tools';
       else group = 'appearance';
     }
-    if (child.id === 'settings-ai-tab' || child.id === 'api-key' || child.id === 'key-status') group = 'ai';
-    if (child.classList.contains('customize-launcher-card') || child.id === 'catpack-settings') group = 'appearance';
+    if (child.id === 'settings-ai-tab' || child.id === 'api-key' || child.id === 'key-status') group = 'tools';
+    if (child.id === 'catpack-settings' || child.classList.contains('customize-launcher-card')) group = 'appearance';
+    if (child.dataset.prismSettingsFixedSection) group = child.dataset.prismSettingsFixedSection;
     child.dataset.prismSettingsSection = group;
     child.hidden = prism && group !== prismSettingsActiveTab;
   }
@@ -3046,6 +3047,31 @@ $('prism-settings-help')?.addEventListener('click', async () => {
   } catch (error) {
     showToast('Не удалось открыть справку End Launcher: ' + String(error), false);
   }
+});
+$('prism-settings-open-root')?.addEventListener('click', async () => {
+  try { await invoke('open_game_folder'); }
+  catch (error) { showToast('Не удалось открыть корневую папку: ' + String(error), false); }
+});
+$('prism-settings-check-update')?.addEventListener('click', async () => {
+  const button = $('prism-settings-check-update');
+  if (button) button.disabled = true;
+  try {
+    const info = await invoke('check_launcher_update');
+    if (!info) {
+      showToast('Новой версии End Launcher не найдено.');
+      return;
+    }
+    showToast(`Доступен релиз ${info.version}. Открываю страницу релиза…`);
+    if (info.url) await invoke('open_url', { url: info.url });
+  } catch (error) {
+    showToast('Не удалось проверить обновления: ' + String(error), false);
+  } finally {
+    if (button) button.disabled = false;
+  }
+});
+$('prism-settings-account-open')?.addEventListener('click', () => {
+  closePrismSettingsDialog({ restoreFocus: false });
+  $('account-box')?.click();
 });
 $('page-settings')?.addEventListener('click', (event) => {
   if (currentUi === 'prism' && root.classList.contains('prism-settings-open') && event.target === $('page-settings')) {

@@ -604,17 +604,24 @@ check(html.includes('aria-controls="prism-folders-menu"')
     && js.includes("await invoke('open_game_folder')")
     && js.includes("await invoke('open_instances_folder')")
     && js.includes("await invoke('open_mods_folder')")
-    && js.includes("await invoke('open_launcher_folder')")
+    && js.includes("await invoke('open_launcher_resource_folder', { kind: action })")
+    && js.includes("await invoke('open_latest_minecraft_logs')")
+    && js.includes("{ action: 'skins'")
+    && js.includes("{ action: 'java'")
+    && js.includes("{ action: 'icon-themes'")
+    && js.includes("{ action: 'widget-themes'")
+    && js.includes("{ action: 'cat-packs'")
+    && js.includes("{ action: 'instance-icons'")
+    && rustInstances.includes("pub fn open_launcher_resource_folder(kind: String)")
+    && rustMain.includes("instances::open_launcher_resource_folder,")
     && rustInstances.includes("pub fn open_game_folder()")
     && rustMain.includes("instances::open_game_folder,")
     && rustInstances.includes("pub fn open_instances_folder()")
     && rustMain.includes("instances::open_instances_folder,")
     && js.includes("event.key !== 'Escape'")
-    && js.includes("closePrismFoldersMenu();\n      if (!prismOverflowPanel) return;")
     && js.includes("if (prismOverflowPanel && !prismOverflowPanel.hidden)")
-    && css.includes('.prism-folders-menu-item:focus-visible'),
-  'Prism Folders menu must open game root, instances, shared mods and config directories with keyboard dismissal');
-
+    && repairCss.includes('.prism-folders-menu-item:focus-visible'),
+  'Prism Folders menu must expose the reference folder list, open real native destinations, and support keyboard dismissal');
 check(js.indexOf("addAction('group', '▤ Изменить группу…'") < js.indexOf("addAction('folder', '📂 Папка'")
     && js.indexOf("addAction('folder', '📂 Папка'") < js.indexOf("addAction('export', '⇩ Экспортировать…'"),
   'Prism instance action rail should follow the reference order: group management before folder and export');

@@ -758,3 +758,24 @@
   }
   :root[data-ui='prism'] .sidebar #library-add::after { content: 'Добавить…'; font-size: 11px; }
 }
+
+
+/* Settings toolbar glyph: compact framed control icon as in the Pinecone reference. */
+:root[data-ui='prism'] .sidebar .nav-btn[data-page='settings'] .ico {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  border: 1px solid #d2d2d2;
+  border-radius: 3px;
+  background: linear-gradient(#f4f4f4, #c9c9c9);
+  color: #3b8b54;
+  font-size: 0 !important;
+  line-height: 1;
+}
+:root[data-ui='prism'] .sidebar .nav-btn[data-page='settings'] .ico::after {
+  content: '☷';
+  color: #3b8b54;
+  font: 700 17px/1 'Inter', sans-serif;
+}

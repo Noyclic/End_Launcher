@@ -473,10 +473,12 @@ jobs:
             };
           });
           console.log('PRISM SETTINGS ASSERTIONS:', JSON.stringify(settingsVisible));
-          if (!settingsVisible.pageActive || !settingsVisible.tabsVisible
-              || settingsVisible.selectedTab !== 'general' || !settingsVisible.generalVisible
-              || !settingsVisible.javaHidden) {
-            throw new Error('Prism Parameters did not switch to the tabbed in-app settings page.');
+          if (!settingsVisible.pageActive || !settingsVisible.dialogVisible || settingsVisible.dialogRole !== 'dialog'
+              || !settingsVisible.dialogCentered || settingsVisible.tabCount !== 9
+              || !settingsVisible.tabsVisible || settingsVisible.selectedTab !== 'general'
+              || !settingsVisible.generalVisible || settingsVisible.javaHidden
+              || !settingsVisible.hasAccountsAction || !settingsVisible.hasProxyInfo) {
+            throw new Error('Prism Parameters dialog did not match the reference categories or modal geometry.');
           }
           await page.waitForTimeout(500); // Wait for the application page transition animation before capturing.
           await page.screenshot({ path: 'artifacts/ui/prism-settings-general.png', fullPage: true });

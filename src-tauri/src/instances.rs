@@ -1232,6 +1232,23 @@ pub fn open_game_folder() -> Result<(), String> {
     open_dir(&dir)
 }
 
+/// Открывает одну из пользовательских папок ресурсов интерфейса End Launcher.
+#[tauri::command]
+pub fn open_launcher_resource_folder(kind: String) -> Result<(), String> {
+    let root = crate::config::config_dir();
+    let dir = match kind.as_str() {
+        "skins" => root.join("skins"),
+        "java" => root.join("runtime"),
+        "icon-themes" => root.join("icon-themes"),
+        "widget-themes" => root.join("widget-themes"),
+        "cat-packs" => root.join("cat-packs"),
+        "instance-icons" => root.join("instance-icons"),
+        _ => return Err("неизвестный тип папки ресурсов".into()),
+    };
+    std::fs::create_dir_all(&dir).map_err(err)?;
+    open_dir(&dir)
+}
+
 #[cfg(test)]
 mod import_path_tests {
     use super::{allowed_import_file, allowed_import_root, excluded_import_root, normalized_archive_path, safe_relative};

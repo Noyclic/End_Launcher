@@ -1841,7 +1841,7 @@ function prismCreateVersionKind(id) {
   if (/experimental|combat|test/.test(value)) return 'experimental';
   if (/alpha/.test(value)) return 'alphas';
   if (/beta/.test(value)) return 'betas';
-  if (/snapshot|w\\d{2,}/.test(value)) return 'snapshots';
+  if (/snapshot|w[0-9]{2,}/.test(value)) return 'snapshots';
   return 'releases';
 }
 

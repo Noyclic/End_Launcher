@@ -393,8 +393,14 @@ jobs:
             versionOptions: document.getElementById('ni-version')?.options.length || 0,
           }));
           console.log('PRISM CREATE WIZARD ASSERTIONS:', JSON.stringify(wizardState));
+          const expectedProviderLabels = [
+            'Пользовательский', 'Импорт', 'ATLauncher', 'CurseForge', 'FTB',
+            'FTB Legacy', 'Импорт из приложения FTB', 'Modrinth', 'Technic',
+          ];
           if (!wizardState.visible || wizardState.title !== 'Добавить экземпляр'
-              || wizardState.sidebarButtons !== 9 || !wizardState.versionBrowserVisible || wizardState.versionRows < 1 || !wizardState.minecraftPanelVisible
+              || wizardState.sidebarButtons !== 9
+              || wizardState.providerLabels.join('|') !== expectedProviderLabels.join('|')
+              || !wizardState.versionBrowserVisible || wizardState.versionRows < 1 || !wizardState.minecraftPanelVisible
               || !wizardState.importPanelHidden || wizardState.versionOptions < 1
               || Math.abs(wizardState.overlayRect.left) > 1 || Math.abs(wizardState.overlayRect.top) > 1
               || Math.abs(wizardState.overlayRect.width - 1440) > 2

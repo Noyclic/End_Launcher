@@ -2599,6 +2599,7 @@ function ensurePrismFoldersMenu(sidebar) {
 function togglePrismFoldersMenu() {
   const trigger = $('prism-open-folder');
   if (currentUi !== 'prism' || !trigger || !prismFoldersMenu) return;
+  closePrismHelpMenu();
   if (prismOverflowPanel && !prismOverflowPanel.hidden) {
     prismOverflowPanel.hidden = true;
     prismOverflowToggle?.setAttribute('aria-expanded', 'false');
@@ -2607,14 +2608,21 @@ function togglePrismFoldersMenu() {
   closePrismFoldersMenu();
   if (!shouldOpen) return;
   const rect = trigger.getBoundingClientRect();
-  const width = Math.min(238, Math.max(190, window.innerWidth - 16));
+  const width = Math.min(280, Math.max(248, window.innerWidth - 16));
   prismFoldersMenu.style.position = 'fixed';
-  prismFoldersMenu.style.top = Math.min(rect.bottom + 2, Math.max(8, window.innerHeight - 130)) + 'px';
   prismFoldersMenu.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8)) + 'px';
   prismFoldersMenu.style.width = width + 'px';
+  prismFoldersMenu.style.maxHeight = Math.max(180, window.innerHeight - 16) + 'px';
   prismFoldersMenu.hidden = false;
+  const menuRect = prismFoldersMenu.getBoundingClientRect();
+  const below = window.innerHeight - rect.bottom - 8;
+  const above = rect.top - 8;
+  const top = menuRect.height <= below || below >= above
+    ? Math.min(rect.bottom + 2, window.innerHeight - menuRect.height - 8)
+    : Math.max(8, rect.top - menuRect.height - 2);
+  prismFoldersMenu.style.top = Math.max(8, top) + 'px';
   trigger.setAttribute('aria-expanded', 'true');
-  prismFoldersMenu.querySelector('button')?.focus();
+  prismFoldersMenu.querySelector('[role="menuitem"]')?.focus();
 }
 
 function syncPrismFoldersMenu(mode) {
@@ -2909,12 +2917,9 @@ $('prism-status-news-link')?.addEventListener('click', async () => {
   }
 });
 
-$('prism-help')?.addEventListener('click', async () => {
-  try {
-    await invoke('open_url', { url: 'https://github.com/Noyclic/End_Launcher/blob/main/README.ru.md' });
-  } catch (error) {
-    showToast('Не удалось открыть справку: ' + String(error), false);
-  }
+$('prism-help')?.addEventListener('click', (event) => {
+  event.stopPropagation();
+  togglePrismHelpMenu();
 });
 $('prism-update')?.addEventListener('click', async () => {
   const button = $('prism-update');

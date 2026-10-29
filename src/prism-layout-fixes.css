@@ -628,3 +628,133 @@
 :root[data-ui='prism'] .inst-menu button:focus-visible {
   box-shadow: inset 2px 0 #91d47b;
 }
+
+
+/* Prism/Pinecone pass 44 — toolbar icon scale and consistent control sizing, based on the user's 2026-10-29 references. */
+:root[data-ui='prism'] .sidebar .library-toolbar-actions > button,
+:root[data-ui='prism'] .sidebar #prism-help,
+:root[data-ui='prism'] .sidebar #prism-update {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  flex: 0 0 auto;
+  height: 30px !important;
+  min-height: 30px !important;
+  padding: 3px 8px !important;
+  border: 1px solid #484848;
+  border-radius: 3px;
+  background: linear-gradient(#383838, #2c2c2c);
+  color: #e3e3e3;
+  font: 500 12px/1.15 'Inter', sans-serif !important;
+  line-height: 1.15;
+  white-space: nowrap;
+  box-shadow: inset 0 1px #ffffff09;
+  filter: none;
+}
+:root[data-ui='prism'] .sidebar .library-toolbar-actions > button:hover,
+:root[data-ui='prism'] .sidebar #prism-help:hover,
+:root[data-ui='prism'] .sidebar #prism-update:hover:not(:disabled) {
+  border-color: #686868;
+  background: linear-gradient(#414141, #333333);
+  filter: none;
+}
+:root[data-ui='prism'] .sidebar #library-add {
+  gap: 6px;
+  font-size: 0 !important;
+}
+:root[data-ui='prism'] .sidebar #library-add::before {
+  content: '+';
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  border: 1px solid #4cae79;
+  border-radius: 3px;
+  background: linear-gradient(#43d77e, #159b53);
+  color: #f3fff5;
+  font: 700 19px/1 'Inter', sans-serif;
+  text-shadow: 0 1px #176c3a;
+}
+:root[data-ui='prism'] .sidebar #library-add::after {
+  content: 'Добавить экземпляр…';
+  font: 500 12px/1.15 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .sidebar #prism-open-folder .prism-folder-icon {
+  width: 20px;
+  height: 15px;
+  flex-basis: 20px;
+  margin: 0 1px 0 0;
+  border: 1px solid #c5c5c5;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, #f4f0d7 0 24%, #d9c59b 24% 100%);
+  color: #d6d6d6;
+  opacity: 1;
+}
+:root[data-ui='prism'] .sidebar #prism-open-folder .prism-folder-icon::before {
+  top: -5px;
+  left: 1px;
+  width: 8px;
+  height: 4px;
+  border: 1px solid #c5c5c5;
+  border-bottom: 0;
+  border-radius: 2px 2px 0 0;
+  background: #e5d5a8;
+}
+:root[data-ui='prism'] .sidebar #prism-help::before {
+  content: '?';
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  border: 2px solid #c8c8c8;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 25%, #f2f2f2, #bdbdbd 72%);
+  color: #4a5b48;
+  font: 700 15px/1 'Inter', sans-serif;
+  text-shadow: 0 1px #fff;
+}
+:root[data-ui='prism'] .sidebar #prism-update {
+  position: relative;
+}
+:root[data-ui='prism'] .sidebar #prism-update::before {
+  content: '☁';
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 23px;
+  width: 23px;
+  height: 22px;
+  color: #70b9e8;
+  font: 700 25px/1 'Inter', sans-serif;
+  text-shadow: 0 1px #244e6a;
+}
+:root[data-ui='prism'] .sidebar #prism-update::after {
+  content: '⬇';
+  position: absolute;
+  left: 16px;
+  top: 11px;
+  color: #47d96b;
+  font: 800 12px/1 'Inter', sans-serif;
+  text-shadow: 0 1px #173f24;
+  pointer-events: none;
+}
+:root[data-ui='prism'] .sidebar #prism-open-folder {
+  gap: 6px;
+}
+:root[data-ui='prism'] .sidebar #prism-help,
+:root[data-ui='prism'] .sidebar #prism-update {
+  order: initial;
+}
+@media (max-width: 740px) {
+  :root[data-ui='prism'] .sidebar .library-toolbar-actions > button,
+  :root[data-ui='prism'] .sidebar #prism-help,
+  :root[data-ui='prism'] .sidebar #prism-update {
+    max-width: calc(100vw - 24px);
+    height: 30px !important;
+    min-height: 30px !important;
+    font-size: 11px !important;
+  }
+  :root[data-ui='prism'] .sidebar #library-add::after { content: 'Добавить…'; font-size: 11px; }
+}

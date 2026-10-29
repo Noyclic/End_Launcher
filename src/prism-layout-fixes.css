@@ -660,8 +660,16 @@
   filter: none;
 }
 :root[data-ui='prism'] .sidebar #library-add {
-  gap: 6px;
-  font-size: 0 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+  width: auto;
+  min-width: 0;
+  padding: 3px 8px !important;
+  font-size: 12px !important;
+  line-height: 1.15;
+  white-space: nowrap;
 }
 :root[data-ui='prism'] .sidebar #library-add::before {
   content: '+';
@@ -670,6 +678,7 @@
   flex: 0 0 22px;
   width: 22px;
   height: 22px;
+  box-sizing: border-box;
   border: 1px solid #4cae79;
   border-radius: 3px;
   background: linear-gradient(#43d77e, #159b53);
@@ -677,9 +686,22 @@
   font: 700 19px/1 'Inter', sans-serif;
   text-shadow: 0 1px #176c3a;
 }
+/* The accessible button text is real DOM text; do not synthesize a duplicate pseudo-label. */
 :root[data-ui='prism'] .sidebar #library-add::after {
-  content: 'Добавить экземпляр…';
-  font: 500 12px/1.15 'Inter', sans-serif;
+  content: none !important;
+}
+@media (max-width: 740px) {
+  :root[data-ui='prism'] .sidebar #library-add {
+    gap: 5px;
+    padding: 2px 6px !important;
+    font-size: 11px !important;
+  }
+  :root[data-ui='prism'] .sidebar #library-add::before {
+    flex-basis: 20px;
+    width: 20px;
+    height: 20px;
+    font-size: 17px;
+  }
 }
 :root[data-ui='prism'] .sidebar #prism-open-folder .prism-folder-icon {
   width: 20px;

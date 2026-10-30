@@ -361,6 +361,12 @@ check(html.includes('id="modrinth-nav"')
     && html.includes('id="modrinth-group-filter"')
     && html.includes('id="modrinth-loader-filter"'),
   'Modrinth must have its own navigation, account rail, top bar and library filter controls');
+check(js.includes('function scrollModrinthWorkspaceTo(')
+    && js.includes("scrollModrinthWorkspaceTo('modrinth-discover')")
+    && js.includes("scrollModrinthWorkspaceTo('library-toolbar')")
+    && js.includes('getBoundingClientRect()')
+    && js.includes('main.scrollTo({ top, behavior })'),
+  'Modrinth section navigation must offset the sticky header instead of hiding section headings');
 check(js.includes('function syncModrinthAccountPanel()')
     && js.includes('function formatModrinthLastPlayed(timestamp)')
     && js.includes('.slice(0, 5)')

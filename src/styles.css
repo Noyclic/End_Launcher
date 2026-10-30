@@ -7301,3 +7301,73 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 :root[data-ui='prism'] #ender-particles {
   display: none !important;
 }
+
+/* Modrinth App home: recent play, discoverable modpacks and a clean instance list. */
+:root[data-ui='modrinth'] #page-play > h1,
+:root[data-ui='modrinth'] #page-play > .greet { display:none !important; }
+:root[data-ui='modrinth'] .modrinth-home-section { display:block; margin:18px 0 24px; }
+:root:not([data-ui='modrinth']) .modrinth-home-section { display:none !important; }
+:root[data-ui='modrinth'] .modrinth-section-heading { display:flex; align-items:end; justify-content:space-between; gap:16px; margin:0 0 12px; }
+:root[data-ui='modrinth'] .modrinth-section-heading h2 { margin:0; color:#edf4ef; font:700 19px Inter,sans-serif; letter-spacing:-.25px; }
+:root[data-ui='modrinth'] .modrinth-section-heading p { margin:5px 0 0; color:#8b9a91; }
+:root[data-ui='modrinth'] .modrinth-section-note { color:#6f9f81; font:600 9px 'JetBrains Mono',monospace; letter-spacing:1.5px; }
+:root[data-ui='modrinth'] .modrinth-jump-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr)); gap:10px; }
+:root[data-ui='modrinth'] .modrinth-jump-card,
+:root[data-ui='modrinth'] .modrinth-jump-empty { min-width:0; min-height:78px; display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid #303a34; border-radius:11px; background:#1d2320; }
+:root[data-ui='modrinth'] .modrinth-jump-select { min-width:0; flex:1; display:flex; align-items:center; gap:12px; padding:0; background:transparent; color:#e8f0eb; text-align:left; box-shadow:none; }
+:root[data-ui='modrinth'] .modrinth-jump-icon,
+:root[data-ui='modrinth'] .modrinth-jump-empty-icon { flex:0 0 44px; width:44px; height:44px; display:grid; place-items:center; border-radius:9px; color:#d7e5dc; background:linear-gradient(145deg,#344b3e,#26332b); font:700 20px Inter,sans-serif; }
+:root[data-ui='modrinth'] .modrinth-jump-icon[data-loader='fabric'] { background:linear-gradient(145deg,#356c4d,#253e31); }
+:root[data-ui='modrinth'] .modrinth-jump-icon[data-loader='forge'],
+:root[data-ui='modrinth'] .modrinth-jump-icon[data-loader='neoforge'] { background:linear-gradient(145deg,#704c35,#413126); }
+:root[data-ui='modrinth'] .modrinth-jump-copy { min-width:0; flex:1; display:flex; flex-direction:column; gap:5px; }
+:root[data-ui='modrinth'] .modrinth-jump-copy strong,
+:root[data-ui='modrinth'] .modrinth-pack-copy strong { display:block; color:#eaf1ec; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; font-weight:650; }
+:root[data-ui='modrinth'] .modrinth-jump-copy .small { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+:root[data-ui='modrinth'] .modrinth-jump-play { flex:0 0 36px; width:36px; height:36px; padding:0; border-radius:50%; background:#21c66b; color:#08170e; font-size:14px; font-weight:800; }
+:root[data-ui='modrinth'] .modrinth-jump-play:hover { background:#42dc86; }
+:root[data-ui='modrinth'] .modrinth-jump-empty { color:#a9b8af; }
+:root[data-ui='modrinth'] .modrinth-pack-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(290px,100%),1fr)); gap:12px; }
+:root[data-ui='modrinth'] .modrinth-pack-card { min-width:0; min-height:112px; display:flex; align-items:center; gap:13px; padding:13px; border:1px solid #303a34; border-radius:12px; background:linear-gradient(145deg,#202824,#191f1c); color:#e8f0eb; text-align:left; transition:border-color .16s ease,transform .16s ease; }
+:root[data-ui='modrinth'] .modrinth-pack-card:hover { border-color:#438b61; transform:translateY(-1px); }
+:root[data-ui='modrinth'] .modrinth-pack-art { flex:0 0 64px; width:64px; height:64px; display:grid; place-items:center; overflow:hidden; border-radius:10px; background:linear-gradient(145deg,#315440,#26372e); color:#dcebe2; font:800 24px Inter,sans-serif; }
+:root[data-ui='modrinth'] .modrinth-pack-art img { width:100%; height:100%; object-fit:cover; }
+:root[data-ui='modrinth'] .modrinth-pack-copy { min-width:0; flex:1; display:flex; flex-direction:column; gap:5px; }
+:root[data-ui='modrinth'] .modrinth-pack-description { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; color:#9caaa1; font-size:11px; line-height:1.4; }
+:root[data-ui='modrinth'] .modrinth-pack-downloads { color:#78be91; font:10px 'JetBrains Mono',monospace; }
+:root[data-ui='modrinth'] .modrinth-pack-arrow { color:#73c98e; font-size:19px; }
+:root[data-ui='modrinth'] #page-play .library-toolbar { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; padding:14px; border:1px solid #303a34; border-radius:12px; background:#191f1c; }
+:root[data-ui='modrinth'] #page-play .library-toolbar-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+:root[data-ui='modrinth'] #page-play .library-toolbar-actions .library-search { flex:1 1 260px; min-width:180px; }
+:root[data-ui='modrinth'] #page-play .library-toolbar-title { color:#e7f0ea; font-size:19px; }
+:root[data-ui='modrinth'] #library:not(.list-view) { display:grid; grid-template-columns:minmax(0,1fr); gap:8px; }
+:root[data-ui='modrinth'] #library .inst-card:not(.add) { display:grid; grid-template-columns:44px minmax(0,1fr) auto; grid-template-rows:auto; align-items:center; column-gap:13px; min-height:72px; padding:10px 100px 10px 12px; border:1px solid #303a34; border-radius:11px; background:#1e2421; box-shadow:none; }
+:root[data-ui='modrinth'] #library .inst-card:not(.add):hover { border-color:#465f50; transform:none; }
+:root[data-ui='modrinth'] #library .inst-card.active { border-color:#4b9a69; background:#1d2a23; box-shadow:inset 3px 0 #34c978; }
+:root[data-ui='modrinth'] #library .inst-card .inst-icon { grid-column:1; grid-row:1; width:44px; height:44px; border-radius:9px; }
+:root[data-ui='modrinth'] #library .inst-card .inst-name { grid-column:2; grid-row:1; min-width:0; color:#edf3ef; }
+:root[data-ui='modrinth'] #library .inst-card .chip { grid-column:3; grid-row:1; justify-self:end; max-width:100%; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; background:#26382d; color:#91d8a7; }
+:root[data-ui='modrinth'] #library .inst-card .inst-play { top:50%; right:54px; transform:translateY(-50%); width:34px; height:34px; border-radius:50%; background:#21c66b; color:#07170d; }
+:root[data-ui='modrinth'] #library .inst-card .inst-play:hover { background:#42dc86; }
+:root[data-ui='modrinth'] #library .inst-card .inst-more { top:50%; right:10px; transform:translateY(-50%); background:transparent; border-color:#3b4840; }
+:root[data-ui='modrinth'] #modrinth-library-tools { display:flex; flex-wrap:wrap; align-items:center; gap:7px; }
+:root[data-ui='modrinth'] #modrinth-library-tools button.active { background:#234331; border-color:#43885e; color:#b8efc8; }
+:root[data-ui='modrinth'] .playbar { border-top:1px solid #303a34; box-shadow:0 -8px 24px #0003; }
+:root[data-ui='modrinth'] .play-ui #play-btn { min-height:42px; border-radius:8px; background:#20c66b; color:#06170c; font-weight:800; box-shadow:none; }
+:root[data-ui='modrinth'] .play-ui #play-btn:hover { background:#43dc86; }
+:root[data-ui='modrinth'] .sidebar .nav-btn.active { color:#dff7e6; background:#1f3428; box-shadow:inset 3px 0 #2acb72; }
+:root[data-ui='modrinth'] .sidebar .nav-btn:hover { background:#202a24; }
+@media (max-width:900px) {
+  :root[data-ui='modrinth'] .content main { padding:20px 18px 120px; }
+  :root[data-ui='modrinth'] #library .inst-card:not(.add) { grid-template-columns:40px minmax(0,1fr); grid-template-rows:auto auto; padding-right:94px; }
+  :root[data-ui='modrinth'] #library .inst-card .inst-icon { grid-row:1 / span 2; width:40px; height:40px; }
+  :root[data-ui='modrinth'] #library .inst-card .inst-name { grid-column:2; grid-row:1; }
+  :root[data-ui='modrinth'] #library .inst-card .chip { grid-column:2; grid-row:2; justify-self:start; }
+}
+@media (max-width:560px) {
+  :root[data-ui='modrinth'] .sidebar { width:66px; padding:12px 5px; }
+  :root[data-ui='modrinth'] .content main { padding:16px 12px 120px; }
+  :root[data-ui='modrinth'] .modrinth-section-heading h2 { font-size:17px; }
+  :root[data-ui='modrinth'] .modrinth-pack-grid { grid-template-columns:minmax(0,1fr); }
+  :root[data-ui='modrinth'] #page-play .library-toolbar-actions > button { flex:1 1 auto; }
+}

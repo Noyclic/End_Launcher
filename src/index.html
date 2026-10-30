@@ -80,6 +80,16 @@
             </div>
             <button id="launcher-banner-play" class="launcher-banner-play">▶ Играть</button>
           </div>
+          <section id="modrinth-jump-in" class="modrinth-home-section" aria-labelledby="modrinth-jump-title">
+            <div class="modrinth-section-heading">
+              <div>
+                <h2 id="modrinth-jump-title">Продолжить игру</h2>
+                <p class="dim small">Недавно запущенные сборки</p>
+              </div>
+              <span class="modrinth-section-note">JUMP BACK IN</span>
+            </div>
+            <div id="modrinth-jump-in-list" class="modrinth-jump-list" aria-live="polite"></div>
+          </section>
           <p class="greet" id="greet"></p>
           <div class="library-wrap">
             <div class="library-toolbar" id="library-toolbar">
@@ -301,6 +311,18 @@
               <p class="mono small dim" id="island-msg">Выберите блок внизу и нажимайте на грани острова: блок появится рядом. Режим «Убрать» стирает блоки.</p>
             </div>
 
+            <section id="modrinth-discover" class="modrinth-home-section" aria-labelledby="modrinth-discover-title">
+              <div class="modrinth-section-heading">
+                <div>
+                  <h2 id="modrinth-discover-title">Открыть модпаки</h2>
+                  <p class="dim small">Популярные сборки сообщества Modrinth</p>
+                </div>
+                <span class="modrinth-section-note">DISCOVER</span>
+              </div>
+              <div id="home-modpacks" class="modrinth-pack-grid" aria-live="polite">
+                <p class="mono dim small">Подготовка каталога…</p>
+              </div>
+            </section>
             <h2 class="mono dim">ПОПУЛЯРНЫЕ МОДЫ <span class="small" id="home-mods-hint"></span></h2>
             <div class="hscroll" id="home-mods"></div>
             <div id="news-section" style="display:none">

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const [html, js, css, repairCss, rustConfig, rustInstances, rustMain, rustJava, rustMc] = await Promise.all([
+const [html, js, css, repairCss, rustConfig, rustInstances, rustMain, rustJava, rustMc, rustMods] = await Promise.all([
   readFile(new URL('../src/index.html', import.meta.url), 'utf8'),
   readFile(new URL('../src/main.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/styles.css', import.meta.url), 'utf8'),
@@ -11,6 +11,7 @@ const [html, js, css, repairCss, rustConfig, rustInstances, rustMain, rustJava, 
   readFile(new URL('../src-tauri/src/main.rs', import.meta.url), 'utf8'),
   readFile(new URL('../src-tauri/src/java.rs', import.meta.url), 'utf8'),
   readFile(new URL('../src-tauri/src/mc.rs', import.meta.url), 'utf8'),
+  readFile(new URL('../src-tauri/src/mods.rs', import.meta.url), 'utf8'),
 ]);
 
 const check = (condition, message) => assert.ok(condition, message);
@@ -337,6 +338,23 @@ check(css.includes(":root[data-ui='modrinth'] #library .inst-card")
     && css.includes("grid-template-columns:44px minmax(0,1fr) auto")
     && css.includes(":root[data-ui='modrinth'] .play-ui #play-btn"),
   'Modrinth layout must use compact library rows, green actions, and a persistent play strip');
+check(html.includes('id="modrinth-jump-in-list"')
+    && html.includes('id="home-modpacks"')
+    && html.includes('id="modrinth-discover"'),
+  'Modrinth home must expose recent-play and modpack discovery sections');
+check(js.includes('function renderModrinthJumpIn()')
+    && js.includes('lastPlayedAt')
+    && js.includes('async function loadHomeModpacks()')
+    && js.includes("projectType: 'modpack'")
+    && js.includes('https://modrinth.com/modpack/'),
+  'Modrinth home shortcuts must use recent launch history and real modpack pages');
+check(css.includes(":root[data-ui='modrinth'] .modrinth-jump-card")
+    && css.includes(":root[data-ui='modrinth'] .modrinth-pack-card")
+    && css.includes(":root[data-ui='modrinth'] #library .inst-card .inst-play"),
+  'Modrinth home needs its own recent-play, discovery and green row-action design');
+check(rustMods.includes('Some("modpack") => "modpack"')
+    && rustMods.includes('supports_modpack_search_without_changing_install_types'),
+  'Rust Modrinth search must support modpack facets without changing installation categories');
 check(css.includes(":root[data-ui='tl'] .layout { display:flex; flex-direction:column")
     && css.includes(":root[data-ui='tl'] #slot-page .play-ui")
     && css.includes(":root[data-ui='tl'] .playbar { display:none !important; }"),

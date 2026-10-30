@@ -1593,11 +1593,61 @@ function syncPrismQuickActions() {
   if (actions.parentElement !== playUi) playUi.insertBefore(actions, $('pb-info') || null);
 }
 
+function renderModrinthJumpIn() {
+  const box = $('modrinth-jump-in-list');
+  if (!box) return;
+  box.replaceChildren();
+  if (currentUi !== 'modrinth') return;
+  const recent = instances
+    .map((inst) => ({ inst, lastPlayedAt: Number(prismPlayStats[String(inst.id)]?.lastPlayedAt || 0) }))
+    .sort((a, b) => (b.lastPlayedAt - a.lastPlayedAt) || naturalCompare(a.inst.name, b.inst.name))
+    .filter((item) => item.lastPlayedAt > 0)
+    .slice(0, 3)
+    .map((item) => item.inst);
+  const picks = recent.length ? recent : instances.filter((inst) => String(inst.id) === String(activeId)).slice(0, 1);
+  if (!picks.length) {
+    const empty = mk('div', 'modrinth-jump-empty');
+    empty.append(mk('span', 'modrinth-jump-empty-icon', '+'));
+    const copy = mk('div', 'modrinth-jump-copy');
+    copy.append(mk('strong', '', 'Пока нет сборок'), mk('span', 'dim small', 'Создай или импортируй первую сборку, чтобы она появилась здесь.'));
+    const add = mk('button', 'modrinth-jump-play', '＋');
+    add.type = 'button';
+    add.title = 'Добавить экземпляр';
+    add.addEventListener('click', () => $('library-add')?.click());
+    empty.append(copy, add);
+    box.appendChild(empty);
+    return;
+  }
+  for (const inst of picks) {
+    const card = mk('article', 'modrinth-jump-card');
+    const select = mk('button', 'modrinth-jump-select');
+    select.type = 'button';
+    const icon = mk('span', 'modrinth-jump-icon', (inst.name || '?').slice(0, 1).toUpperCase());
+    icon.dataset.loader = String(inst.loader || 'vanilla').toLowerCase();
+    const copy = mk('span', 'modrinth-jump-copy');
+    copy.append(mk('strong', '', inst.name), mk('span', 'dim small', 'Minecraft ' + inst.version + ' · ' + (LOADER_NAME[inst.loader] || inst.loader)));
+    select.append(icon, copy);
+    select.addEventListener('click', () => setActive(inst.id));
+    const play = mk('button', 'modrinth-jump-play', '▶');
+    play.type = 'button';
+    play.title = 'Играть: ' + inst.name;
+    play.setAttribute('aria-label', 'Запустить ' + inst.name);
+    play.addEventListener('click', async (event) => {
+      event.stopPropagation();
+      await setActive(inst.id);
+      playBtn.click();
+    });
+    card.append(select, play);
+    box.appendChild(card);
+  }
+}
+
 function renderLibrary() {
   const box = $('library');
   box.replaceChildren();
   box.classList.toggle('list-view', libraryListMode);
   box.dataset.layout = currentUi;
+  renderModrinthJumpIn();
   $('empty-hero').style.display = instances.length ? 'none' : '';
   const query = libraryQuery.trim().toLocaleLowerCase();
   const showReleases = $('official-show-releases')?.checked !== false;
@@ -2521,6 +2571,66 @@ function ensureHomeModsLoaded() {
     if (rect.top < innerHeight && rect.bottom > 0) loadHomeMods();
   }
 }
+let homeModpacksLoaded = false;
+let homeModpacksLoading = false;
+async function loadHomeModpacks() {
+  const box = $('home-modpacks');
+  if (!box || currentUi !== 'modrinth' || homeModpacksLoaded || homeModpacksLoading) return;
+  homeModpacksLoading = true;
+  box.replaceChildren(mk('p', 'mono dim small', 'Загружаю популярные модпаки…'));
+  try {
+    const inst = instances.find((item) => String(item.id) === String(activeId));
+    const packs = await invoke('modrinth_search', {
+      query: '',
+      gameVersion: inst?.version || '',
+      loader: 'any',
+      projectType: 'modpack',
+      offset: 0,
+    });
+    if (currentUi !== 'modrinth') return;
+    box.replaceChildren();
+    for (const pack of packs.slice(0, 6)) {
+      const card = mk('button', 'modrinth-pack-card');
+      card.type = 'button';
+      const art = mk('span', 'modrinth-pack-art', 'M');
+      if (typeof pack.icon_url === 'string' && pack.icon_url.startsWith('https://')) {
+        const img = mk('img');
+        img.src = pack.icon_url;
+        img.alt = '';
+        img.loading = 'lazy';
+        img.referrerPolicy = 'no-referrer';
+        art.replaceChildren(img);
+      }
+      const copy = mk('span', 'modrinth-pack-copy');
+      copy.append(
+        mk('strong', '', pack.title || pack.slug || 'Modrinth modpack'),
+        mk('span', 'modrinth-pack-description', pack.description || 'Открой страницу проекта на Modrinth.'),
+        mk('span', 'modrinth-pack-downloads', '⬇ ' + fmtNum(pack.downloads || 0) + ' загрузок')
+      );
+      card.append(art, copy, mk('span', 'modrinth-pack-arrow', '↗'));
+      card.addEventListener('click', async () => {
+        if (!/^[a-zA-Z0-9_.-]{1,64}$/.test(String(pack.slug || ''))) {
+          showToast('Не удалось открыть проект: некорректный адрес.', false);
+          return;
+        }
+        try {
+          await invoke('open_url', { url: 'https://modrinth.com/modpack/' + encodeURIComponent(pack.slug) });
+        } catch (error) {
+          showToast('Не удалось открыть Modrinth: ' + String(error), false);
+        }
+      });
+      box.appendChild(card);
+    }
+    if (!packs.length) box.appendChild(mk('p', 'mono dim small', 'Пока не удалось найти подходящие модпаки.'));
+    homeModpacksLoaded = true;
+  } catch (error) {
+    box.replaceChildren(mk('p', 'mono dim small', 'Не удалось загрузить каталог Modrinth. Проверь подключение к интернету.'));
+    homeModpacksLoaded = false;
+  } finally {
+    homeModpacksLoading = false;
+  }
+}
+
 async function loadHomeMods() {
   const inst = currentInstance();
   const gameVersion = inst ? inst.version : '';
@@ -3404,6 +3514,7 @@ function applyUi(mode) {
   syncTlNick();
   renderLibrary();
   updatePlayBtn();
+  if (mode === 'modrinth') void loadHomeModpacks();
 }
 let uiChoiceRevision = 0;
 async function chooseUi(mode) {

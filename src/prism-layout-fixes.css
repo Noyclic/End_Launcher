@@ -912,6 +912,8 @@
 
 /* Prism/Pinecone settings dialog — a compact centered window with a left category rail. */
 :root[data-ui='prism'].prism-settings-open #page-settings {
+  animation: none !important;
+  transform: none !important;
   position: fixed !important;
   inset: 0 !important;
   z-index: 14000 !important;
@@ -1274,14 +1276,30 @@
 }
 :root[data-ui='prism'] .prism-create-identity {
   display: grid;
-  grid-template-columns: 74px minmax(150px, 1.4fr) minmax(150px, .85fr);
+  grid-template-columns: 82px minmax(0, 1fr);
+  grid-template-rows: repeat(2, minmax(30px, auto));
   align-items: center;
-  gap: 9px;
+  gap: 5px 10px;
   min-width: 0;
   padding: 7px 9px;
   border-bottom: 1px solid #454545;
   background: #292929;
 }
+:root[data-ui='prism'] .prism-create-preview {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  width: 82px;
+  height: 82px;
+}
+:root[data-ui='prism'] .prism-create-name-field {
+  grid-column: 2;
+  grid-row: 1;
+}
+:root[data-ui='prism'] .prism-create-group-field {
+  grid-column: 2;
+  grid-row: 2;
+}
+
 :root[data-ui='prism'] .prism-create-preview {
   position: relative;
   display: block;

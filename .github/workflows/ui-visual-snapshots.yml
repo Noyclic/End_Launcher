@@ -142,14 +142,21 @@ jobs:
             if (typeof window.__EL_TEST__?.chooseUi !== 'function' || typeof window.__EL_TEST__?.goPage !== 'function') {
               throw new Error('Test bridge was not enabled by ?ui-test=1.');
             }
+            // Switch from the ordinary Settings page into Prism. The selected shell must
+            // replace that page itself; the test must not navigate home on its own.
+            await window.__EL_TEST__.chooseUi('end');
+            window.__EL_TEST__.goPage('settings');
             await window.__EL_TEST__.chooseUi('prism');
-            window.__EL_TEST__.goPage('play');
           });
           await page.waitForTimeout(400);
 
           const prismState = await page.evaluate(() => ({
             ui: document.documentElement.dataset.ui,
             pageActive: document.getElementById('page-play')?.classList.contains('active'),
+            settingsPageActive: document.getElementById('page-settings')?.classList.contains('active'),
+            prismSettingsOpen: document.documentElement.classList.contains('prism-settings-open'),
+            statusHasEndBranding: (document.querySelector('.prism-status-news-row')?.innerText || '').includes('End Launcher'),
+            endLogoTextDisplay: getComputedStyle(document.querySelector('.logo-text')).display,
             layout: document.getElementById('library')?.dataset.layout,
             playUiParent: document.getElementById('play-ui')?.parentElement?.id,
             sidebarVisible: !!document.querySelector('.sidebar')
@@ -162,6 +169,10 @@ jobs:
           console.log('PRISM UI ASSERTIONS:', JSON.stringify(prismState));
           if (prismState.ui !== 'prism'
               || !prismState.pageActive
+              || prismState.settingsPageActive
+              || prismState.prismSettingsOpen
+              || prismState.statusHasEndBranding
+              || prismState.endLogoTextDisplay !== 'none'
               || prismState.layout !== 'prism'
               || prismState.playUiParent !== 'slot-bar'
               || !prismState.sidebarVisible

@@ -814,6 +814,24 @@ function toggleMenu(card, inst) {
 
 let libraryQuery = '';
 let libraryListMode = (() => { try { return localStorage.getItem('el-library-list') === '1'; } catch { return false; } })();
+let modrinthLibrarySort = (() => {
+  try {
+    const value = localStorage.getItem('el-modrinth-library-sort') || 'name-asc';
+    return ['name-asc', 'name-desc', 'last-played', 'version', 'loader'].includes(value) ? value : 'name-asc';
+  } catch { return 'name-asc'; }
+})();
+let modrinthGroupFilter = (() => {
+  try {
+    const value = localStorage.getItem('el-modrinth-group-filter') || 'all';
+    return ['all', 'grouped', 'ungrouped'].includes(value) ? value : 'all';
+  } catch { return 'all'; }
+})();
+let modrinthLoaderFilter = (() => {
+  try {
+    const value = localStorage.getItem('el-modrinth-loader-filter') || 'all';
+    return ['all', 'vanilla', 'fabric', 'forge', 'neoforge', 'quilt'].includes(value) ? value : 'all';
+  } catch { return 'all'; }
+})();
 const FAVORITES_STORE = 'end-launcher-favorite-instances-v1';
 let favoriteInstanceIds = (() => {
   try {
@@ -1595,6 +1613,50 @@ function syncPrismQuickActions() {
   if (actions.parentElement !== playUi) playUi.insertBefore(actions, $('pb-info') || null);
 }
 
+function formatModrinthLastPlayed(timestamp) {
+  const value = Number(timestamp) || 0;
+  if (!value) return 'Не запускалась';
+  const elapsed = Math.max(0, Date.now() - value);
+  if (elapsed < 60 * 60 * 1000) return 'Только что';
+  if (elapsed < 24 * 60 * 60 * 1000) return `${Math.max(1, Math.floor(elapsed / 3600000))} ч назад`;
+  const played = new Date(value);
+  const now = new Date();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (played.toDateString() === yesterday.toDateString()) return 'Вчера';
+  return new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short' }).format(played);
+}
+
+function syncModrinthAccountPanel() {
+  const accountName = $('acc-name')?.textContent?.trim() || 'Профиль';
+  const accountMode = $('acc-mode')?.textContent?.trim() || 'ОФЛАЙН';
+  const accountAvatar = $('avatar')?.textContent?.trim() || accountName.slice(0, 1).toUpperCase();
+  const inst = currentInstance();
+  const name = $('modrinth-account-name');
+  const mode = $('modrinth-account-mode');
+  const avatar = $('modrinth-account-avatar');
+  const selectedName = $('modrinth-selected-name');
+  const selectedMeta = $('modrinth-selected-meta');
+  const selectedIcon = $('modrinth-selected-icon');
+  const status = $('modrinth-running-status');
+  const sidePlay = $('modrinth-side-play');
+  if (name) name.textContent = accountName;
+  if (mode) mode.textContent = accountMode;
+  if (avatar) avatar.textContent = accountAvatar.slice(0, 2);
+  if (selectedName) selectedName.textContent = inst?.name || 'Нет выбранной сборки';
+  if (selectedMeta) selectedMeta.textContent = inst
+    ? `Minecraft ${inst.version || '—'} · ${LOADER_NAME[inst.loader] || inst.loader || 'Vanilla'}`
+    : 'Создайте или выберите сборку';
+  if (selectedIcon) {
+    selectedIcon.textContent = (inst?.name || 'E').slice(0, 1).toUpperCase();
+    selectedIcon.dataset.loader = String(inst?.loader || 'vanilla').toLowerCase();
+  }
+  if (status) status.textContent = gameRunning
+    ? `Игра запущена · ${inst?.name || 'Minecraft'}`
+    : 'Нет запущенной игры';
+  if (sidePlay) sidePlay.disabled = !inst || gameRunning;
+}
+
 function renderModrinthJumpIn() {
   const box = $('modrinth-jump-in-list');
   if (!box) return;
@@ -1602,11 +1664,14 @@ function renderModrinthJumpIn() {
   if (currentUi !== 'modrinth') return;
   const recent = instances
     .map((inst) => ({ inst, lastPlayedAt: Number(prismPlayStats[String(inst.id)]?.lastPlayedAt || 0) }))
-    .sort((a, b) => (b.lastPlayedAt - a.lastPlayedAt) || naturalCompare(a.inst.name, b.inst.name))
     .filter((item) => item.lastPlayedAt > 0)
-    .slice(0, 3)
-    .map((item) => item.inst);
-  const picks = recent.length ? recent : instances.filter((inst) => String(inst.id) === String(activeId)).slice(0, 1);
+    .sort((a, b) => (b.lastPlayedAt - a.lastPlayedAt) || naturalCompare(a.inst.name, b.inst.name))
+    .slice(0, 5);
+  const picks = recent.length
+    ? recent
+    : instances.filter((inst) => String(inst.id) === String(activeId))
+      .slice(0, 1)
+      .map((inst) => ({ inst, lastPlayedAt: 0 }));
   if (!picks.length) {
     const empty = mk('div', 'modrinth-jump-empty');
     empty.append(mk('span', 'modrinth-jump-empty-icon', '+'));
@@ -1620,17 +1685,22 @@ function renderModrinthJumpIn() {
     box.appendChild(empty);
     return;
   }
-  for (const inst of picks) {
+  for (const { inst, lastPlayedAt } of picks) {
     const card = mk('article', 'modrinth-jump-card');
+    card.dataset.instanceId = String(inst.id);
     const select = mk('button', 'modrinth-jump-select');
     select.type = 'button';
+    select.setAttribute('aria-label', `Выбрать ${inst.name}`);
     const icon = mk('span', 'modrinth-jump-icon', (inst.name || '?').slice(0, 1).toUpperCase());
     icon.dataset.loader = String(inst.loader || 'vanilla').toLowerCase();
     const copy = mk('span', 'modrinth-jump-copy');
-    copy.append(mk('strong', '', inst.name), mk('span', 'dim small', 'Minecraft ' + inst.version + ' · ' + (LOADER_NAME[inst.loader] || inst.loader)));
+    copy.append(
+      mk('strong', 'inst-name', inst.name),
+      mk('span', 'dim small', `${LOADER_NAME[inst.loader] || inst.loader} ${inst.version} · ${formatModrinthLastPlayed(lastPlayedAt)}`)
+    );
     select.append(icon, copy);
     select.addEventListener('click', () => setActive(inst.id));
-    const play = mk('button', 'modrinth-jump-play', '▶');
+    const play = mk('button', 'modrinth-jump-play', '▶ Играть');
     play.type = 'button';
     play.title = 'Играть: ' + inst.name;
     play.setAttribute('aria-label', 'Запустить ' + inst.name);
@@ -1639,7 +1709,15 @@ function renderModrinthJumpIn() {
       await setActive(inst.id);
       playBtn.click();
     });
-    card.append(select, play);
+    const more = mk('button', 'modrinth-jump-more', '⋮');
+    more.type = 'button';
+    more.title = 'Действия для ' + inst.name;
+    more.setAttribute('aria-label', 'Другие действия: ' + inst.name);
+    more.addEventListener('click', (event) => {
+      event.stopPropagation();
+      toggleMenu(card, inst);
+    });
+    card.append(select, play, more);
     box.appendChild(card);
   }
 }
@@ -1647,8 +1725,9 @@ function renderModrinthJumpIn() {
 function renderLibrary() {
   const box = $('library');
   box.replaceChildren();
-  box.classList.toggle('list-view', libraryListMode);
+  box.classList.toggle('list-view', libraryListMode && currentUi !== 'modrinth');
   box.dataset.layout = currentUi;
+  syncModrinthAccountPanel();
   renderModrinthJumpIn();
   $('empty-hero').style.display = instances.length ? 'none' : '';
   const query = libraryQuery.trim().toLocaleLowerCase();
@@ -1669,6 +1748,13 @@ function renderLibrary() {
     if (query && !searchable.includes(query)) return false;
     if (currentUi === 'official' && !isOfficialCategoryVisible(inst)) return false;
     if (currentUi === 'lunar' && lunarFavoritesOnly && !favoriteInstanceIds.has(String(inst.id))) return false;
+    if (currentUi === 'modrinth') {
+      const group = String(prismInstanceGroups[String(inst.id)] || '').trim();
+      const loader = String(inst.loader || 'vanilla').toLowerCase();
+      if (modrinthLoaderFilter !== 'all' && loader !== modrinthLoaderFilter) return false;
+      if (modrinthGroupFilter === 'grouped' && !group) return false;
+      if (modrinthGroupFilter === 'ungrouped' && group) return false;
+    }
     return true;
   });
   const nameCompare = (a, b) => naturalCompare(a.name, b.name);
@@ -1700,6 +1786,17 @@ function renderLibrary() {
       if (officialInstanceSort === 'loader') return loaderCompare(a, b);
       return nameCompare(a, b);
     }
+    if (currentUi === 'modrinth') {
+      if (modrinthLibrarySort === 'last-played') {
+        const lastA = Number(prismPlayStats[String(a.id)]?.lastPlayedAt || 0);
+        const lastB = Number(prismPlayStats[String(b.id)]?.lastPlayedAt || 0);
+        return (lastB - lastA) || nameCompare(a, b);
+      }
+      if (modrinthLibrarySort === 'version') return versionCompare(a, b);
+      if (modrinthLibrarySort === 'loader') return loaderCompare(a, b);
+      if (modrinthLibrarySort === 'name-desc') return nameCompare(b, a);
+      return nameCompare(a, b);
+    }
     if (currentUi === 'lunar') {
       const favoriteComparison = Number(favoriteInstanceIds.has(String(b.id))) - Number(favoriteInstanceIds.has(String(a.id)));
       return favoriteComparison || nameCompare(a, b);
@@ -1708,6 +1805,12 @@ function renderLibrary() {
   });
   let ci = 0;
   const shownCount = visibleInstances.length;
+  const modrinthCount = $('modrinth-filter-count');
+  if (modrinthCount) {
+    modrinthCount.textContent = currentUi === 'modrinth'
+      ? `${shownCount} из ${instances.length} сборок`
+      : '';
+  }
   let lastGroup = null;
   for (const inst of visibleInstances) {
     let currentGroupLabel = '';
@@ -3589,7 +3692,65 @@ $('library-filter')?.addEventListener('input', (event) => {
   libraryQuery = event.target.value || '';
   renderLibrary();
 });
+const modrinthSortSelect = $('modrinth-sort');
+const modrinthGroupSelect = $('modrinth-group-filter');
+const modrinthLoaderSelect = $('modrinth-loader-filter');
+if (modrinthSortSelect) {
+  modrinthSortSelect.value = modrinthLibrarySort;
+  modrinthSortSelect.addEventListener('change', () => {
+    modrinthLibrarySort = ['name-asc', 'name-desc', 'last-played', 'version', 'loader'].includes(modrinthSortSelect.value)
+      ? modrinthSortSelect.value : 'name-asc';
+    try { localStorage.setItem('el-modrinth-library-sort', modrinthLibrarySort); } catch {}
+    renderLibrary();
+  });
+}
+if (modrinthGroupSelect) {
+  modrinthGroupSelect.value = modrinthGroupFilter;
+  modrinthGroupSelect.addEventListener('change', () => {
+    modrinthGroupFilter = ['all', 'grouped', 'ungrouped'].includes(modrinthGroupSelect.value)
+      ? modrinthGroupSelect.value : 'all';
+    try { localStorage.setItem('el-modrinth-group-filter', modrinthGroupFilter); } catch {}
+    renderLibrary();
+  });
+}
+if (modrinthLoaderSelect) {
+  modrinthLoaderSelect.value = modrinthLoaderFilter;
+  modrinthLoaderSelect.addEventListener('change', () => {
+    modrinthLoaderFilter = ['all', 'vanilla', 'fabric', 'forge', 'neoforge', 'quilt'].includes(modrinthLoaderSelect.value)
+      ? modrinthLoaderSelect.value : 'all';
+    try { localStorage.setItem('el-modrinth-loader-filter', modrinthLoaderFilter); } catch {}
+    renderLibrary();
+  });
+}
 $('library-add')?.addEventListener('click', openNewInstance);
+
+$('modrinth-account-open')?.addEventListener('click', () => $('account-box')?.click());
+$('modrinth-side-play')?.addEventListener('click', () => playBtn.click());
+$('modrinth-side-mods')?.addEventListener('click', () => {
+  if (!currentInstance()) { showToast('Сначала выбери сборку.', false); return; }
+  refreshInstalled();
+  goPage('mods');
+});
+$('modrinth-side-settings')?.addEventListener('click', () => goPage('settings'));
+$('modrinth-nav-home')?.addEventListener('click', () => {
+  goPage('play');
+  document.querySelector('.content main')?.scrollTo({ top: 0, behavior: 'smooth' });
+});
+$('modrinth-nav-discover')?.addEventListener('click', () => {
+  goPage('play');
+  $('modrinth-discover')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+$('modrinth-nav-mods')?.addEventListener('click', () => {
+  if (!currentInstance()) { showToast('Сначала выбери сборку.', false); return; }
+  refreshInstalled();
+  goPage('mods');
+});
+$('modrinth-nav-library')?.addEventListener('click', () => {
+  goPage('play');
+  $('library-toolbar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+$('modrinth-nav-add')?.addEventListener('click', () => $('library-add')?.click());
+$('modrinth-nav-settings')?.addEventListener('click', () => goPage('settings'));
 
 $('prism-open-folder')?.addEventListener('click', (event) => {
   event.stopPropagation();

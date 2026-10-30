@@ -1979,6 +1979,43 @@ async function loadReleases({ refresh = false } = {}) {
 for (const id of ['ni-version-search', 'ni-filter-releases', 'ni-filter-snapshots', 'ni-filter-betas', 'ni-filter-alphas', 'ni-filter-experimental']) {
   $(id)?.addEventListener(id === 'ni-version-search' ? 'input' : 'change', renderPrismCreateVersionBrowser);
 }
+
+// Prism-style vertical loader chooser; keep the original select as the single source of truth.
+const prismLoaderDescriptions = {
+  vanilla: ['Vanilla', 'Чистая версия Minecraft без стороннего загрузчика модов.'],
+  neoforge: ['NeoForge', 'Современный загрузчик для модов и крупных модпаков.'],
+  forge: ['Forge', 'Классический загрузчик с широкой совместимостью модов.'],
+  fabric: ['Fabric', 'Лёгкий загрузчик для модов, оптимизации и небольших сборок.'],
+  quilt: ['Quilt', 'Альтернативный лёгкий загрузчик, совместимый с частью Fabric-модов.'],
+};
+function renderPrismLoaderOptions() {
+  const select = $('ni-loader');
+  const list = $('ni-loader-options');
+  if (!select || !list) return;
+  list.replaceChildren();
+  [...select.options].forEach((option) => {
+    const label = document.createElement('label');
+    label.className = 'prism-loader-option';
+    const radio = document.createElement('input');
+    radio.type = 'radio';
+    radio.name = 'prism-loader-choice';
+    radio.value = option.value;
+    radio.checked = option.value === select.value;
+    radio.addEventListener('change', () => {
+      select.value = option.value;
+      renderPrismLoaderOptions();
+    });
+    const text = document.createElement('span');
+    text.textContent = option.textContent;
+    label.append(radio, text);
+    list.appendChild(label);
+  });
+  const [title, description] = prismLoaderDescriptions[select.value] || prismLoaderDescriptions.vanilla;
+  if ($('ni-loader-preview-title')) $('ni-loader-preview-title').textContent = title;
+  if ($('ni-loader-preview-description')) $('ni-loader-preview-description').textContent = description;
+}
+$('ni-loader')?.addEventListener('change', renderPrismLoaderOptions);
+renderPrismLoaderOptions();
 $('ni-version-refresh')?.addEventListener('click', async () => {
   const button = $('ni-version-refresh');
   if (button) button.disabled = true;

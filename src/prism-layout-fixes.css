@@ -2533,7 +2533,7 @@
   background:#68766d;
   box-shadow:0 0 0 3px #68766d1b;
 }
-:root[data-ui='modrinth'] .modrinth-home-section { margin:0 0 26px; }
+:root[data-ui='modrinth'] .modrinth-home-section { margin:0 0 26px; scroll-margin-top:72px; }
 :root[data-ui='modrinth'] .modrinth-section-heading { margin:0 0 12px; }
 :root[data-ui='modrinth'] .modrinth-section-heading h2 {
   font-size:18px;

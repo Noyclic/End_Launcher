@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   screenshot:
-    name: Capture Prism and End Launcher screenshots
+    name: Capture Prism, Modrinth and End Launcher screenshots
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -103,6 +103,10 @@ jobs:
                   window.__TAURI_CALL_LOG.push({ command, args: args || null });
                   if (command === 'pick_local_path' && args?.kind === 'export') return '/tmp/end-launcher-visual-export.zip';
                   if (command === 'export_instance_to_path') return args?.path || responses.export_instance_to_path;
+                  if (command === 'modrinth_search') return args?.projectType === 'modpack' ? [
+                    { slug: 'prominence-ii-rpg', title: 'Prominence II RPG', description: 'An adventure-focused pack with quests, exploration and progression.', downloads: 1200000, icon_url: 'https://cdn.modrinth.com/data/prominence/icon.png' },
+                    { slug: 'cobblemon', title: 'Cobblemon Official Modpack', description: 'Explore a blocky world with creatures, battles and a new adventure.', downloads: 850000, icon_url: 'https://cdn.modrinth.com/data/cobblemon/icon.png' },
+                  ] : [];
                   if (command === 'list_loader_versions') return args?.loader === 'forge'
                     ? [{ version: '52.0.16', channel: 'Recommended' }, { version: '52.0.15', channel: 'Release' }]
                     : args?.loader === 'quilt'
@@ -125,6 +129,10 @@ jobs:
               },
             };
             localStorage.setItem('el-first-run-complete', '1');
+            localStorage.setItem('end-launcher-prism-play-stats-v1', JSON.stringify({
+              1001: { totalMs: 7200000, lastPlayedAt: Date.now() - 3600000, lastSessionMs: 1800000 },
+              1006: { totalMs: 3600000, lastPlayedAt: Date.now() - 7200000, lastSessionMs: 900000 },
+            }));
             localStorage.setItem('el-ui-style', 'prism');
             localStorage.setItem('el-ui-style-v2', 'prism');
             localStorage.setItem('end-launcher-prism-instance-groups-v1', JSON.stringify({
@@ -718,6 +726,53 @@ jobs:
             path: 'artifacts/ui/end-classic-desktop.png',
             fullPage: true,
           });
+
+          // Capture Modrinth as an independent workspace with deterministic catalogue data.
+          await page.evaluate(async () => { await window.__EL_TEST__.chooseUi('modrinth'); });
+          await page.waitForFunction(() =>
+            document.querySelectorAll('#home-modpacks .modrinth-pack-card').length === 2,
+            null,
+            { timeout: 5000 },
+          );
+          const modrinthState = await page.evaluate(() => ({
+            ui: document.documentElement.dataset.ui,
+            layout: document.getElementById('library')?.dataset.layout,
+            playUiParent: document.getElementById('play-ui')?.parentElement?.id,
+            bannerVisible: !!document.getElementById('launcher-banner')
+              && getComputedStyle(document.getElementById('launcher-banner')).display !== 'none'
+              && !document.getElementById('launcher-banner').hidden,
+            jumpInCards: document.querySelectorAll('#modrinth-jump-in-list .modrinth-jump-card').length,
+            packCards: document.querySelectorAll('#home-modpacks .modrinth-pack-card').length,
+            instanceRows: document.querySelectorAll('#library .inst-card:not(.add)').length,
+            searchVisible: !!document.getElementById('library-filter')
+              && getComputedStyle(document.getElementById('library-filter')).display !== 'none',
+            launchVisible: !!document.getElementById('play-btn')
+              && getComputedStyle(document.getElementById('play-btn')).display !== 'none',
+          }));
+          console.log('MODRINTH UI ASSERTIONS:', JSON.stringify(modrinthState));
+          if (modrinthState.ui !== 'modrinth'
+              || modrinthState.layout !== 'modrinth'
+              || modrinthState.playUiParent !== 'slot-bar'
+              || !modrinthState.bannerVisible
+              || modrinthState.jumpInCards < 1
+              || modrinthState.packCards !== 2
+              || modrinthState.instanceRows < 8
+              || !modrinthState.searchVisible
+              || !modrinthState.launchVisible) {
+            throw new Error('Modrinth home did not render its recent-play, discovery, library and launch sections.');
+          }
+          if (pageErrors.length) {
+            throw new Error(`Modrinth page emitted ${pageErrors.length} JavaScript error(s).`);
+          }
+          await page.mouse.move(1120, 460);
+          await page.screenshot({
+            path: 'artifacts/ui/modrinth-home.png',
+            fullPage: true,
+          });
+          await page.locator('#home-modpacks .modrinth-pack-card').first().click();
+          const modpackOpenCalled = await page.evaluate(() => window.__TAURI_CALL_LOG.some((entry) =>
+            entry.command === 'open_url' && entry.args?.url === 'https://modrinth.com/modpack/prominence-ii-rpg'));
+          if (!modpackOpenCalled) throw new Error('Modrinth discovery card did not open its project page.');
 
           await browser.close();
           NODE

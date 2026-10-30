@@ -771,6 +771,9 @@ jobs:
             path: 'artifacts/ui/modrinth-home.png',
             fullPage: true,
           });
+          await page.locator('#modrinth-discover').screenshot({
+            path: 'artifacts/ui/modrinth-discover.png',
+          });
           await page.locator('#home-modpacks .modrinth-pack-card').first().click();
           const modpackOpenCalled = await page.evaluate(() => window.__TAURI_CALL_LOG.some((entry) =>
             entry.command === 'open_url' && entry.args?.url === 'https://modrinth.com/modpack/prominence-ii-rpg'));

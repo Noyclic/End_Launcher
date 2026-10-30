@@ -734,7 +734,7 @@ check(js.includes("const PRISM_PLAY_STATS_STORE = 'end-launcher-prism-play-stats
 
 check(js.includes('function closePrismOverflow({ restoreFocus = false } = {})')
     && js.includes('closePrismOverflow({ restoreFocus: true })')
-    && js.includes("window.addEventListener('resize', () => { closePrismFoldersMenu(); closePrismOverflow(); });")
+    && js.includes("window.addEventListener('resize', () => { closePrismFoldersMenu(); closePrismHelpMenu(); closePrismOverflow(); });")
     && js.includes("prismOverflowToggle?.setAttribute('aria-expanded', 'false')")
     && js.includes("event.key !== 'Escape' || currentUi !== 'prism' || !prismOverflowPanel || prismOverflowPanel.hidden"),
   'Prism overflow menu must dismiss on Escape and resize, update aria-expanded, and restore focus to its trigger');

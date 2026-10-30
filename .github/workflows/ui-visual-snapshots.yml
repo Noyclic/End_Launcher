@@ -596,7 +596,12 @@ jobs:
           }
           await page.waitForTimeout(500); // Wait for the application page transition animation before capturing.
           // Clear the export confirmation from the earlier wizard test so it cannot cover the dialog footer.
-          await page.evaluate(() => document.getElementById('toast')?.classList.remove('show'));
+          await page.evaluate(() => {
+            const toast = document.querySelector('.toast');
+            toast?.classList.remove('show');
+            if (toast) toast.textContent = '';
+            document.querySelector('.content main')?.scrollTo({ top: 0, behavior: 'instant' });
+          });
           await page.screenshot({ path: 'artifacts/ui/prism-settings-general.png', fullPage: true });
           await page.locator('input[name="prism-settings-instance-sort"][value="last-played"]').check();
           const lastPlayedSetting = await page.evaluate(() => ({
@@ -770,7 +775,7 @@ jobs:
               filterCount: filters?.querySelectorAll('select').length || 0,
               launchVisible: !!document.getElementById('play-btn')
                 && getComputedStyle(document.getElementById('play-btn')).display !== 'none',
-              noToast: !document.getElementById('toast')?.classList.contains('show'),
+              noToast: !document.querySelector('.toast.show'),
               noHorizontalOverflow: document.documentElement.scrollWidth <= innerWidth + 2,
               gridColumns: layout ? getComputedStyle(layout).gridTemplateColumns.split(' ').length : 0,
               selectedAccountName: document.getElementById('modrinth-account-name')?.textContent,
@@ -813,6 +818,7 @@ jobs:
           });
 
           await page.setViewportSize({ width: 390, height: 844 });
+          await page.evaluate(() => document.querySelector('.content main')?.scrollTo({ top: 0, behavior: 'instant' }));
           await page.waitForTimeout(200);
           const modrinthMobileState = await page.evaluate(() => ({
             accountRailHidden: getComputedStyle(document.getElementById('modrinth-account-panel')).display === 'none',

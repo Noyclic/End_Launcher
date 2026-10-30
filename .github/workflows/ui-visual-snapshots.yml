@@ -743,6 +743,7 @@ jobs:
               && !document.getElementById('launcher-banner').hidden,
             jumpInCards: document.querySelectorAll('#modrinth-jump-in-list .modrinth-jump-card').length,
             packCards: document.querySelectorAll('#home-modpacks .modrinth-pack-card').length,
+            packCardVisible: !!document.querySelector('#home-modpacks .modrinth-pack-card')?.getClientRects().length,
             instanceRows: document.querySelectorAll('#library .inst-card:not(.add)').length,
             searchVisible: !!document.getElementById('library-filter')
               && getComputedStyle(document.getElementById('library-filter')).display !== 'none',
@@ -756,6 +757,7 @@ jobs:
               || !modrinthState.bannerVisible
               || modrinthState.jumpInCards < 1
               || modrinthState.packCards !== 2
+              || !modrinthState.packCardVisible
               || modrinthState.instanceRows < 8
               || !modrinthState.searchVisible
               || !modrinthState.launchVisible) {

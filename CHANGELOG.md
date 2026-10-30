@@ -1,5 +1,11 @@
 # Changelog
 
+## Modrinth — sticky-header-safe section navigation
+
+- Added a shared offset-aware scroll helper for the Modrinth Discover and Instances shortcuts.
+- Section headings now remain visible below the sticky workspace header at different window sizes.
+- Added a static regression assertion for the navigation behavior.
+
 ## Modrinth — dedicated workspace and library pass
 
 - Rebuilt the Modrinth-inspired shell as a separate three-column desktop workspace: narrow icon navigation, central home/library, and an End Launcher account and selected-instance panel.

@@ -408,17 +408,28 @@ jobs:
           if (!wizardState.visible || wizardState.title !== 'Добавить экземпляр'
               || wizardState.sidebarButtons !== 9
               || wizardState.providerLabels.join('|') !== expectedProviderLabels.join('|')
-              || !wizardState.versionBrowserVisible || wizardState.versionRows !== 4
+              || !wizardState.versionBrowserVisible || wizardState.versionRows !== 2
               || wizardState.versionHeaders.join('|') !== 'Версия|Выпущено|Тип'
               || !wizardState.firstReleaseDate
-              || !wizardState.releaseTypeRows.includes('snapshots')
-              || !wizardState.releaseTypeRows.includes('betas')
-              || !wizardState.minecraftPanelVisible || !wizardState.importPanelHidden || wizardState.versionOptions < 4
+              || !wizardState.minecraftPanelVisible || !wizardState.importPanelHidden || wizardState.versionOptions !== 4
               || Math.abs(wizardState.overlayRect.left) > 1 || Math.abs(wizardState.overlayRect.top) > 1
               || Math.abs(wizardState.overlayRect.width - 1440) > 2
               || Math.abs(wizardState.overlayRect.height - 900) > 2) {
             throw new Error('Prism Add Instance wizard did not initialize its in-app tabs and version choices.');
           }
+          await page.locator('#ni-filter-snapshots').check();
+          await page.locator('#ni-filter-betas').check();
+          const extendedVersionFilters = await page.evaluate(() => ({
+            kinds: [...document.querySelectorAll('#ni-version-rows tr[data-version]')].map((row) => row.dataset.kind),
+            count: document.querySelectorAll('#ni-version-rows tr[data-version]').length,
+          }));
+          if (extendedVersionFilters.count !== 4
+              || !extendedVersionFilters.kinds.includes('snapshots')
+              || !extendedVersionFilters.kinds.includes('betas')) {
+            throw new Error('Prism version browser did not reveal snapshot and beta versions when their filters were enabled.');
+          }
+          await page.locator('#ni-filter-snapshots').uncheck();
+          await page.locator('#ni-filter-betas').uncheck();
           await page.screenshot({ path: 'artifacts/ui/prism-add-instance.png', fullPage: true });
 
           await page.locator('#ni-name').fill('Visual Test');

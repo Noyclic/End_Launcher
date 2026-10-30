@@ -2449,6 +2449,7 @@
   background:#202c24;
   filter:none;
 }
+:root[data-ui='modrinth'] .launcher-banner { display:none !important; }
 :root[data-ui='modrinth'] .content {
   grid-column:2;
   grid-row:1;

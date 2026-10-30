@@ -24,7 +24,8 @@ pub struct Instance {
     pub loader: String,
     /// Конкретная версия Fabric / Quilt / Forge / NeoForge, выбранная в мастере.
     #[serde(default)]
-    pub loader_version: Option<String>,}
+    pub loader_version: Option<String>,
+}
 
 fn err<E: std::fmt::Display>(e: E) -> String {
     e.to_string()

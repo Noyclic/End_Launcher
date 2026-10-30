@@ -1112,8 +1112,10 @@ check(js.includes("const PRISM_CREATE_LOADER_STORE = 'end-launcher-prism-create-
     && js.includes("options.find((option) => option.value === 'fabric')")
     && js.includes('function applyPrismCreateLoaderPreference()')
     && js.includes("select.dispatchEvent(new Event('change', { bubbles: true }))")
-    && js.includes('preview.dataset.loader = select.value')
-    && html.includes('class="create-instance-note prism-loader-preview" role="status" aria-live="polite" aria-atomic="true"')
+    && js.includes('field.dataset.loader = select.value')
+    && js.includes('function loadPrismLoaderVersions()')
+    && html.includes('class="prism-loader-version-browser"')
     && repairCss.includes('/* Prism Add Instance pass 44')
-    && repairCss.includes('#ni-loader-options .prism-loader-option:has(input:checked)'),
-  'Prism Add Instance must choose a visible loader by default, persist the last choice, announce preview changes, and highlight the active loader');
+    && repairCss.includes('#ni-loader-options .prism-loader-option:has(input:checked)')
+    && repairCss.includes('.prism-loader-version-table'),
+  'Prism Add Instance must persist the active loader, show its available version catalog and highlight the exact selected version');

@@ -3068,7 +3068,26 @@ function syncPrismSettingsPage(mode) {
     button.setAttribute('aria-selected', String(active));
     button.tabIndex = active ? 0 : -1;
   });
+  syncPrismSettingsSortChoices();
 }
+
+function syncPrismSettingsSortChoices() {
+  document.querySelectorAll('input[name="prism-settings-instance-sort"]').forEach((input) => {
+    input.checked = input.value === prismLibrarySort;
+  });
+}
+
+document.querySelectorAll('input[name="prism-settings-instance-sort"]').forEach((input) => {
+  input.addEventListener('change', () => {
+    if (!input.checked) return;
+    prismLibrarySort = input.value === 'last-played' ? 'last-played' : 'name-asc';
+    try { localStorage.setItem('el-prism-library-sort', prismLibrarySort); } catch {}
+    const toolbarSelect = $('prism-library-sort');
+    if (toolbarSelect) toolbarSelect.value = prismLibrarySort;
+    renderLibrary();
+    syncPrismSettingsSortChoices();
+  });
+});
 document.querySelectorAll('[data-prism-settings-tab]').forEach((button) => {
   button.addEventListener('click', () => {
     prismSettingsActiveTab = button.dataset.prismSettingsTab || 'general';
@@ -3102,6 +3121,29 @@ $('prism-settings-open-root')?.addEventListener('click', async () => {
   try { await invoke('open_game_folder'); }
   catch (error) { showToast('Не удалось открыть корневую папку: ' + String(error), false); }
 });
+$('prism-settings-open-instances')?.addEventListener('click', async () => {
+  try { await invoke('open_instances_folder'); }
+  catch (error) { showToast('Не удалось открыть папку экземпляров: ' + String(error), false); }
+});
+$('prism-settings-open-mods')?.addEventListener('click', async () => {
+  try { await invoke('open_mods_folder'); }
+  catch (error) { showToast('Не удалось открыть папку модов: ' + String(error), false); }
+});
+for (const [id, kind] of [
+  ['prism-settings-open-icons', 'icon-themes'],
+  ['prism-settings-open-java', 'java'],
+  ['prism-settings-open-skins', 'skins'],
+]) {
+  $(id)?.addEventListener('click', async () => {
+    try { await invoke('open_launcher_resource_folder', { kind }); }
+    catch (error) { showToast('Не удалось открыть папку ресурсов: ' + String(error), false); }
+  });
+}
+$('prism-settings-open-logs')?.addEventListener('click', async () => {
+  try { await invoke('open_latest_minecraft_logs'); }
+  catch (error) { showToast('Не удалось открыть журналы: ' + String(error), false); }
+});
+
 $('prism-settings-check-update')?.addEventListener('click', async () => {
   const button = $('prism-settings-check-update');
   if (button) button.disabled = true;

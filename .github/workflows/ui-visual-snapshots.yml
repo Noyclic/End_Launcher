@@ -419,6 +419,8 @@ jobs:
               || !wizardState.versionBrowserVisible || wizardState.versionRows !== 2
               || wizardState.versionHeaders.join('|') !== 'Версия|Выпущено|Тип'
               || !wizardState.firstReleaseDate
+              || !wizardState.versionSearch || wizardState.versionSearch.width < 220 || wizardState.versionSearch.height < 20
+              || !wizardState.loaderField || wizardState.loaderField.top < wizardState.versionSearch.bottom - 1
               || !wizardState.minecraftPanelVisible || !wizardState.importPanelHidden || wizardState.versionOptions !== 4
               || Math.abs(wizardState.overlayRect.left) > 1 || Math.abs(wizardState.overlayRect.top) > 1
               || Math.abs(wizardState.overlayRect.width - 1440) > 2
@@ -525,6 +527,8 @@ jobs:
             throw new Error('Prism Parameters dialog did not match the reference categories or modal geometry.');
           }
           await page.waitForTimeout(500); // Wait for the application page transition animation before capturing.
+          // Clear the export confirmation from the earlier wizard test so it cannot cover the dialog footer.
+          await page.evaluate(() => document.getElementById('toast')?.classList.remove('show'));
           await page.screenshot({ path: 'artifacts/ui/prism-settings-general.png', fullPage: true });
           await page.locator('input[name="prism-settings-instance-sort"][value="last-played"]').check();
           const lastPlayedSetting = await page.evaluate(() => ({

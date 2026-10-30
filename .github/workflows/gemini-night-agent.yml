@@ -52,7 +52,6 @@ jobs:
         with:
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
           gemini_cli_version: "latest"
-          gemini_model: "gemini-2.5-pro"
           prompt: |
             You are the Gemini Night Agent for End Launcher.
             Read GEMINI.md completely before doing anything. Work only in the already checked out
@@ -74,12 +73,6 @@ jobs:
             leave the tree clean and explain that in your final response.
 
             Optional task from the user: ${{ inputs.task }}
-          settings: |
-            {
-              "tools": {
-                "exclude": ["run_shell_command(git push)", "run_shell_command(gh pr merge)"]
-              }
-            }
 
       - name: Validate the proposed changes
         id: validate
@@ -100,8 +93,9 @@ jobs:
           cargo test --manifest-path src-tauri/Cargo.toml
 
           # Agent instructions/workflows are immutable to the agent itself.
-          if git diff --name-only | grep -E '^(\.github/workflows/|GEMINI\.md$)'; then
-            echo "::error::Gemini attempted to modify protected agent configuration."
+          CHANGED_PATHS="$( { git diff --name-only; git ls-files --others --exclude-standard; } | sort -u )"
+          if printf '%s\\n' "$CHANGED_PATHS" | grep -E '^(\\.github/workflows/|GEMINI\\.md$|.*(\\.pem$|\\.p12$|\\.keystore$|credentials|secrets))'; then
+            echo "::error::Gemini attempted to modify protected agent configuration or credentials."
             exit 1
           fi
 

@@ -811,9 +811,20 @@ jobs:
             control.value = 'forge';
             control.dispatchEvent(new Event('change', { bubbles: true }));
           });
-          await page.waitForFunction(() => document.querySelectorAll('#library .inst-card:not(.add)').length === 2);
-          const forgeFilterWorks = await page.evaluate(() => [...document.querySelectorAll('#library .inst-card:not(.add)')]
-            .every((card) => card.dataset.loader === 'forge'));
+          await page.waitForTimeout(120);
+          const forgeFilterState = await page.evaluate(() => ({
+            value: document.getElementById('modrinth-loader-filter')?.value,
+            mode: document.documentElement.dataset.ui,
+            cards: [...document.querySelectorAll('#library .inst-card:not(.add)')].map((card) => ({
+              id: card.dataset.instanceId,
+              loader: card.dataset.loader,
+              text: card.textContent.trim().slice(0, 80),
+            })),
+          }));
+          console.log('MODRINTH FORGE FILTER:', JSON.stringify(forgeFilterState));
+          const forgeFilterWorks = forgeFilterState.value === 'forge'
+            && forgeFilterState.cards.length === 2
+            && forgeFilterState.cards.every((card) => card.loader === 'forge');
           if (!forgeFilterWorks) throw new Error('Modrinth loader filter did not restrict the library to Forge instances.');
 
           await page.evaluate(() => {
@@ -824,9 +835,15 @@ jobs:
             group.value = 'grouped';
             group.dispatchEvent(new Event('change', { bubbles: true }));
           });
-          await page.waitForFunction(() => document.querySelectorAll('#library .inst-card:not(.add)').length === 6);
-          const groupedFilterWorks = await page.evaluate(() => [...document.querySelectorAll('#library .inst-card:not(.add)')]
-            .every((card) => ['1002', '1006', '1007', '1008', '1009', '1010'].includes(card.dataset.instanceId)));
+          await page.waitForTimeout(120);
+          const groupedFilterState = await page.evaluate(() => ({
+            value: document.getElementById('modrinth-group-filter')?.value,
+            cards: [...document.querySelectorAll('#library .inst-card:not(.add)')].map((card) => card.dataset.instanceId),
+          }));
+          console.log('MODRINTH GROUP FILTER:', JSON.stringify(groupedFilterState));
+          const groupedFilterWorks = groupedFilterState.value === 'grouped'
+            && groupedFilterState.cards.length === 6
+            && groupedFilterState.cards.every((id) => ['1002', '1006', '1007', '1008', '1009', '1010'].includes(id));
           if (!groupedFilterWorks) throw new Error('Modrinth group filter did not return the six named test profiles.');
 
           await page.evaluate(() => {
@@ -837,10 +854,10 @@ jobs:
             sort.value = 'last-played';
             sort.dispatchEvent(new Event('change', { bubbles: true }));
           });
-          await page.waitForFunction(() =>
-            document.querySelector('#library .inst-card:not(.add)')?.dataset.instanceId === '1001');
+          await page.waitForTimeout(120);
           const lastPlayedSortWorks = await page.evaluate(() =>
-            document.querySelector('#library .inst-card:not(.add)')?.dataset.instanceId === '1001');
+            document.querySelector('#library .inst-card:not(.add)')?.dataset.instanceId === '1001'
+              && document.getElementById('modrinth-sort')?.value === 'last-played');
           if (!lastPlayedSortWorks) throw new Error('Modrinth last-played sort did not place the most recently played instance first.');
 
           await page.evaluate(() => {

@@ -103,6 +103,13 @@ jobs:
                   window.__TAURI_CALL_LOG.push({ command, args: args || null });
                   if (command === 'pick_local_path' && args?.kind === 'export') return '/tmp/end-launcher-visual-export.zip';
                   if (command === 'export_instance_to_path') return args?.path || responses.export_instance_to_path;
+                  if (command === 'list_loader_versions') return args?.loader === 'forge'
+                    ? [{ version: '52.0.16', channel: 'Recommended' }, { version: '52.0.15', channel: 'Release' }]
+                    : args?.loader === 'quilt'
+                      ? [{ version: '0.29.0', channel: 'Stable' }, { version: '0.28.1', channel: 'Stable' }]
+                      : args?.loader === 'neoforge'
+                        ? [{ version: '21.1.200', channel: 'Release' }, { version: '21.1.199', channel: 'Release' }]
+                        : [{ version: '0.16.10', channel: 'Stable' }, { version: '0.16.9', channel: 'Stable' }];
                   return Object.prototype.hasOwnProperty.call(responses, command)
                     ? responses[command]
                     : null;
@@ -416,9 +423,9 @@ jobs:
             })(),
             loaderOptionCount: document.querySelectorAll('.prism-create-loader-field .prism-loader-option').length,
             selectedLoader: document.querySelector('.prism-create-loader-field input[name="prism-loader-choice"]:checked')?.value || '',
-            loaderPreviewTitle: document.getElementById('ni-loader-preview-title')?.textContent.trim(),
-            loaderPreviewDescription: document.getElementById('ni-loader-preview-description')?.textContent.trim(),
-            loaderPreviewValue: document.querySelector('.prism-loader-preview')?.dataset.loader || '',
+            loaderVersionRows: document.querySelectorAll('#ni-loader-version-rows tr[data-loader-version]').length,
+            loaderVersionHeaders: [...document.querySelectorAll('.prism-loader-version-table thead th')].map((item) => item.textContent.trim()),
+            selectedLoaderVersion: document.querySelector('#ni-loader-version-rows tr[aria-selected="true"]')?.dataset.loaderVersion || '',
             vanillaFallbackVisible: (() => { const wrapper = document.querySelector('.prism-create-loader-field > .cselect:has(> #ni-loader)'); return !!wrapper && getComputedStyle(wrapper).display !== 'none' && wrapper.getBoundingClientRect().width > 0; })(),
             vanillaRadioVisible: [...document.querySelectorAll('.prism-create-loader-field input[type="radio"]')].some((input) => input.value === 'vanilla'),
             versionBrowserVisible: !!document.querySelector('.prism-version-browser') && getComputedStyle(document.querySelector('.prism-version-browser')).display !== 'none',
@@ -441,9 +448,9 @@ jobs:
               || !wizardState.versionSearch || wizardState.versionSearch.width < 220 || wizardState.versionSearch.height < 20
               || !wizardState.loaderField || wizardState.loaderField.width < 70 || wizardState.loaderField.height < 40
               || wizardState.loaderOptionCount !== 4 || wizardState.vanillaRadioVisible || wizardState.vanillaFallbackVisible
-              || wizardState.selectedLoader !== 'fabric' || wizardState.loaderPreviewTitle !== 'Fabric'
-              || !wizardState.loaderPreviewDescription?.includes('Лёгкий загрузчик')
-              || wizardState.loaderPreviewValue !== 'fabric'
+              || wizardState.selectedLoader !== 'fabric' || wizardState.loaderVersionRows !== 2
+              || wizardState.loaderVersionHeaders.join('|') !== 'Версия загрузчика|Канал'
+              || wizardState.selectedLoaderVersion !== '0.16.10'
               || !wizardState.minecraftPanelVisible || !wizardState.importPanelHidden || wizardState.versionOptions !== 4
               || Math.abs(wizardState.overlayRect.left) > 1 || Math.abs(wizardState.overlayRect.top) > 1
               || Math.abs(wizardState.overlayRect.width - 1440) > 2
@@ -467,17 +474,18 @@ jobs:
 
           // Choosing a loader updates both the visible radio rail and the native value consumed by Rust.
           await page.locator('input[name="prism-loader-choice"][value="forge"]').check();
+          await page.waitForFunction(() => document.querySelector('#ni-loader-version-rows tr[data-loader-version]')?.dataset.loaderVersion === '52.0.16');
+          await page.locator('#ni-loader-version-rows tr[data-loader-version="52.0.15"]').click();
           const changedLoader = await page.evaluate(() => ({
             checked: document.querySelector('input[name="prism-loader-choice"]:checked')?.value,
             nativeValue: document.getElementById('ni-loader')?.value,
-            previewTitle: document.getElementById('ni-loader-preview-title')?.textContent.trim(),
-            previewValue: document.querySelector('.prism-loader-preview')?.dataset.loader,
+            selectedVersion: document.querySelector('#ni-loader-version-rows tr[aria-selected="true"]')?.dataset.loaderVersion,
             remembered: localStorage.getItem('end-launcher-prism-create-loader-v1'),
           }));
           if (changedLoader.checked !== 'forge' || changedLoader.nativeValue !== 'forge'
-              || changedLoader.previewTitle !== 'Forge' || changedLoader.previewValue !== 'forge'
+              || changedLoader.selectedVersion !== '52.0.15'
               || changedLoader.remembered !== 'forge') {
-            throw new Error('Prism loader radio, native create value and preview did not stay synchronized.');
+            throw new Error('Prism loader choice and exact loader version did not stay synchronized.');
           }
 
           await page.locator('#ni-name').fill('Visual Test');
@@ -491,18 +499,19 @@ jobs:
             entry.command === 'create_instance'
               && entry.args?.name === 'Visual Test'
               && entry.args?.version === document.getElementById('ni-version')?.value
-              && entry.args?.loader === document.getElementById('ni-loader')?.value));
+              && entry.args?.loader === document.getElementById('ni-loader')?.value
+              && entry.args?.loaderVersion === '52.0.15'));
           if (!createCall) throw new Error('Create Instance did not call the native create_instance action.');
           await page.waitForFunction(() => getComputedStyle(document.getElementById('new-instance')).display === 'none');
           await page.evaluate(async () => { await window.__EL_TEST__.openNewInstance(); });
           const rememberedLoader = await page.evaluate(() => ({
             checked: document.querySelector('input[name="prism-loader-choice"]:checked')?.value,
-            preview: document.getElementById('ni-loader-preview-title')?.textContent.trim(),
             nativeValue: document.getElementById('ni-loader')?.value,
+            loaderVersion: document.querySelector('#ni-loader-version-rows tr[aria-selected="true"]')?.dataset.loaderVersion,
           }));
-          if (rememberedLoader.checked !== 'forge' || rememberedLoader.preview !== 'Forge'
-              || rememberedLoader.nativeValue !== 'forge') {
-            throw new Error('Prism Add Instance did not restore the last selected mod loader.');
+          if (rememberedLoader.checked !== 'forge' || rememberedLoader.nativeValue !== 'forge'
+              || rememberedLoader.loaderVersion !== '52.0.15') {
+            throw new Error('Prism Add Instance did not restore the last selected loader and exact version.');
           }
 
           await page.locator('[data-create-view="import"]').click();

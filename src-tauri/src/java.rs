@@ -57,6 +57,12 @@ pub fn list_installed_versions() -> Vec<String> {
         .collect()
 }
 
+#[derive(Serialize, Clone)]
+pub struct LoaderVersion {
+    pub version: String,
+    pub channel: String,
+}
+
 #[derive(Deserialize)]
 struct FabricEntry {
     loader: FabricLoader,
@@ -69,61 +75,201 @@ struct FabricLoader {
     stable: bool,
 }
 
-/// Подготовить профиль Fabric для версии игры. Возвращает id профиля (его и запускаем).
-/// Профиль качается один раз; сами библиотеки Fabric докачает install() при запуске.
-#[tauri::command]
-pub async fn install_fabric(game_version: String) -> Result<String, String> {
-    mc::check_id(&game_version)?;
-
-    // уже есть локально — работает и без интернета
-    let suffix = format!("-{game_version}");
-    if let Ok(rd) = std::fs::read_dir(mc::versions_dir()) {
-        let mut found: Vec<String> = rd
-            .flatten()
-            .filter_map(|e| e.file_name().into_string().ok())
-            .filter(|n| n.starts_with("fabric-loader-") && n.ends_with(&suffix))
-            .collect();
-        found.sort();
-        if let Some(last) = found.pop() {
-            return Ok(last);
-        }
+fn validate_loader_version(version: &str) -> Result<(), String> {
+    if version.is_empty()
+        || version.len() > 80
+        || !version.chars().all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '.' | '+' | '-' | '_'))
+    {
+        return Err("некорректная версия загрузчика".into());
     }
+    Ok(())
+}
 
-    let no_fabric = || format!("Fabric недоступен для {game_version} (нет в каталоге или нет сети)");
+fn xml_version_values(xml: &str) -> Vec<String> {
+    let mut values = Vec::new();
+    let mut rest = xml;
+    while let Some(start) = rest.find("<version>") {
+        rest = &rest[start + "<version>".len()..];
+        let Some(end) = rest.find("</version>") else { break };
+        values.push(rest[..end].trim().to_string());
+        rest = &rest[end + "</version>".len()..];
+    }
+    values
+}
+
+/// Получить список именно тех версий загрузчика, которые совместимы с выбранной версией Minecraft.
+#[tauri::command]
+pub async fn list_loader_versions(game_version: String, loader: String) -> Result<Vec<LoaderVersion>, String> {
+    mc::check_id(&game_version)?;
     let client = reqwest::Client::builder()
-        .user_agent("end-launcher/0.1.0")
+        .user_agent("end-launcher/0.4.0")
+        .timeout(Duration::from_secs(25))
         .build()
         .map_err(|e| e.to_string())?;
 
-    let list: Vec<FabricEntry> = client
-        .get(format!("https://meta.fabricmc.net/v2/versions/loader/{game_version}"))
-        .send()
-        .await
-        .and_then(|r| r.error_for_status())
-        .map_err(|_| no_fabric())?
-        .json()
-        .await
-        .map_err(|e| e.to_string())?;
-    let loader = list
-        .iter()
-        .find(|e| e.loader.stable)
-        .or_else(|| list.first())
-        .ok_or_else(no_fabric)?
-        .loader
-        .version
-        .clone();
+    match loader.as_str() {
+        "fabric" => {
+            let entries: Vec<FabricEntry> = client
+                .get(format!("https://meta.fabricmc.net/v2/versions/loader/{game_version}"))
+                .send().await.map_err(err_s)?.error_for_status().map_err(err_s)?
+                .json().await.map_err(err_s)?;
+            Ok(entries.into_iter().map(|entry| LoaderVersion {
+                version: entry.loader.version,
+                channel: if entry.loader.stable { "Stable" } else { "Beta / Snapshot" }.into(),
+            }).collect())
+        }
+        "quilt" => {
+            let value: serde_json::Value = client
+                .get(format!("https://meta.quiltmc.org/v3/versions/loader/{game_version}"))
+                .send().await.map_err(err_s)?.error_for_status().map_err(err_s)?
+                .json().await.map_err(err_s)?;
+            let entries = value.as_array().ok_or("Quilt Meta вернул неожиданный формат списка")?;
+            let versions = entries.iter().filter_map(|entry| {
+                let version = entry.pointer("/loader/version")
+                    .or_else(|| entry.get("version"))
+                    .and_then(|v| v.as_str())?;
+                let stable = entry.pointer("/loader/stable")
+                    .or_else(|| entry.get("stable"))
+                    .and_then(|v| v.as_bool()).unwrap_or(true);
+                Some(LoaderVersion {
+                    version: version.to_string(),
+                    channel: if stable { "Stable" } else { "Beta / Snapshot" }.into(),
+                })
+            }).collect();
+            Ok(versions)
+        }
+        "forge" => {
+            let xml = client
+                .get("https://maven.minecraftforge.net/net/minecraftforge/forge/maven-metadata.xml")
+                .send().await.map_err(err_s)?.error_for_status().map_err(err_s)?
+                .text().await.map_err(err_s)?;
+            let prefix = format!("{game_version}-");
+            let promos: serde_json::Value = client
+                .get("https://files.minecraftforge.net/net/minecraftforge/forge/promotions_slim.json")
+                .send().await.map_err(err_s)?.error_for_status().map_err(err_s)?
+                .json().await.map_err(err_s)?;
+            let recommended = promos["promos"][format!("{game_version}-recommended").as_str()]
+                .as_str().unwrap_or("").to_string();
+            let latest = promos["promos"][format!("{game_version}-latest").as_str()]
+                .as_str().unwrap_or("").to_string();
+            let mut versions: Vec<String> = xml_version_values(&xml).into_iter()
+                .filter_map(|item| item.strip_prefix(&prefix).map(str::to_string))
+                .filter(|item| !item.is_empty())
+                .collect();
+            versions.reverse();
+            versions.dedup();
+            Ok(versions.into_iter().map(|version| {
+                let channel = if version == recommended { "Recommended" }
+                    else if version == latest { "Latest" } else { "Release" };
+                LoaderVersion { version, channel: channel.into() }
+            }).collect())
+        }
+        "neoforge" => {
+            let parts: Vec<&str> = game_version.split('.').collect();
+            let minor: u32 = parts.get(1).and_then(|part| part.parse().ok()).unwrap_or(0);
+            let patch: u32 = parts.get(2).and_then(|part| part.parse().ok()).unwrap_or(0);
+            if parts.first() != Some(&"1") || minor < 20 || (minor == 20 && patch < 2) {
+                return Err("NeoForge поддерживает Minecraft 1.20.2 и новее".into());
+            }
+            let prefix = format!("{minor}.{patch}.");
+            let value: serde_json::Value = client
+                .get("https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge")
+                .send().await.map_err(err_s)?.error_for_status().map_err(err_s)?
+                .json().await.map_err(err_s)?;
+            let mut versions: Vec<String> = value["versions"].as_array()
+                .into_iter().flatten().filter_map(|item| item.as_str())
+                .filter(|version| version.starts_with(&prefix))
+                .map(str::to_string).collect();
+            versions.reverse();
+            Ok(versions.into_iter().map(|version| LoaderVersion {
+                version, channel: "Release".into(),
+            }).collect())
+        }
+        _ => Err(format!("неизвестный загрузчик: {loader}")),
+    }
+}
+
+/// Подготовить профиль Fabric для версии игры и выбранной версии загрузчика.
+#[tauri::command]
+pub async fn install_fabric(game_version: String, loader_version: Option<String>) -> Result<String, String> {
+    mc::check_id(&game_version)?;
+    let client = reqwest::Client::builder()
+        .user_agent("end-launcher/0.4.0")
+        .build().map_err(|e| e.to_string())?;
+    let loader = if let Some(version) = loader_version {
+        validate_loader_version(&version)?;
+        version
+    } else {
+        let list: Vec<FabricEntry> = client
+            .get(format!("https://meta.fabricmc.net/v2/versions/loader/{game_version}"))
+            .send().await.map_err(err_s)?.error_for_status().map_err(err_s)?
+            .json().await.map_err(err_s)?;
+        list.iter().find(|entry| entry.loader.stable)
+            .or_else(|| list.first())
+            .map(|entry| entry.loader.version.clone())
+            .ok_or_else(|| format!("Fabric недоступен для {game_version}"))?
+    };
+
+    let prefix = format!("fabric-loader-{loader}-");
+    let suffix = format!("-{game_version}");
+    if let Ok(rd) = std::fs::read_dir(mc::versions_dir()) {
+        if let Some(found) = rd.flatten()
+            .filter_map(|entry| entry.file_name().into_string().ok())
+            .find(|name| name.starts_with(&prefix) && name.ends_with(&suffix))
+        {
+            return Ok(found);
+        }
+    }
 
     let text = client
-        .get(format!(
-            "https://meta.fabricmc.net/v2/versions/loader/{game_version}/{loader}/profile/json"
-        ))
-        .send()
-        .await
-        .and_then(|r| r.error_for_status())
-        .map_err(|_| no_fabric())?
-        .text()
-        .await
-        .map_err(|e| e.to_string())?;
+        .get(format!("https://meta.fabricmc.net/v2/versions/loader/{game_version}/{loader}/profile/json"))
+        .send().await.map_err(err_s)?.error_for_status().map_err(err_s)?
+        .text().await.map_err(err_s)?;
+    let meta: mc::VersionMeta = serde_json::from_str(&text).map_err(|e| e.to_string())?;
+    mc::check_id(&meta.id)?;
+    let dir = mc::version_dir(&meta.id);
+    tokio::fs::create_dir_all(&dir).await.map_err(|e| e.to_string())?;
+    tokio::fs::write(dir.join("version.json"), &text).await.map_err(|e| e.to_string())?;
+    Ok(meta.id)
+}
+
+/// Подготовить профиль Quilt для версии игры и выбранной версии загрузчика.
+#[tauri::command]
+pub async fn install_quilt(game_version: String, loader_version: Option<String>) -> Result<String, String> {
+    mc::check_id(&game_version)?;
+    let client = reqwest::Client::builder()
+        .user_agent("end-launcher/0.4.0")
+        .build().map_err(|e| e.to_string())?;
+    let loader = if let Some(version) = loader_version {
+        validate_loader_version(&version)?;
+        version
+    } else {
+        let value: serde_json::Value = client
+            .get(format!("https://meta.quiltmc.org/v3/versions/loader/{game_version}"))
+            .send().await.map_err(err_s)?.error_for_status().map_err(err_s)?
+            .json().await.map_err(err_s)?;
+        value.as_array().and_then(|items| items.iter().find(|item| {
+            item.pointer("/loader/stable").and_then(|v| v.as_bool()).unwrap_or(true)
+        }).or_else(|| items.first()))
+            .and_then(|item| item.pointer("/loader/version").or_else(|| item.get("version")))
+            .and_then(|v| v.as_str()).map(str::to_string)
+            .ok_or_else(|| format!("Quilt недоступен для {game_version}"))?
+    };
+
+    let prefix = format!("quilt-loader-{loader}-");
+    let suffix = format!("-{game_version}");
+    if let Ok(rd) = std::fs::read_dir(mc::versions_dir()) {
+        if let Some(found) = rd.flatten()
+            .filter_map(|entry| entry.file_name().into_string().ok())
+            .find(|name| name.starts_with(&prefix) && name.ends_with(&suffix))
+        {
+            return Ok(found);
+        }
+    }
+    let text = client
+        .get(format!("https://meta.quiltmc.org/v3/versions/loader/{game_version}/{loader}/profile/json"))
+        .send().await.map_err(err_s)?.error_for_status().map_err(err_s)?
+        .text().await.map_err(err_s)?;
     let meta: mc::VersionMeta = serde_json::from_str(&text).map_err(|e| e.to_string())?;
     mc::check_id(&meta.id)?;
     let dir = mc::version_dir(&meta.id);
@@ -158,7 +304,7 @@ fn console_java(p: &Path) -> PathBuf {
 }
 
 /// Ищет уже установленный профиль Forge/NeoForge для версии игры (и готовит version.json).
-fn find_loader_dir(kind: &str, mc_version: &str) -> Option<String> {
+fn find_loader_dir(kind: &str, mc_version: &str, requested_version: Option<&str>) -> Option<String> {
     let rd = std::fs::read_dir(mc::versions_dir()).ok()?;
     let mut best: Option<(std::time::SystemTime, String)> = None;
     for e in rd.flatten() {
@@ -169,7 +315,7 @@ fn find_loader_dir(kind: &str, mc_version: &str) -> Option<String> {
         } else {
             low.contains("neoforge")
         };
-        if !kind_ok {
+        if !kind_ok || requested_version.is_some_and(|version| !name.contains(version)) {
             continue;
         }
         let dir = e.path();
@@ -194,7 +340,12 @@ fn find_loader_dir(kind: &str, mc_version: &str) -> Option<String> {
 }
 
 /// (версия Forge, ссылка на installer): берём «recommended», иначе «latest».
-async fn forge_target(client: &reqwest::Client, mc_version: &str) -> Result<(String, String), String> {
+async fn forge_target(client: &reqwest::Client, mc_version: &str, requested_version: Option<&str>) -> Result<(String, String), String> {
+    if let Some(version) = requested_version {
+        validate_loader_version(version)?;
+        let url = format!("https://maven.minecraftforge.net/net/minecraftforge/forge/{mc_version}-{version}/forge-{mc_version}-{version}-installer.jar");
+        return Ok((version.to_string(), url));
+    }
     let promos: serde_json::Value = client
         .get("https://files.minecraftforge.net/net/minecraftforge/forge/promotions_slim.json")
         .send()
@@ -220,7 +371,7 @@ async fn forge_target(client: &reqwest::Client, mc_version: &str) -> Result<(Str
 }
 
 /// NeoForge: MC 1.21.1 -> версии «21.1.x», 1.20.4 -> «20.4.x», 1.21 -> «21.0.x» (с 1.20.2).
-async fn neoforge_target(client: &reqwest::Client, mc_version: &str) -> Result<(String, String), String> {
+async fn neoforge_target(client: &reqwest::Client, mc_version: &str, requested_version: Option<&str>) -> Result<(String, String), String> {
     let parts: Vec<&str> = mc_version.split('.').collect();
     let minor: u32 = parts.get(1).and_then(|p| p.parse().ok()).unwrap_or(0);
     let patch: u32 = parts.get(2).and_then(|p| p.parse().ok()).unwrap_or(0);
@@ -228,6 +379,14 @@ async fn neoforge_target(client: &reqwest::Client, mc_version: &str) -> Result<(
         return Err("NeoForge поддерживает Minecraft 1.20.2 и новее".to_string());
     }
     let prefix = format!("{minor}.{patch}.");
+    if let Some(version) = requested_version {
+        validate_loader_version(version)?;
+        if !version.starts_with(&prefix) {
+            return Err(format!("NeoForge {version} не совместим с Minecraft {mc_version}"));
+        }
+        let url = format!("https://maven.neoforged.net/releases/net/neoforged/neoforge/{version}/neoforge-{version}-installer.jar");
+        return Ok((version.to_string(), url));
+    }
     let v: serde_json::Value = client
         .get("https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge")
         .send()
@@ -258,10 +417,11 @@ async fn neoforge_target(client: &reqwest::Client, mc_version: &str) -> Result<(
 
 /// Установить Forge (neo = false) или NeoForge (neo = true). Возвращает id профиля для запуска.
 #[tauri::command]
-pub async fn install_forge(app: AppHandle, game_version: String, neo: bool) -> Result<String, String> {
+pub async fn install_forge(app: AppHandle, game_version: String, neo: bool, loader_version: Option<String>) -> Result<String, String> {
     mc::check_id(&game_version)?;
+    if let Some(version) = loader_version.as_deref() { validate_loader_version(version)?; }
     let kind = if neo { "neoforge" } else { "forge" };
-    if let Some(id) = find_loader_dir(kind, &game_version) {
+    if let Some(id) = find_loader_dir(kind, &game_version, loader_version.as_deref()) {
         return Ok(id); // уже установлен — работает и без интернета
     }
 
@@ -270,9 +430,9 @@ pub async fn install_forge(app: AppHandle, game_version: String, neo: bool) -> R
         .build()
         .map_err(err_s)?;
     let (loader_ver, url) = if neo {
-        neoforge_target(&client, &game_version).await?
+        neoforge_target(&client, &game_version, loader_version.as_deref()).await?
     } else {
-        forge_target(&client, &game_version).await?
+        forge_target(&client, &game_version, loader_version.as_deref()).await?
     };
 
     // 1. скачать установщик
@@ -323,8 +483,8 @@ pub async fn install_forge(app: AppHandle, game_version: String, neo: bool) -> R
         return Err(format!("установщик {kind} завершился с ошибкой:\n{}", tail_chars_installer(&text, 1200)));
     }
 
-    find_loader_dir(kind, &game_version)
-        .ok_or_else(|| format!("{kind} установлен, но профиль версии не найден"))
+    find_loader_dir(kind, &game_version, Some(&loader_ver))
+        .ok_or_else(|| format!("{kind} установлен, но профиль версии {loader_ver} не найден"))
 }
 
 #[derive(Serialize, Clone)]
@@ -364,11 +524,15 @@ pub async fn launch_instance(app: AppHandle, id: String) -> Result<(), String> {
     let profile = match inst.loader.as_str() {
         "fabric" => {
             runtime::emit_progress(&app, "loader", 0, 0);
-            install_fabric(inst.version.clone()).await?
+            install_fabric(inst.version.clone(), inst.loader_version.clone()).await?
+        }
+        "quilt" => {
+            runtime::emit_progress(&app, "loader", 0, 0);
+            install_quilt(inst.version.clone(), inst.loader_version.clone()).await?
         }
         "forge" | "neoforge" => {
             runtime::emit_progress(&app, "loader", 0, 0);
-            install_forge(app.clone(), inst.version.clone(), inst.loader == "neoforge").await?
+            install_forge(app.clone(), inst.version.clone(), inst.loader == "neoforge", inst.loader_version.clone()).await?
         }
         _ => inst.version.clone(),
     };

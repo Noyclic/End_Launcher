@@ -2246,3 +2246,103 @@
 :root[data-ui='prism'] .prism-loader-preview[data-loader='neoforge'] strong {
   color: #e5c7a4;
 }
+
+
+/* Prism Add Instance — the lower-left panel lists real compatible versions of the selected mod loader. */
+:root[data-ui='prism'] .prism-loader-version-browser {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 7px 8px;
+  border: 1px solid #383838;
+  background: #242424;
+}
+:root[data-ui='prism'] .prism-loader-version-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+:root[data-ui='prism'] .prism-loader-version-heading strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #dedede;
+  font: 600 11px/1.3 'Inter', sans-serif;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:root[data-ui='prism'] .prism-loader-version-heading button {
+  flex: 0 0 auto;
+  min-height: 23px;
+  padding: 3px 8px;
+  border: 1px solid #4a4a4a;
+  border-radius: 2px;
+  background: #353535;
+  color: #ddd;
+  font: 10px 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-loader-version-table-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  max-height: 130px;
+  overflow: auto;
+  border: 1px solid #454545;
+  background: #202020;
+  scrollbar-color: #555 #262626;
+}
+:root[data-ui='prism'] .prism-loader-version-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  color: #e4e4e4;
+  font: 10px/1.2 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-loader-version-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 4px 6px;
+  border-bottom: 1px solid #4a4a4a;
+  background: #2c2c2c;
+  color: #d2d2d2;
+  text-align: left;
+  font-weight: 500;
+}
+:root[data-ui='prism'] .prism-loader-version-table td {
+  padding: 3px 6px;
+  border-bottom: 1px solid #292929;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:root[data-ui='prism'] .prism-loader-version-table tbody tr { cursor: pointer; }
+:root[data-ui='prism'] .prism-loader-version-table tbody tr:nth-child(even) { background: #252525; }
+:root[data-ui='prism'] .prism-loader-version-table tbody tr:hover,
+:root[data-ui='prism'] .prism-loader-version-table tbody tr:focus-visible {
+  outline: none;
+  background: #343f2c;
+}
+:root[data-ui='prism'] .prism-loader-version-table tbody tr.active,
+:root[data-ui='prism'] .prism-loader-version-table tbody tr[aria-selected='true'] {
+  background: #91d85a;
+  color: #172414;
+}
+@media (max-width: 640px) {
+  :root[data-ui='prism'] .prism-create-custom-mode {
+    grid-template-rows: minmax(170px, auto) minmax(100px, 1fr) auto;
+  }
+  :root[data-ui='prism'] .prism-version-browser,
+  :root[data-ui='prism'] .prism-create-loader-field,
+  :root[data-ui='prism'] .prism-loader-version-browser {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  :root[data-ui='prism'] .prism-loader-version-table-wrap { max-height: 150px; }
+}

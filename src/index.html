@@ -210,7 +210,18 @@
                           <option value="forge">Forge</option>
                           <option value="neoforge">NeoForge</option>
                         </select></label>
-                        <div class="create-instance-note prism-loader-preview" role="status" aria-live="polite" aria-atomic="true"><strong id="ni-loader-preview-title">Не выбран загрузчик модов.</strong><span id="ni-loader-preview-description">Выберите вариант справа, чтобы настроить установку Minecraft.</span></div>
+                        <section class="prism-loader-version-browser" aria-label="Версии выбранного загрузчика">
+                          <div class="prism-loader-version-heading">
+                            <strong id="ni-loader-version-title">Версии Fabric</strong>
+                            <button id="ni-loader-version-refresh" class="ghost" type="button">Обновить</button>
+                          </div>
+                          <div class="prism-loader-version-table-wrap">
+                            <table class="prism-loader-version-table" aria-label="Доступные версии загрузчика модов">
+                              <thead><tr><th>Версия загрузчика</th><th>Канал</th></tr></thead>
+                              <tbody id="ni-loader-version-rows"><tr><td colspan="2" class="dim">Выбери версию Minecraft и загрузчик</td></tr></tbody>
+                            </table>
+                          </div>
+                        </section>
                         <select id="ni-version" title="Версия игры" aria-label="Выбранная версия Minecraft" hidden></select>
                       </div>
                       <div class="create-instance-mode" data-create-panel="import" hidden>

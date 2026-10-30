@@ -101,7 +101,9 @@ fn main() {
             bedrock::launch_bedrock,
             // java edition
             java::list_java_versions,
+            java::list_loader_versions,
             java::install_fabric,
+            java::install_quilt,
             java::install_forge,
             java::list_installed_versions,
             java::launch_instance,

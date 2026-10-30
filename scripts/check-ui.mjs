@@ -1030,6 +1030,25 @@ check(html.includes('id="ni-version-rows"')
     && repairCss.includes('.prism-version-table')
     && repairCss.includes('.prism-create-sidebar'),
   'Prism Add Instance must expose nine source choices, a searchable/filterable version catalog and responsive desktop-style geometry');
+  
+check(html.includes('id="ni-loader-version-title"')
+    && html.includes('id="ni-loader-version-rows"')
+    && html.includes('id="ni-loader-version-refresh"')
+    && html.includes('class="prism-loader-version-table"')
+    && !html.includes('id="ni-loader-preview-description"')
+    && js.includes("invoke('list_loader_versions', { gameVersion, loader })")
+    && js.includes("loaderVersion: selectedLoaderVersion || null")
+    && js.includes("savePrismLoaderVersionPreference(gameVersion, loader, selectedLoaderVersion)")
+    && rustJava.includes('pub async fn list_loader_versions(game_version: String, loader: String)')
+    && rustJava.includes('pub async fn install_quilt(game_version: String, loader_version: Option<String>)')
+    && rustJava.includes('install_fabric(inst.version.clone(), inst.loader_version.clone())')
+    && rustJava.includes('install_quilt(inst.version.clone(), inst.loader_version.clone())')
+    && rustInstances.includes('loader_version: Option<String>')
+    && rustInstances.includes('не выбрана версия загрузчика модов')
+    && rustMain.includes('java::list_loader_versions,')
+    && rustMain.includes('java::install_quilt,')
+    && repairCss.includes('.prism-loader-version-table'),
+  'Prism Add Instance must list compatible Fabric, Quilt, Forge and NeoForge versions, persist the pinned selection and install that exact loader version');
 
 check(html.includes('id="prism-settings-open-root"')
     && html.includes('id="prism-settings-check-update"')

@@ -1928,6 +1928,7 @@ function renderPrismCreateVersionBrowser() {
       });
       const note = $('ni-msg');
       if (note && /выбери версию|список версий|загружаю список/i.test(note.textContent)) note.textContent = '';
+      loadPrismLoaderVersions();
     };
     row.addEventListener('click', choose);
     row.addEventListener('keydown', (event) => {
@@ -1980,8 +1981,9 @@ for (const id of ['ni-version-search', 'ni-filter-releases', 'ni-filter-snapshot
   $(id)?.addEventListener(id === 'ni-version-search' ? 'input' : 'change', renderPrismCreateVersionBrowser);
 }
 
-// Prism-style vertical loader chooser; keep the original select as the single source of truth.
+// Prism-style vertical loader chooser plus a real, versioned loader catalog.
 const PRISM_CREATE_LOADER_STORE = 'end-launcher-prism-create-loader-v1';
+const PRISM_CREATE_LOADER_VERSION_STORE = 'end-launcher-prism-loader-version-v1';
 const prismLoaderDescriptions = {
   vanilla: ['Vanilla', 'Чистая версия Minecraft без стороннего загрузчика модов.'],
   neoforge: ['NeoForge', 'Современный загрузчик для модов и крупных модпаков.'],
@@ -1989,6 +1991,10 @@ const prismLoaderDescriptions = {
   fabric: ['Fabric', 'Лёгкий загрузчик для модов, оптимизации и небольших сборок.'],
   quilt: ['Quilt', 'Альтернативный лёгкий загрузчик, совместимый с частью Fabric-модов.'],
 };
+let prismLoaderVersions = [];
+let selectedLoaderVersion = '';
+let prismLoaderVersionRequest = 0;
+
 function getPrismCreateLoaderOptions(select) {
   return [...select.options].filter((option) =>
     option.value !== 'vanilla' && Object.hasOwn(prismLoaderDescriptions, option.value));
@@ -2040,11 +2046,114 @@ function renderPrismLoaderOptions() {
     label.append(radio, text);
     list.appendChild(label);
   });
-  const [title, description] = prismLoaderDescriptions[select.value] || prismLoaderDescriptions.vanilla;
-  if ($('ni-loader-preview-title')) $('ni-loader-preview-title').textContent = title;
-  if ($('ni-loader-preview-description')) $('ni-loader-preview-description').textContent = description;
-  const preview = document.querySelector('.prism-loader-preview');
-  if (preview) preview.dataset.loader = select.value;
+  const field = document.querySelector('.prism-create-loader-field');
+  if (field) field.dataset.loader = select.value;
+}
+
+function prismLoaderVersionStorageKey(gameVersion, loader) {
+  return `${gameVersion}|${loader}`;
+}
+function readPrismLoaderVersionPreferences() {
+  try {
+    const value = JSON.parse(localStorage.getItem(PRISM_CREATE_LOADER_VERSION_STORE) || '{}');
+    return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+  } catch {
+    return {};
+  }
+}
+function savePrismLoaderVersionPreference(gameVersion, loader, version) {
+  try {
+    const stored = readPrismLoaderVersionPreferences();
+    stored[prismLoaderVersionStorageKey(gameVersion, loader)] = version;
+    localStorage.setItem(PRISM_CREATE_LOADER_VERSION_STORE, JSON.stringify(stored));
+  } catch {}
+}
+function renderPrismLoaderVersionBrowser(message = '') {
+  const body = $('ni-loader-version-rows');
+  const title = $('ni-loader-version-title');
+  if (!body) return;
+  const loader = $('ni-loader')?.value || 'fabric';
+  const gameVersion = $('ni-version')?.value || '';
+  if (title) title.textContent = `Версии ${prismLoaderDescriptions[loader]?.[0] || loader} для Minecraft ${gameVersion || '—'}`;
+  body.replaceChildren();
+  if (!prismLoaderVersions.length) {
+    const row = document.createElement('tr');
+    const cell = document.createElement('td');
+    cell.colSpan = 2;
+    cell.className = 'dim';
+    cell.textContent = message || 'Подходящие версии загрузчика не найдены.';
+    row.appendChild(cell);
+    body.appendChild(row);
+    return;
+  }
+  for (const item of prismLoaderVersions) {
+    const row = document.createElement('tr');
+    row.tabIndex = 0;
+    row.dataset.loaderVersion = item.version;
+    row.setAttribute('aria-selected', String(item.version === selectedLoaderVersion));
+    row.classList.toggle('active', item.version === selectedLoaderVersion);
+    const versionCell = document.createElement('td');
+    versionCell.textContent = item.version;
+    const channelCell = document.createElement('td');
+    channelCell.textContent = item.channel || 'Release';
+    row.append(versionCell, channelCell);
+    const choose = () => {
+      selectedLoaderVersion = item.version;
+      savePrismLoaderVersionPreference(gameVersion, loader, selectedLoaderVersion);
+      body.querySelectorAll('tr[data-loader-version]').forEach((entry) => {
+        const active = entry.dataset.loaderVersion === selectedLoaderVersion;
+        entry.classList.toggle('active', active);
+        entry.setAttribute('aria-selected', String(active));
+      });
+      if ($('ni-msg') && /верси|загружаю|загрузчик/i.test($('ni-msg').textContent)) $('ni-msg').textContent = '';
+    };
+    row.addEventListener('click', choose);
+    row.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        choose();
+      }
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        const rows = [...body.querySelectorAll('tr[data-loader-version]')];
+        const index = rows.indexOf(row);
+        rows[(index + (event.key === 'ArrowDown' ? 1 : -1) + rows.length) % rows.length]?.focus();
+      }
+    });
+    body.appendChild(row);
+  }
+}
+async function loadPrismLoaderVersions() {
+  const loader = $('ni-loader')?.value || 'fabric';
+  const gameVersion = $('ni-version')?.value || '';
+  const request = ++prismLoaderVersionRequest;
+  prismLoaderVersions = [];
+  selectedLoaderVersion = '';
+  if (!gameVersion) {
+    renderPrismLoaderVersionBrowser('Сначала выбери версию Minecraft.');
+    return;
+  }
+  renderPrismLoaderVersionBrowser('Загружаю доступные версии загрузчика…');
+  try {
+    const result = await invoke('list_loader_versions', { gameVersion, loader });
+    if (request !== prismLoaderVersionRequest) return;
+    prismLoaderVersions = Array.isArray(result)
+      ? result.filter((item) => item && typeof item.version === 'string' && item.version.trim())
+      : [];
+    const stored = readPrismLoaderVersionPreferences()[prismLoaderVersionStorageKey(gameVersion, loader)];
+    selectedLoaderVersion = prismLoaderVersions.find((item) => item.version === stored)?.version
+      || prismLoaderVersions.find((item) => /recommended|stable/i.test(item.channel || ''))?.version
+      || prismLoaderVersions[0]?.version
+      || '';
+    renderPrismLoaderVersionBrowser();
+    if (!prismLoaderVersions.length && $('ni-msg')) {
+      $('ni-msg').textContent = `${prismLoaderDescriptions[loader]?.[0] || loader}: нет доступных версий для Minecraft ${gameVersion}.`;
+    }
+  } catch (error) {
+    if (request !== prismLoaderVersionRequest) return;
+    renderPrismLoaderVersionBrowser('Не удалось получить версии. Проверь подключение и нажми «Обновить».');
+    if ($('ni-msg')) $('ni-msg').textContent = String(error);
+  }
 }
 $('ni-loader')?.addEventListener('change', () => {
   const select = $('ni-loader');
@@ -2052,8 +2161,11 @@ $('ni-loader')?.addEventListener('change', () => {
     try { localStorage.setItem(PRISM_CREATE_LOADER_STORE, select.value); } catch {}
   }
   renderPrismLoaderOptions();
+  loadPrismLoaderVersions();
 });
 renderPrismLoaderOptions();
+$('ni-loader-version-refresh')?.addEventListener('click', () => loadPrismLoaderVersions());
+
 $('ni-version-refresh')?.addEventListener('click', async () => {
   const button = $('ni-version-refresh');
   if (button) button.disabled = true;
@@ -2240,6 +2352,7 @@ async function openNewInstance() {
   }
   const ids = await loadReleases();
   renderPrismCreateVersionBrowser();
+  await loadPrismLoaderVersions();
   if (!ids.length) $('ni-msg').textContent = 'Не удалось получить список версий (нет интернета?)';
   $('ni-name').focus();
 }
@@ -2269,6 +2382,11 @@ $('ni-create').addEventListener('click', async () => {
     $('ni-msg').textContent = 'Список версий пока недоступен. Проверь подключение к интернету и попробуй ещё раз.';
     return;
   }
+  if ($('ni-loader').value !== 'vanilla' && !selectedLoaderVersion) {
+    $('ni-msg').textContent = 'Выбери конкретную версию загрузчика из нижнего списка.';
+    $('ni-loader-version-rows')?.focus();
+    return;
+  }
   btn.disabled = true;
   btn.textContent = 'Создаём…';
   $('ni-msg').textContent = 'Подготавливаем папку сборки…';
@@ -2278,6 +2396,7 @@ $('ni-create').addEventListener('click', async () => {
       name,
       version: $('ni-version').value,
       loader: $('ni-loader').value,
+      loaderVersion: selectedLoaderVersion || null,
     });
     const groupName = currentUi === 'prism' ? String($('ni-group')?.value || '').trim() : '';
     if (created?.id && groupName) savePrismInstanceGroup(created, groupName);

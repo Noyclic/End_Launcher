@@ -22,7 +22,9 @@ pub struct Instance {
     pub version: String,
     /// "vanilla" | "fabric" | "quilt" | "forge" | "neoforge"
     pub loader: String,
-}
+    /// Конкретная версия Fabric / Quilt / Forge / NeoForge, выбранная в мастере.
+    #[serde(default)]
+    pub loader_version: Option<String>,}
 
 fn err<E: std::fmt::Display>(e: E) -> String {
     e.to_string()
@@ -91,7 +93,7 @@ pub fn list_instances() -> Vec<Instance> {
 }
 
 #[tauri::command]
-pub fn create_instance(name: String, version: String, loader: String) -> Result<Instance, String> {
+pub fn create_instance(name: String, version: String, loader: String, loader_version: Option<String>) -> Result<Instance, String> {
     let name = name.trim().to_string();
     if name.is_empty() || name.chars().count() > 40 {
         return Err("название сборки: от 1 до 40 символов".into());
@@ -108,7 +110,18 @@ pub fn create_instance(name: String, version: String, loader: String) -> Result<
         id = format!("{base}-{n}");
         n += 1;
     }
-    let inst = Instance { id, name, version, loader };
+    if let Some(value) = loader_version.as_deref() {
+        if value.is_empty() || value.len() > 80 || !value.chars().all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '.' | '+' | '-' | '_')) {
+            return Err("некорректная версия загрузчика".into());
+        }
+    }
+    if loader == "vanilla" && loader_version.is_some() {
+        return Err("Vanilla не использует версию загрузчика модов".into());
+    }
+    if loader != "vanilla" && loader_version.is_none() {
+        return Err("не выбрана версия загрузчика модов".into());
+    }
+    let inst = Instance { id, name, version, loader, loader_version };
     write(&inst)?;
     for d in ["mods", "resourcepacks", "shaderpacks", "saves"] {
         let _ = std::fs::create_dir_all(instance_dir(&inst.id).join(d));
@@ -146,6 +159,7 @@ pub fn update_instance(id: String, name: String, version: String, loader: String
     }
     let mut inst = get(&id).ok_or("сборка не найдена")?;
     inst.name = name;
+    if inst.version != version || inst.loader != loader { inst.loader_version = None; }
     inst.version = version;
     inst.loader = loader;
     write(&inst)?;
@@ -662,7 +676,7 @@ fn create_import_spec(name: &str, version: &str, loader: &str) -> Result<Instanc
     let mut id = base.clone();
     let mut n = 2;
     while instance_dir(&id).exists() { id = format!("{base}-{n}"); n += 1; }
-    Ok(Instance { id, name, version, loader: loader.into() })
+    Ok(Instance { id, name, version, loader: loader.into(), loader_version: None })
 }
 
 fn instance_spec_from_dir(root: &Path) -> Result<(String, String, String), String> {

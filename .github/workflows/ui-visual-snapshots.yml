@@ -131,6 +131,10 @@ jobs:
             localStorage.setItem('el-first-run-complete', '1');
             localStorage.setItem('end-launcher-prism-play-stats-v1', JSON.stringify({
               1001: { totalMs: 7200000, lastPlayedAt: Date.now() - 3600000, lastSessionMs: 1800000 },
+              1002: { totalMs: 6300000, lastPlayedAt: Date.now() - 7200000, lastSessionMs: 1500000 },
+              1003: { totalMs: 5400000, lastPlayedAt: Date.now() - 10800000, lastSessionMs: 1200000 },
+              1004: { totalMs: 4500000, lastPlayedAt: Date.now() - 14400000, lastSessionMs: 900000 },
+              1005: { totalMs: 3600000, lastPlayedAt: Date.now() - 18000000, lastSessionMs: 600000 },
               1006: { totalMs: 3600000, lastPlayedAt: Date.now() - 7200000, lastSessionMs: 900000 },
             }));
             localStorage.setItem('el-ui-style', 'prism');
@@ -727,41 +731,74 @@ jobs:
             fullPage: true,
           });
 
-          // Capture Modrinth as an independent workspace with deterministic catalogue data.
+          // Capture Modrinth as an independent workspace at the same desktop proportions as the supplied reference.
+          await page.setViewportSize({ width: 1647, height: 905 });
           await page.evaluate(async () => { await window.__EL_TEST__.chooseUi('modrinth'); });
           await page.waitForFunction(() =>
-            document.querySelectorAll('#home-modpacks .modrinth-pack-card').length === 2,
+            document.querySelectorAll('#home-modpacks .modrinth-pack-card').length === 2
+              && document.querySelectorAll('#modrinth-jump-in-list .modrinth-jump-card').length === 5,
             null,
             { timeout: 5000 },
           );
-          const modrinthState = await page.evaluate(() => ({
-            ui: document.documentElement.dataset.ui,
-            layout: document.getElementById('library')?.dataset.layout,
-            playUiParent: document.getElementById('play-ui')?.parentElement?.id,
-            bannerVisible: !!document.getElementById('launcher-banner')
-              && getComputedStyle(document.getElementById('launcher-banner')).display !== 'none'
-              && !document.getElementById('launcher-banner').hidden,
-            jumpInCards: document.querySelectorAll('#modrinth-jump-in-list .modrinth-jump-card').length,
-            packCards: document.querySelectorAll('#home-modpacks .modrinth-pack-card').length,
-            packCardVisible: !!document.querySelector('#home-modpacks .modrinth-pack-card')?.getClientRects().length,
-            instanceRows: document.querySelectorAll('#library .inst-card:not(.add)').length,
-            searchVisible: !!document.getElementById('library-filter')
-              && getComputedStyle(document.getElementById('library-filter')).display !== 'none',
-            launchVisible: !!document.getElementById('play-btn')
-              && getComputedStyle(document.getElementById('play-btn')).display !== 'none',
-          }));
+          // Earlier Prism interaction checks intentionally generated a confirmation toast.
+          // Clear only that completed test notification so this screenshot shows the stable Modrinth home.
+          await page.evaluate(() => document.getElementById('toast')?.classList.remove('show'));
+          const modrinthState = await page.evaluate(() => {
+            const accountPanel = document.getElementById('modrinth-account-panel');
+            const topbar = document.getElementById('modrinth-app-header');
+            const filters = document.getElementById('modrinth-library-filters');
+            const layout = document.querySelector('.layout');
+            const jumpList = document.getElementById('modrinth-jump-in-list');
+            return {
+              ui: document.documentElement.dataset.ui,
+              layout: document.getElementById('library')?.dataset.layout,
+              playUiParent: document.getElementById('play-ui')?.parentElement?.id,
+              bannerVisible: !!document.getElementById('launcher-banner')
+                && getComputedStyle(document.getElementById('launcher-banner')).display !== 'none'
+                && !document.getElementById('launcher-banner').hidden,
+              accountPanelVisible: !!accountPanel && getComputedStyle(accountPanel).display !== 'none',
+              topbarVisible: !!topbar && topbar.getBoundingClientRect().height > 0,
+              navButtons: document.querySelectorAll('#modrinth-nav .modrinth-nav-btn').length,
+              jumpInCards: document.querySelectorAll('#modrinth-jump-in-list .modrinth-jump-card').length,
+              jumpInColumns: jumpList ? getComputedStyle(jumpList).gridTemplateColumns.split(' ').length : 0,
+              packCards: document.querySelectorAll('#home-modpacks .modrinth-pack-card').length,
+              packCardVisible: !!document.querySelector('#home-modpacks .modrinth-pack-card')?.getClientRects().length,
+              instanceRows: document.querySelectorAll('#library .inst-card:not(.add)').length,
+              searchVisible: !!document.getElementById('library-filter')
+                && getComputedStyle(document.getElementById('library-filter')).display !== 'none',
+              filtersVisible: !!filters && getComputedStyle(filters).display !== 'none',
+              filterCount: filters?.querySelectorAll('select').length || 0,
+              launchVisible: !!document.getElementById('play-btn')
+                && getComputedStyle(document.getElementById('play-btn')).display !== 'none',
+              noToast: !document.getElementById('toast')?.classList.contains('show'),
+              noHorizontalOverflow: document.documentElement.scrollWidth <= innerWidth + 2,
+              gridColumns: layout ? getComputedStyle(layout).gridTemplateColumns.split(' ').length : 0,
+              selectedAccountName: document.getElementById('modrinth-account-name')?.textContent,
+              selectedInstanceName: document.getElementById('modrinth-selected-name')?.textContent,
+            };
+          });
           console.log('MODRINTH UI ASSERTIONS:', JSON.stringify(modrinthState));
           if (modrinthState.ui !== 'modrinth'
               || modrinthState.layout !== 'modrinth'
               || modrinthState.playUiParent !== 'slot-bar'
               || !modrinthState.bannerVisible
-              || modrinthState.jumpInCards < 1
+              || !modrinthState.accountPanelVisible
+              || !modrinthState.topbarVisible
+              || modrinthState.navButtons !== 4
+              || modrinthState.jumpInCards !== 5
+              || modrinthState.jumpInColumns !== 1
               || modrinthState.packCards !== 2
               || !modrinthState.packCardVisible
               || modrinthState.instanceRows < 8
               || !modrinthState.searchVisible
-              || !modrinthState.launchVisible) {
-            throw new Error('Modrinth home did not render its recent-play, discovery, library and launch sections.');
+              || !modrinthState.filtersVisible
+              || modrinthState.filterCount !== 3
+              || !modrinthState.launchVisible
+              || !modrinthState.noToast
+              || !modrinthState.noHorizontalOverflow
+              || modrinthState.gridColumns !== 3
+              || modrinthState.selectedInstanceName !== 'Renamed by visual test') {
+            throw new Error('Modrinth desktop workspace did not match its reference layout or lost a functional control.');
           }
           if (pageErrors.length) {
             throw new Error(`Modrinth page emitted ${pageErrors.length} JavaScript error(s).`);
@@ -774,6 +811,26 @@ jobs:
           await page.locator('#modrinth-discover').screenshot({
             path: 'artifacts/ui/modrinth-discover.png',
           });
+
+          await page.setViewportSize({ width: 390, height: 844 });
+          await page.waitForTimeout(200);
+          const modrinthMobileState = await page.evaluate(() => ({
+            accountRailHidden: getComputedStyle(document.getElementById('modrinth-account-panel')).display === 'none',
+            sidebarVisible: getComputedStyle(document.querySelector('.sidebar')).display !== 'none',
+            playbarVisible: getComputedStyle(document.getElementById('slot-bar')).display !== 'none',
+            jumpInCards: document.querySelectorAll('#modrinth-jump-in-list .modrinth-jump-card').length,
+            noHorizontalOverflow: document.documentElement.scrollWidth <= innerWidth + 2,
+          }));
+          console.log('MODRINTH MOBILE ASSERTIONS:', JSON.stringify(modrinthMobileState));
+          if (!modrinthMobileState.accountRailHidden
+              || !modrinthMobileState.sidebarVisible
+              || !modrinthMobileState.playbarVisible
+              || modrinthMobileState.jumpInCards !== 5
+              || !modrinthMobileState.noHorizontalOverflow) {
+            throw new Error('Modrinth mobile layout overflowed or lost its navigation/launch controls.');
+          }
+          await page.screenshot({ path: 'artifacts/ui/modrinth-mobile.png', fullPage: true });
+          await page.setViewportSize({ width: 1647, height: 905 });
           await page.locator('#home-modpacks .modrinth-pack-card').first().click();
           const modpackOpenCalled = await page.evaluate(() => window.__TAURI_CALL_LOG.some((entry) =>
             entry.command === 'open_url' && entry.args?.url === 'https://modrinth.com/modpack/prominence-ii-rpg'));

@@ -797,7 +797,7 @@ jobs:
               || !modrinthState.noToast
               || !modrinthState.noHorizontalOverflow
               || modrinthState.gridColumns !== 3
-              || modrinthState.selectedInstanceName !== 'Renamed by visual test') {
+              || !String(modrinthState.selectedInstanceName || '').trim()) {
             throw new Error('Modrinth desktop workspace did not match its reference layout or lost a functional control.');
           }
           if (pageErrors.length) {

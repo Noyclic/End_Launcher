@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const [html, js, css, repairCss, rustConfig, rustInstances, rustMain, rustJava] = await Promise.all([
+const [html, js, css, repairCss, rustConfig, rustInstances, rustMain, rustJava, rustMc] = await Promise.all([
   readFile(new URL('../src/index.html', import.meta.url), 'utf8'),
   readFile(new URL('../src/main.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/styles.css', import.meta.url), 'utf8'),
@@ -10,6 +10,7 @@ const [html, js, css, repairCss, rustConfig, rustInstances, rustMain, rustJava] 
   readFile(new URL('../src-tauri/src/instances.rs', import.meta.url), 'utf8'),
   readFile(new URL('../src-tauri/src/main.rs', import.meta.url), 'utf8'),
   readFile(new URL('../src-tauri/src/java.rs', import.meta.url), 'utf8'),
+  readFile(new URL('../src-tauri/src/mc.rs', import.meta.url), 'utf8'),
 ]);
 
 const check = (condition, message) => assert.ok(condition, message);
@@ -1072,10 +1073,10 @@ check(html.includes('<th>Версия</th><th>Выпущено</th><th>Тип</t
     && js.includes('item.release_time || item.releaseTime')
     && js.includes("sourceKind === 'old_alpha'")
     && js.includes("sourceKind === 'old_beta'")
-    && java.includes('pub release_time: String')
-    && java.includes('kind: v.kind.clone()')
-    && java.includes('release_time: v.release_time.clone()')
-    && mc.includes('#[serde(rename = "releaseTime", default)]'),
+    && rustJava.includes('pub release_time: String')
+    && rustJava.includes('kind: v.kind.clone()')
+    && rustJava.includes('release_time: v.release_time.clone()')
+    && rustMc.includes('#[serde(rename = "releaseTime", default)]'),
   'Prism Add Instance version browser must show Mojang release dates and correctly classify releases, snapshots, betas and alphas');
 
 check(repairCss.includes('.prism-folders-menu-icon::before')

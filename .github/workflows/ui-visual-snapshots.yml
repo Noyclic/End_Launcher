@@ -905,6 +905,16 @@ jobs:
             path: 'artifacts/ui/modrinth-home.png',
             fullPage: true,
           });
+          await page.locator('#modrinth-discover').scrollIntoViewIfNeeded();
+          await page.evaluate(() => {
+            const main = document.querySelector('.content main');
+            const section = document.getElementById('modrinth-discover');
+            if (main && section) {
+              const mainRect = main.getBoundingClientRect();
+              const sectionRect = section.getBoundingClientRect();
+              main.scrollTop += sectionRect.top - mainRect.top - 84;
+            }
+          });
           await page.locator('#modrinth-discover').screenshot({
             path: 'artifacts/ui/modrinth-discover.png',
           });

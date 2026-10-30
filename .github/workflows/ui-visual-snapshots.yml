@@ -502,7 +502,8 @@ jobs:
               generalSortOptions: document.querySelectorAll('input[name="prism-settings-instance-sort"]').length,
               activeSort: document.querySelector('input[name="prism-settings-instance-sort"]:checked')?.value,
               pathBrowseActions: ['prism-settings-open-root','prism-settings-open-instances','prism-settings-open-mods','prism-settings-open-icons','prism-settings-open-java','prism-settings-open-skins','prism-settings-open-logs'].filter((id) => !!document.getElementById(id)).length,
-              updateModeIsHonest: !!document.querySelector('.prism-settings-general-card .prism-settings-preference-block p')?.textContent.includes('не поддерживается'),
+              updateModeIsHonest: [...document.querySelectorAll('.prism-settings-general-card .prism-settings-preference-block')]
+                .some((block) => block.textContent.includes('Обновления') && block.textContent.includes('не поддерживается')),
             };
           });
           console.log('PRISM SETTINGS ASSERTIONS:', JSON.stringify(settingsVisible));

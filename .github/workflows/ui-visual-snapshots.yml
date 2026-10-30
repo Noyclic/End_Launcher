@@ -394,6 +394,14 @@ jobs:
             versionHeaders: [...document.querySelectorAll('.prism-version-table thead th')].map((item) => item.textContent.trim()),
             firstReleaseDate: document.querySelector('#ni-version-rows tr[data-version] .prism-version-release-date')?.textContent.trim(),
             releaseTypeRows: [...document.querySelectorAll('#ni-version-rows tr[data-version]')].map((row) => row.dataset.kind),
+            versionSearch: (() => {
+              const r = document.querySelector('.prism-version-search-row')?.getBoundingClientRect();
+              return r ? { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height } : null;
+            })(),
+            loaderField: (() => {
+              const r = document.querySelector('.prism-create-loader-field')?.getBoundingClientRect();
+              return r ? { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height } : null;
+            })(),
             versionBrowserVisible: !!document.querySelector('.prism-version-browser') && getComputedStyle(document.querySelector('.prism-version-browser')).display !== 'none',
             overlayRect: (() => { const r = document.getElementById('new-instance').getBoundingClientRect(); return { left: r.left, top: r.top, width: r.width, height: r.height }; })(),
             minecraftPanelVisible: !document.querySelector('[data-create-panel="minecraft"]')?.hidden,

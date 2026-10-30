@@ -1085,3 +1085,16 @@ check(repairCss.includes('.prism-folders-menu-icon::before')
     && repairCss.includes('.prism-settings-general-card')
     && repairCss.includes('.prism-version-release-date'),
   'Prism inner menus and dialogs must keep resource-specific icon treatments and compact reference spacing');
+
+
+// Prism Add Instance pass 44: the hidden native select and visible radio rail stay in sync.
+check(js.includes("const PRISM_CREATE_LOADER_STORE = 'end-launcher-prism-create-loader-v1'")
+    && js.includes('function getPreferredPrismCreateLoader(select)')
+    && js.includes("options.find((option) => option.value === 'fabric')")
+    && js.includes('function applyPrismCreateLoaderPreference()')
+    && js.includes("select.dispatchEvent(new Event('change', { bubbles: true }))")
+    && js.includes('preview.dataset.loader = select.value')
+    && html.includes('class="create-instance-note prism-loader-preview" role="status" aria-live="polite" aria-atomic="true"')
+    && repairCss.includes('/* Prism Add Instance pass 44')
+    && repairCss.includes('#ni-loader-options .prism-loader-option:has(input:checked)'),
+  'Prism Add Instance must choose a visible loader by default, persist the last choice, announce preview changes, and highlight the active loader');

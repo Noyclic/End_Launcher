@@ -2204,3 +2204,45 @@
   padding: 0 !important;
   line-height: 1.15 !important;
 }
+
+
+/* Prism Add Instance pass 44 — make the chosen loader obvious and keep targets easy to hit. */
+:root[data-ui='prism'] #ni-loader-options.prism-loader-options {
+  gap: 3px !important;
+  margin-top: 7px !important;
+}
+:root[data-ui='prism'] #ni-loader-options .prism-loader-option {
+  min-height: 21px !important;
+  box-sizing: border-box;
+  padding: 2px 5px !important;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  line-height: 1.2 !important;
+  transition: background-color .12s ease, border-color .12s ease, color .12s ease;
+}
+:root[data-ui='prism'] #ni-loader-options .prism-loader-option:hover {
+  background: #303630;
+  border-color: #485448;
+}
+:root[data-ui='prism'] #ni-loader-options .prism-loader-option:has(input:checked) {
+  background: #30412b;
+  border-color: #58784b;
+  color: #d5efc3;
+}
+:root[data-ui='prism'] #ni-loader-options .prism-loader-option:focus-within {
+  outline: 1px solid #9ad878;
+  outline-offset: 1px;
+}
+:root[data-ui='prism'] #ni-loader-options .prism-loader-option input {
+  width: 13px;
+  height: 13px;
+  accent-color: #91d85a;
+}
+:root[data-ui='prism'] .prism-loader-preview[data-loader='fabric'] strong,
+:root[data-ui='prism'] .prism-loader-preview[data-loader='quilt'] strong {
+  color: #c8e8d8;
+}
+:root[data-ui='prism'] .prism-loader-preview[data-loader='forge'] strong,
+:root[data-ui='prism'] .prism-loader-preview[data-loader='neoforge'] strong {
+  color: #e5c7a4;
+}

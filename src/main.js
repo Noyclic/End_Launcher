@@ -1981,6 +1981,7 @@ for (const id of ['ni-version-search', 'ni-filter-releases', 'ni-filter-snapshot
 }
 
 // Prism-style vertical loader chooser; keep the original select as the single source of truth.
+const PRISM_CREATE_LOADER_STORE = 'end-launcher-prism-create-loader-v1';
 const prismLoaderDescriptions = {
   vanilla: ['Vanilla', 'Чистая версия Minecraft без стороннего загрузчика модов.'],
   neoforge: ['NeoForge', 'Современный загрузчик для модов и крупных модпаков.'],
@@ -1988,12 +1989,40 @@ const prismLoaderDescriptions = {
   fabric: ['Fabric', 'Лёгкий загрузчик для модов, оптимизации и небольших сборок.'],
   quilt: ['Quilt', 'Альтернативный лёгкий загрузчик, совместимый с частью Fabric-модов.'],
 };
+function getPrismCreateLoaderOptions(select) {
+  return [...select.options].filter((option) =>
+    option.value !== 'vanilla' && Object.hasOwn(prismLoaderDescriptions, option.value));
+}
+function getPreferredPrismCreateLoader(select) {
+  const options = getPrismCreateLoaderOptions(select);
+  let saved = '';
+  try { saved = localStorage.getItem(PRISM_CREATE_LOADER_STORE) || ''; } catch {}
+  return options.find((option) => option.value === saved)?.value
+    || options.find((option) => option.value === 'fabric')?.value
+    || options[0]?.value
+    || 'vanilla';
+}
+function applyPrismCreateLoaderPreference() {
+  const select = $('ni-loader');
+  if (!select) return;
+  const next = getPreferredPrismCreateLoader(select);
+  if (select.value !== next) {
+    select.value = next;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  } else {
+    renderPrismLoaderOptions();
+  }
+}
 function renderPrismLoaderOptions() {
   const select = $('ni-loader');
   const list = $('ni-loader-options');
   if (!select || !list) return;
+  const options = getPrismCreateLoaderOptions(select);
+  if (!options.some((option) => option.value === select.value) && options.length) {
+    select.value = getPreferredPrismCreateLoader(select);
+  }
   list.replaceChildren();
-  [...select.options].filter((option) => option.value !== 'vanilla').forEach((option) => {
+  options.forEach((option) => {
     const label = document.createElement('label');
     label.className = 'prism-loader-option';
     const radio = document.createElement('input');
@@ -2002,8 +2031,9 @@ function renderPrismLoaderOptions() {
     radio.value = option.value;
     radio.checked = option.value === select.value;
     radio.addEventListener('change', () => {
+      if (!radio.checked) return;
       select.value = option.value;
-      renderPrismLoaderOptions();
+      select.dispatchEvent(new Event('change', { bubbles: true }));
     });
     const text = document.createElement('span');
     text.textContent = option.textContent;
@@ -2013,8 +2043,16 @@ function renderPrismLoaderOptions() {
   const [title, description] = prismLoaderDescriptions[select.value] || prismLoaderDescriptions.vanilla;
   if ($('ni-loader-preview-title')) $('ni-loader-preview-title').textContent = title;
   if ($('ni-loader-preview-description')) $('ni-loader-preview-description').textContent = description;
+  const preview = document.querySelector('.prism-loader-preview');
+  if (preview) preview.dataset.loader = select.value;
 }
-$('ni-loader')?.addEventListener('change', renderPrismLoaderOptions);
+$('ni-loader')?.addEventListener('change', () => {
+  const select = $('ni-loader');
+  if (select && select.value !== 'vanilla' && Object.hasOwn(prismLoaderDescriptions, select.value)) {
+    try { localStorage.setItem(PRISM_CREATE_LOADER_STORE, select.value); } catch {}
+  }
+  renderPrismLoaderOptions();
+});
 renderPrismLoaderOptions();
 $('ni-version-refresh')?.addEventListener('click', async () => {
   const button = $('ni-version-refresh');
@@ -2186,6 +2224,7 @@ async function openNewInstance() {
   if (title) title.textContent = currentUi === 'prism' ? 'Добавить экземпляр' : 'Новая сборка';
   $('ni-msg').textContent = '';
   setPrismCreateMode('minecraft');
+  if (currentUi === 'prism') applyPrismCreateLoaderPreference();
   const groupList = $('ni-group-options');
   if (groupList) {
     groupList.replaceChildren();

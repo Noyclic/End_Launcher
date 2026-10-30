@@ -1,0 +1,3135 @@
+/* Prism/Pinecone visual repair pass — loaded after styles.css so the intended icon-first grid wins over legacy layout rules. */
+:root[data-ui='prism'] #library.grid:not(.list-view) .inst-card:not(.add) {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch;
+  justify-content: flex-start;
+  width: 108px;
+  min-width: 0;
+  min-height: 73px;
+  box-sizing: border-box;
+  gap: 3px;
+  padding: 3px 3px 0;
+  overflow: hidden;
+  text-align: center;
+}
+:root[data-ui='prism'] #library.grid:not(.list-view) .inst-card:not(.add) > .inst-icon {
+  display: grid;
+  place-items: center;
+  align-self: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  flex: 0 0 44px;
+  margin: 0;
+  box-sizing: border-box;
+}
+:root[data-ui='prism'] #library.grid:not(.list-view) .inst-card:not(.add) > .inst-name {
+  display: block;
+  align-self: stretch;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 22px;
+  max-height: 28px;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 3px 2px 2px;
+  box-sizing: border-box;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  background: transparent;
+  color: #dddddd;
+  font: 500 10px/1.15 'Inter', sans-serif;
+}
+:root[data-ui='prism'] #library.grid:not(.list-view) .inst-card.active:not(.add) > .inst-name {
+  min-height: 22px;
+  background: #91d85a;
+  color: #17220e;
+  font-weight: 600;
+}
+:root[data-ui='prism'] #library.grid:not(.list-view) .inst-card:not(.add) > .chip,
+:root[data-ui='prism'] #library.grid:not(.list-view) .inst-card:not(.add) > .inst-play,
+:root[data-ui='prism'] #library.grid:not(.list-view) .inst-card:not(.add) > .inst-more {
+  display: none !important;
+}
+
+/* The visible text is already provided by main.js; never duplicate it with a pseudo-element. */
+:root[data-ui='prism'] .sidebar #library-add {
+  font-size: 10px !important;
+}
+:root[data-ui='prism'] .sidebar #library-add::after {
+  content: none !important;
+}
+
+/* Reflow Prism for narrow screens: top command strip, scrollable library, launch rail, status footer. */
+@media (max-width: 740px) {
+  :root[data-ui='prism'] .layout {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    height: 100vh;
+    min-height: 0;
+    overflow: hidden;
+  }
+  :root[data-ui='prism'] .sidebar {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    align-content: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 4px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 38px;
+    padding: 6px;
+    box-sizing: border-box;
+    border-right: 0;
+    border-bottom: 1px solid #454545;
+  }
+  :root[data-ui='prism'] .content {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    height: auto;
+    overflow: hidden;
+  }
+  :root[data-ui='prism'] .content main {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    padding: 6px;
+    overflow: auto;
+  }
+  :root[data-ui='prism'] #library.grid:not(.list-view) {
+    grid-template-columns: repeat(auto-fill, minmax(84px, 108px));
+    justify-content: start;
+    gap: 4px 3px;
+    min-width: 0;
+    width: 100%;
+  }
+  :root[data-ui='prism'] #library.grid:not(.list-view) .inst-card:not(.add) {
+    width: 100%;
+    min-width: 0;
+  }
+  :root[data-ui='prism'] .playbar {
+    display: flex;
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+    max-height: 36vh;
+    box-sizing: border-box;
+    padding: 8px 10px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border: 0;
+    border-top: 1px solid #414141;
+  }
+  :root[data-ui='prism'] .prism-selected-instance {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    margin: 0 0 4px;
+    text-align: left;
+  }
+  :root[data-ui='prism'] .prism-selected-icon {
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+  }
+  :root[data-ui='prism'] .play-ui {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    flex-wrap: nowrap;
+    gap: 5px;
+    width: 100%;
+    min-width: 0;
+  }
+  :root[data-ui='prism'] .play-ui #play-btn {
+    order: 1;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+  :root[data-ui='prism'] .play-ui #stop-btn {
+    order: 2;
+    width: 100%;
+    min-width: 0;
+  }
+  :root[data-ui='prism'] .play-ui .pb-info {
+    order: 3;
+    flex: none;
+    width: 100%;
+    min-width: 0;
+  }
+  :root[data-ui='prism'] .play-ui .prism-quick-actions {
+    order: 4;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+    width: 100%;
+    min-width: 0;
+  }
+  :root[data-ui='prism'] .play-ui .prism-quick-actions button {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  :root[data-ui='prism'] .prism-status-bar {
+    display: flex;
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 48px;
+    height: auto;
+    box-sizing: border-box;
+  }
+  :root[data-ui='prism'] .prism-status-news-row,
+  :root[data-ui='prism'] .prism-status-meta-row {
+    min-width: 0;
+    padding-inline: 8px;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 420px) {
+  :root[data-ui='prism'] .sidebar .library-toolbar-actions {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+  :root[data-ui='prism'] .sidebar .library-search {
+    flex: 1 1 100%;
+    max-width: none;
+  }
+  :root[data-ui='prism'] .prism-status-news-row,
+  :root[data-ui='prism'] .prism-status-meta-row {
+    align-items: flex-start;
+  }
+}
+
+
+/* Prism visual repair pass 2 — keep the selected profile's generated icon art visible.
+   Earlier selected-state shorthand rules reset background-image to none. */
+:root[data-ui='prism'] #library.grid:not(.list-view) .inst-card.active:not(.add) > .inst-icon:not(.has-custom-icon) {
+  background-color: #846447;
+  background-image:
+    linear-gradient(90deg, #0002, transparent 18%, transparent 82%, #fff1),
+    linear-gradient(#6d8e3b 0 0),
+    linear-gradient(#b8d66e 0 0),
+    linear-gradient(#789c43 0 0),
+    linear-gradient(#c2df7b 0 0),
+    linear-gradient(#6b8d3f 0 0),
+    linear-gradient(#a7cb5e 0 0),
+    linear-gradient(#74563e 0 0),
+    linear-gradient(#a1825a 0 0),
+    linear-gradient(#70523b 0 0),
+    linear-gradient(to bottom, #a8d064 0 35%, #9a7954 35%, #896849 62%, #79583d 100%);
+  background-size: 100% 100%, 17% 14%, 18% 11%, 13% 12%, 16% 9%, 12% 13%, 14% 12%, 18% 13%, 17% 12%, 12% 15%, 100% 100%;
+  background-position: 0 0, 0 5%, 36% 0, 73% 8%, 18% 22%, 82% 25%, 51% 24%, 4% 59%, 47% 72%, 81% 55%, 0 0;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+:root[data-ui='prism'] #library.grid:not(.list-view) .inst-card.active:not(.add) > .inst-icon[data-loader='fabric']:not(.has-custom-icon) {
+  background-color: #80c6ad;
+  background-image:
+    linear-gradient(90deg, #0002, transparent 18%, transparent 82%, #fff1),
+    linear-gradient(#8ad4bf 0 0),
+    linear-gradient(#b7e1d2 0 0),
+    linear-gradient(#579c89 0 0),
+    linear-gradient(#c1e6d9 0 0),
+    linear-gradient(#579c89 0 0),
+    linear-gradient(#b1ded0 0 0),
+    linear-gradient(to bottom, #80c6ad 0 35%, #7e7160 35%, #665a4b 100%);
+  background-size: 100% 100%, 17% 14%, 18% 11%, 13% 12%, 16% 9%, 12% 13%, 14% 12%, 100% 100%;
+  background-position: 0 0, 0 5%, 36% 0, 73% 8%, 18% 22%, 82% 25%, 51% 24%, 0 0;
+  background-repeat: no-repeat;
+}
+:root[data-ui='prism'] #library.grid:not(.list-view) .inst-card.active:not(.add) > .inst-icon[data-loader='forge']:not(.has-custom-icon) {
+  background-color: #a9604d;
+  background-image:
+    linear-gradient(90deg, #0002, transparent 18%, transparent 82%, #fff1),
+    linear-gradient(#b96b55 0 0),
+    linear-gradient(#db9e7b 0 0),
+    linear-gradient(#8f4d3d 0 0),
+    linear-gradient(#e0ab88 0 0),
+    linear-gradient(#8b4937 0 0),
+    linear-gradient(#ca8666 0 0),
+    linear-gradient(to bottom, #a9604d 0 35%, #7e6658 35%, #614a3e 100%);
+  background-size: 100% 100%, 17% 14%, 18% 11%, 13% 12%, 16% 9%, 12% 13%, 14% 12%, 100% 100%;
+  background-position: 0 0, 0 5%, 36% 0, 73% 8%, 18% 22%, 82% 25%, 51% 24%, 0 0;
+  background-repeat: no-repeat;
+}
+:root[data-ui='prism'] #library.grid:not(.list-view) .inst-card.active:not(.add) > .inst-icon[data-loader='neoforge']:not(.has-custom-icon) {
+  background-color: #c9a14d;
+  background-image:
+    linear-gradient(90deg, #0002, transparent 18%, transparent 82%, #fff1),
+    linear-gradient(#c69a4b 0 0),
+    linear-gradient(#e3cb7c 0 0),
+    linear-gradient(#96723b 0 0),
+    linear-gradient(#e9d18a 0 0),
+    linear-gradient(#8c6d37 0 0),
+    linear-gradient(#d1ae5e 0 0),
+    linear-gradient(to bottom, #c9a14d 0 35%, #7d6951 35%, #65523d 100%);
+  background-size: 100% 100%, 17% 14%, 18% 11%, 13% 12%, 16% 9%, 12% 13%, 14% 12%, 100% 100%;
+  background-position: 0 0, 0 5%, 36% 0, 73% 8%, 18% 22%, 82% 25%, 51% 24%, 0 0;
+  background-repeat: no-repeat;
+}
+
+@media (max-width: 740px) {
+  :root[data-ui='prism'] .playbar {
+    max-height: 40vh;
+  }
+  :root[data-ui='prism'] .play-ui .prism-quick-actions [data-action] {
+    min-height: 23px !important;
+    height: auto;
+    padding: 3px 5px !important;
+    font: 500 10px/1.15 'Inter', sans-serif !important;
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* Keep the Prism toolbar buttons on one compact, consistent height. */
+:root[data-ui='prism'] .sidebar .library-toolbar-actions > button {
+  min-height: 28px !important;
+  height: 28px !important;
+  box-sizing: border-box;
+  padding: 4px 8px !important;
+  font: 500 10px/1 'Inter', sans-serif !important;
+  vertical-align: middle;
+}
+/* The cat toggle lives in the existing overflow menu so it is always reachable. */
+:root[data-ui='prism'] .prism-toolbar-overflow #prism-cat-toggle {
+  display: inline-flex !important;
+  position: static !important;
+  inset: auto !important;
+  width: auto !important;
+  min-width: 64px;
+  max-width: 100%;
+  height: 27px !important;
+  min-height: 27px !important;
+  margin: 0;
+  padding: 4px 8px !important;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #484848;
+  border-radius: 3px;
+  background: #303030;
+  color: #dedede;
+  box-shadow: none;
+  font: 500 10px/1.15 'Inter', sans-serif !important;
+  white-space: nowrap;
+}
+
+
+/* Prism visual repair pass 3 — keep auxiliary overlays out of the selected profile and status rows. */
+:root[data-ui='prism'] .pet {
+  display: none !important;
+}
+/* Place the P2P launcher action in Prism's existing overflow menu rather than over library cards. */
+:root[data-ui='prism'] .prism-toolbar-overflow #p2p-fab {
+  position: static !important;
+  inset: auto !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  z-index: auto !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: auto !important;
+  min-width: 64px;
+  height: 27px !important;
+  margin: 0;
+  padding: 4px 8px;
+  border: 1px solid #484848;
+  border-radius: 3px;
+  background: #303030;
+  color: #dedede;
+  box-shadow: none;
+  filter: none;
+  font: 500 10px/1.15 'Inter', sans-serif;
+  white-space: nowrap;
+}
+:root[data-ui='prism'] .prism-toolbar-overflow #p2p-fab > span {
+  font-size: 12px;
+  line-height: 1;
+}
+:root[data-ui='prism'] .prism-toolbar-overflow #p2p-fab::after {
+  content: 'P2P';
+  font: inherit;
+}
+
+
+/* Prism/Pinecone pass 39 — functional instance chooser and segmented settings workspace. */
+:root[data-ui='prism'] #page-settings { max-width: 980px; }
+:root[data-ui='prism'] #page-settings > h1 { margin: 0 0 14px; font: 500 22px/1.25 'Inter', sans-serif; letter-spacing: 0; color: #ededed; }
+:root[data-ui='prism'] #page-settings > h2 { color: #c6c6c6; font: 600 12px/1.4 'Inter', sans-serif; letter-spacing: 0; }
+:root[data-ui='prism'] #page-settings [data-prism-settings-section][hidden] { display: none !important; }
+:root[data-ui='prism'] #page-settings .prism-settings-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin: 0 0 18px;
+  padding: 0 0 8px;
+  border-bottom: 1px solid #414141;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-tabs[hidden] { display: none !important; }
+:root[data-ui='prism'] #page-settings .prism-settings-tabs button {
+  min-height: 30px;
+  padding: 6px 13px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: #c8c8c8;
+  font: 500 12px/1.2 'Inter', sans-serif;
+  box-shadow: none;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-tabs button:hover { background: #343434; filter: none; }
+:root[data-ui='prism'] #page-settings .prism-settings-tabs button.active {
+  border-color: #4a4a4a;
+  background: #333;
+  color: #91d47b;
+}
+:root[data-ui='prism'] #page-settings .catpack-settings,
+:root[data-ui='prism'] #page-settings .security-card,
+:root[data-ui='prism'] #page-settings .settings-ai-tab,
+:root[data-ui='prism'] #page-settings .customize-launcher-card {
+  margin: 10px 0 16px;
+  padding: 14px;
+  border: 1px solid #414141;
+  border-radius: 3px;
+  background: #292929;
+  box-shadow: none;
+}
+:root[data-ui='prism'] #page-settings .row { gap: 8px; flex-wrap: wrap; }
+:root[data-ui='prism'] #page-settings input,
+:root[data-ui='prism'] #page-settings select {
+  min-height: 30px;
+  border-radius: 3px;
+  border-color: #4a4a4a;
+  background: #202020;
+  color: #e4e4e4;
+  font: 12px 'Inter', sans-serif;
+}
+:root[data-ui='prism'] #page-settings button { border-radius: 3px; font-size: 12px; }
+:root[data-ui='prism'] #page-settings .themes { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+:root[data-ui='prism'] #page-settings #ui-styles .theme-card { min-height: 82px; }
+:root[data-ui='prism'] #page-settings #ui-styles .theme-card-copy { min-width: 0; overflow-wrap: normal; }
+:root[data-ui='prism'] #page-settings #ui-styles .theme-card-copy .small { overflow-wrap: break-word; }
+
+/* The create dialog has its own left-hand command list just like a desktop instance wizard. */
+:root[data-ui='prism'] .create-instance-panel {
+  width: min(800px, 100%);
+  padding: 0;
+  overflow: hidden;
+  border-color: #494949;
+  border-radius: 4px;
+  background: #292929;
+  color: #e4e4e4;
+}
+.create-instance-layout { display: grid; grid-template-columns: 174px minmax(0, 1fr); min-height: 350px; }
+.create-instance-sidebar { display: none; }
+.create-instance-workspace { min-width: 0; padding: 18px; overflow: auto; }
+.create-instance-close { margin-left: auto; align-self: flex-start; min-width: 28px; padding: 2px 8px !important; font-size: 20px !important; line-height: 1.1; }
+.create-instance-mode[hidden] { display: none !important; }
+.create-provider-card { border: 1px solid #414141; background: #242424; padding: 18px; border-radius: 3px; }
+.create-provider-card h3 { margin: 0 0 8px; font-size: 16px; font-weight: 600; }
+.create-provider-card p { margin: 8px 0 14px; max-width: 560px; color: #b9b9b9; font-size: 12px; line-height: 1.55; }
+.create-provider-symbol { display: grid; place-items: center; width: 38px; height: 38px; margin-bottom: 12px; border: 1px solid #4a4a4a; border-radius: 3px; background: #303030; color: #91d47b; font-size: 18px; font-weight: 700; }
+:root[data-ui='prism'] .create-instance-panel .create-instance-heading { align-items: flex-start; gap: 11px; margin-bottom: 18px; }
+:root[data-ui='prism'] .create-instance-panel .create-instance-heading h2 { color: #ededed; font: 500 18px/1.3 'Inter', sans-serif; letter-spacing: 0; }
+:root[data-ui='prism'] .create-instance-panel .create-instance-heading p { color: #b5b5b5; font-size: 11px; }
+:root[data-ui='prism'] .create-instance-panel .create-instance-mark { border-radius: 3px; background: #343434; color: #91d47b; }
+:root[data-ui='prism'] .create-instance-panel .create-instance-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+:root[data-ui='prism'] .create-instance-panel .create-field:first-child { grid-column: 1 / -1; }
+:root[data-ui='prism'] .create-instance-panel .create-field { gap: 6px; color: #c2c2c2; font-size: 12px; }
+:root[data-ui='prism'] .create-instance-panel .create-instance-note { margin: 12px 0; color: #aaa; }
+:root[data-ui='prism'] .create-instance-panel .create-instance-actions { margin-top: 18px; }
+:root[data-ui='prism'] .create-instance-panel #ni-create { min-width: 180px; min-height: 32px; border: 1px solid #6a9b58; background: #91d47b; color: #142012; }
+:root[data-ui='prism'] .create-instance-panel #ni-create:hover { background: #a2e18d; filter: none; }
+:root[data-ui='prism'] .create-instance-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 8px;
+  border-right: 1px solid #414141;
+  background: #222;
+}
+:root[data-ui='prism'] .create-instance-sidebar button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 34px;
+  padding: 7px 9px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: #ccc;
+  text-align: left;
+  font: 500 12px/1.2 'Inter', sans-serif;
+  box-shadow: none;
+}
+:root[data-ui='prism'] .create-instance-sidebar button > span { overflow: hidden; text-overflow: ellipsis; }
+:root[data-ui='prism'] .create-instance-sidebar button:hover { background: #303030; filter: none; }
+:root[data-ui='prism'] .create-instance-sidebar button.active { border-color: #454545; background: #343434; color: #91d47b; }
+:root[data-ui='prism'] .create-instance-sidebar button:focus-visible,
+:root[data-ui='prism'] .create-instance-panel :is(button,input,select):focus-visible { outline: 2px solid #91d47b; outline-offset: 2px; }
+@media (max-width: 620px) {
+  :root[data-ui='prism'] .create-instance-modal { padding: 10px; }
+  .create-instance-layout { grid-template-columns: minmax(0, 1fr); }
+  :root[data-ui='prism'] .create-instance-sidebar { flex-direction: row; flex-wrap: wrap; border-right: 0; border-bottom: 1px solid #414141; }
+  :root[data-ui='prism'] .create-instance-sidebar button { flex: 1 1 105px; width: auto; }
+  .create-instance-workspace { padding: 13px; }
+  :root[data-ui='prism'] .create-instance-panel .create-instance-fields { grid-template-columns: minmax(0, 1fr); }
+  :root[data-ui='prism'] .create-instance-panel .create-field:first-child { grid-column: auto; }
+}
+
+/* Prism/Pinecone pass 40 — neutral desktop controls, reserve blue/green for selected and launch states. */
+:root[data-ui='prism'] #page-settings button:not(.theme-card) {
+  border: 1px solid #4b4b4b;
+  background: #353535;
+  color: #dfdfdf;
+  box-shadow: none;
+}
+:root[data-ui='prism'] #page-settings button:not(.theme-card):hover {
+  border-color: #626262;
+  background: #404040;
+  filter: none;
+}
+:root[data-ui='prism'] #page-settings button:not(.theme-card):focus-visible {
+  outline: 2px solid #91d47b;
+  outline-offset: 2px;
+}
+:root[data-ui='prism'] #page-settings #ui-styles .theme-card.active {
+  border-color: #6ca65a;
+  background: #303730;
+  box-shadow: inset 0 0 0 1px #6ca65a;
+}
+:root[data-ui='prism'] #page-settings #ui-styles .theme-card.active .theme-card-copy > :first-child {
+  color: #a0df8c;
+}
+:root[data-ui='prism'] .create-instance-panel .create-provider-card button {
+  border: 1px solid #4b4b4b;
+  background: #353535;
+  color: #e1e1e1;
+}
+:root[data-ui='prism'] .create-instance-panel .create-provider-card button:hover {
+  border-color: #6b6b6b;
+  background: #404040;
+  filter: none;
+}
+
+
+/* Prism/Pinecone pass 41 — native import pickers and proper instance-edit modal. */
+.create-import-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.create-import-actions button { flex: 1 1 150px; min-height: 34px; }
+:root[data-ui='prism'] .create-import-actions button {
+  border: 1px solid #4b4b4b;
+  border-radius: 3px;
+  background: #353535;
+  color: #e0e0e0;
+  box-shadow: none;
+  font: 500 12px/1.2 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .create-import-actions button:hover { border-color: #666; background: #404040; filter: none; }
+:root[data-ui='prism'] #page-settings .prism-java-path-row input { min-width: 170px; flex: 1 1 230px; }
+:root[data-ui='prism'] #page-settings .prism-java-path-row button { min-width: 84px; }
+:root[data-ui='prism'] #page-settings .prism-java-action-row button { flex: 0 1 auto; min-height: 30px; }
+.prism-instance-editor-overlay {
+  position: fixed; inset: 0; z-index: 13000; display: grid; place-items: center;
+  padding: 22px; overflow: auto; background: rgba(0,0,0,.66);
+  backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+}
+.prism-instance-editor {
+  width: min(560px, 100%); max-height: calc(100vh - 44px); overflow: auto;
+  padding: 18px; border: 1px solid #4a4a4a; border-radius: 4px;
+  background: #292929; color: #e4e4e4; box-shadow: 0 18px 55px #000b;
+  font: 12px/1.45 'Inter', sans-serif;
+}
+.prism-instance-editor-heading { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 17px; }
+.prism-instance-editor-heading > div { flex: 1; min-width: 0; }
+.prism-instance-editor-heading h2 { margin: 0 0 5px; color: #ededed; font: 500 18px/1.3 'Inter', sans-serif; letter-spacing: 0; }
+.prism-instance-editor-heading p { margin: 0; color: #aaa; font-size: 11px; overflow-wrap: anywhere; }
+.prism-instance-editor-close { flex: 0 0 auto; width: 30px; min-height: 28px; padding: 3px 8px; border: 1px solid #4a4a4a; border-radius: 3px; background: #353535; color: #ddd; font-size: 19px; line-height: 1; }
+.prism-instance-edit-field { display: flex; flex-direction: column; gap: 6px; margin: 12px 0; color: #c8c8c8; font-size: 12px; }
+.prism-instance-edit-field input,.prism-instance-edit-field select { width: 100%; min-width: 0; min-height: 32px; padding: 7px 9px; border: 1px solid #4a4a4a; border-radius: 3px; background: #202020; color: #ededed; font: 12px 'Inter',sans-serif; }
+.prism-instance-edit-note { margin: 14px 0; color: #a9a9a9; font-size: 11px; line-height: 1.5; }
+.prism-instance-edit-buttons { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-top: 17px; padding-top: 13px; border-top: 1px solid #414141; }
+.prism-instance-edit-buttons button { min-width: 90px; min-height: 32px; padding: 6px 12px; border: 1px solid #4b4b4b; border-radius: 3px; background: #353535; color: #e0e0e0; font: 500 12px 'Inter',sans-serif; box-shadow: none; }
+.prism-instance-edit-buttons .prism-instance-save { border-color: #6a9b58; background: #91d47b; color: #142012; }
+.prism-instance-edit-buttons button:hover { filter: brightness(1.07); }
+.prism-instance-edit-buttons button:disabled { opacity: .6; cursor: wait; }
+.prism-instance-editor :is(button,input,select):focus-visible { outline: 2px solid #91d47b; outline-offset: 2px; }
+@media (max-width: 620px) {
+  .prism-instance-editor-overlay { padding: 10px; }
+  .prism-instance-editor { padding: 13px; }
+  :root[data-ui='prism'] #page-settings .prism-java-action-row button { flex: 1 1 140px; }
+}
+
+
+/* Prism/Pinecone pass 43 — accessible instance command menus and duplicate fidelity. */
+:root[data-ui='prism'] .inst-menu {
+  z-index: 1200;
+  min-width: 220px;
+  max-width: min(310px, calc(100vw - 24px));
+  padding: 5px;
+  border: 1px solid #505050;
+  border-radius: 4px;
+  background: #292929;
+  color: #e6e6e6;
+  box-shadow: 0 10px 30px #0009;
+}
+:root[data-ui='prism'] .inst-menu button {
+  display: block;
+  width: 100%;
+  min-height: 30px;
+  padding: 6px 9px;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: 12px/1.35 'Inter', sans-serif;
+  box-shadow: none;
+}
+:root[data-ui='prism'] .inst-menu button:hover,
+:root[data-ui='prism'] .inst-menu button:focus-visible {
+  outline: none;
+  background: #3c3c3c;
+  color: #fff;
+}
+:root[data-ui='prism'] .inst-menu button:focus-visible {
+  box-shadow: inset 2px 0 #91d47b;
+}
+
+
+/* Prism/Pinecone pass 44 — toolbar icon scale and consistent control sizing, based on the user's 2026-10-29 references. */
+:root[data-ui='prism'] .sidebar .library-toolbar-actions > button,
+:root[data-ui='prism'] .sidebar #prism-help,
+:root[data-ui='prism'] .sidebar #prism-update {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  flex: 0 0 auto;
+  height: 30px !important;
+  min-height: 30px !important;
+  padding: 3px 8px !important;
+  border: 1px solid #484848;
+  border-radius: 3px;
+  background: linear-gradient(#383838, #2c2c2c);
+  color: #e3e3e3;
+  font: 500 12px/1.15 'Inter', sans-serif !important;
+  line-height: 1.15;
+  white-space: nowrap;
+  box-shadow: inset 0 1px #ffffff09;
+  filter: none;
+}
+:root[data-ui='prism'] .sidebar .library-toolbar-actions > button:hover,
+:root[data-ui='prism'] .sidebar #prism-help:hover,
+:root[data-ui='prism'] .sidebar #prism-update:hover:not(:disabled) {
+  border-color: #686868;
+  background: linear-gradient(#414141, #333333);
+  filter: none;
+}
+:root[data-ui='prism'] .sidebar #library-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+  width: auto;
+  min-width: 0;
+  padding: 3px 8px !important;
+  font-size: 12px !important;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+:root[data-ui='prism'] .sidebar #library-add::before {
+  content: '+';
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  box-sizing: border-box;
+  border: 1px solid #4cae79;
+  border-radius: 3px;
+  background: linear-gradient(#43d77e, #159b53);
+  color: #f3fff5;
+  font: 700 19px/1 'Inter', sans-serif;
+  text-shadow: 0 1px #176c3a;
+}
+/* The accessible button text is real DOM text; do not synthesize a duplicate pseudo-label. */
+:root[data-ui='prism'] .sidebar #library-add::after {
+  content: none !important;
+}
+@media (max-width: 740px) {
+  :root[data-ui='prism'] .sidebar #library-add {
+    gap: 5px;
+    padding: 2px 6px !important;
+    font-size: 11px !important;
+  }
+  :root[data-ui='prism'] .sidebar #library-add::before {
+    flex-basis: 20px;
+    width: 20px;
+    height: 20px;
+    font-size: 17px;
+  }
+}
+:root[data-ui='prism'] .sidebar #prism-open-folder .prism-folder-icon {
+  width: 20px;
+  height: 15px;
+  flex-basis: 20px;
+  margin: 0 1px 0 0;
+  border: 1px solid #c5c5c5;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, #f4f0d7 0 24%, #d9c59b 24% 100%);
+  color: #d6d6d6;
+  opacity: 1;
+}
+:root[data-ui='prism'] .sidebar #prism-open-folder .prism-folder-icon::before {
+  top: -5px;
+  left: 1px;
+  width: 8px;
+  height: 4px;
+  border: 1px solid #c5c5c5;
+  border-bottom: 0;
+  border-radius: 2px 2px 0 0;
+  background: #e5d5a8;
+}
+:root[data-ui='prism'] .sidebar #prism-help::before {
+  content: '?';
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  border: 2px solid #c8c8c8;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 25%, #f2f2f2, #bdbdbd 72%);
+  color: #4a5b48;
+  font: 700 15px/1 'Inter', sans-serif;
+  text-shadow: 0 1px #fff;
+}
+:root[data-ui='prism'] .sidebar #prism-update {
+  position: relative;
+}
+:root[data-ui='prism'] .sidebar #prism-update::before {
+  content: '☁';
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 23px;
+  width: 23px;
+  height: 22px;
+  color: #70b9e8;
+  font: 700 25px/1 'Inter', sans-serif;
+  text-shadow: 0 1px #244e6a;
+}
+:root[data-ui='prism'] .sidebar #prism-update::after {
+  content: '⬇';
+  position: absolute;
+  left: 16px;
+  top: 11px;
+  color: #47d96b;
+  font: 800 12px/1 'Inter', sans-serif;
+  text-shadow: 0 1px #173f24;
+  pointer-events: none;
+}
+:root[data-ui='prism'] .sidebar #prism-open-folder {
+  gap: 6px;
+}
+:root[data-ui='prism'] .sidebar #prism-help,
+:root[data-ui='prism'] .sidebar #prism-update {
+  order: initial;
+}
+@media (max-width: 740px) {
+  :root[data-ui='prism'] .sidebar .library-toolbar-actions > button,
+  :root[data-ui='prism'] .sidebar #prism-help,
+  :root[data-ui='prism'] .sidebar #prism-update {
+    max-width: calc(100vw - 24px);
+    height: 30px !important;
+    min-height: 30px !important;
+    font-size: 11px !important;
+  }
+  :root[data-ui='prism'] .sidebar #library-add::after { content: 'Добавить…'; font-size: 11px; }
+}
+
+
+/* Settings toolbar glyph: compact framed control icon as in the Pinecone reference. */
+:root[data-ui='prism'] .sidebar .nav-btn[data-page='settings'] .ico {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  border: 1px solid #d2d2d2;
+  border-radius: 3px;
+  background: linear-gradient(#f4f4f4, #c9c9c9);
+  color: #3b8b54;
+  font-size: 0 !important;
+  line-height: 1;
+}
+:root[data-ui='prism'] .sidebar .nav-btn[data-page='settings'] .ico::after {
+  content: '☷';
+  color: #3b8b54;
+  font: 700 17px/1 'Inter', sans-serif;
+}
+
+
+/* Prism/Pinecone inner menus — compact Qt-like rows, separators and the reference's lime hover. */
+.prism-menu-separator {
+  flex: 0 0 1px;
+  height: 1px;
+  margin: 3px 4px;
+  background: #414141;
+}
+.prism-folders-menu {
+  min-width: 248px;
+  padding: 3px;
+  border-radius: 2px;
+  background: #262626;
+  border-color: #464646;
+  box-shadow: 0 5px 16px #000a;
+  font: 12px/1.2 'Inter', sans-serif;
+  overscroll-behavior: contain;
+}
+.prism-folders-menu-item {
+  min-height: 28px;
+  gap: 7px;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: 0;
+  color: #e3e3e3;
+  font: 12px/1.2 'Inter', sans-serif;
+}
+.prism-folders-menu-icon {
+  flex-basis: 18px;
+  width: 18px;
+  font-size: 15px;
+  color: #8ed17b;
+}
+.prism-menu-item-label {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.prism-folders-menu-item:hover,
+.prism-folders-menu-item:focus-visible {
+  border-color: #91d85a;
+  background: #91d85a;
+  color: #172214;
+  outline: none;
+}
+.prism-folders-menu-item:hover .prism-folders-menu-icon,
+.prism-folders-menu-item:focus-visible .prism-folders-menu-icon {
+  color: #22552b;
+}
+.prism-help-menu {
+  z-index: 1501;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 300px;
+  max-width: calc(100vw - 16px);
+  padding: 3px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #4a4a4a;
+  border-radius: 2px;
+  background: #262626;
+  box-shadow: 0 5px 16px #000a;
+  color: #e3e3e3;
+  font: 12px/1.2 'Inter', sans-serif;
+}
+.prism-help-menu[hidden] { display: none !important; }
+.prism-help-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  min-width: 0;
+  min-height: 29px;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: #e3e3e3;
+  text-align: left;
+  font: 12px/1.2 'Inter', sans-serif;
+  box-shadow: none;
+  white-space: nowrap;
+}
+.prism-help-menu-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 18px;
+  width: 18px;
+  color: #8ed17b;
+  font-size: 15px;
+  line-height: 1;
+}
+.prism-help-menu-item:hover,
+.prism-help-menu-item:focus-visible {
+  border-color: #91d85a;
+  background: #91d85a;
+  color: #172214;
+  outline: none;
+}
+.prism-help-menu-item:hover .prism-help-menu-icon,
+.prism-help-menu-item:focus-visible .prism-help-menu-icon { color: #22552b; }
+:root:not([data-ui='prism']) .prism-help-menu { display: none !important; }
+
+
+/* Prism/Pinecone settings dialog — a compact centered window with a left category rail. */
+:root[data-ui='prism'].prism-settings-open #page-settings {
+  animation: none !important;
+  transform: none !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 14000 !important;
+  display: grid !important;
+  place-items: center;
+  width: auto !important;
+  height: auto !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 24px !important;
+  box-sizing: border-box;
+  overflow: auto;
+  background: rgba(0,0,0,.66);
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(1px);
+}
+:root[data-ui='prism'].prism-settings-open #page-settings > .prism-settings-window {
+  display: grid;
+  grid-template-rows: 31px minmax(0, 1fr) 43px;
+  width: min(740px, calc(100vw - 32px));
+  height: min(660px, calc(100vh - 64px));
+  min-height: min(400px, calc(100vh - 32px));
+  overflow: hidden;
+  border: 1px solid #515151;
+  border-radius: 2px;
+  background: #262626;
+  color: #e6e6e6;
+  box-shadow: 0 18px 58px #000b;
+  font: 12px/1.35 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-settings-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 0 6px;
+  border-bottom: 1px solid #464646;
+  background: linear-gradient(#303030, #282828);
+  color: #e6e6e6;
+}
+:root[data-ui='prism'] .prism-settings-titlebar h1 {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0 !important;
+  font: 500 12px/1 'Inter', sans-serif !important;
+  letter-spacing: 0 !important;
+  color: #e9e9e9 !important;
+  text-transform: none;
+}
+:root[data-ui='prism'] .prism-settings-title-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  border: 1px solid #477d42;
+  border-radius: 2px;
+  background: linear-gradient(#8edb63, #3e8f35);
+  color: #173014;
+  font-weight: 800;
+  font-size: 11px;
+}
+:root[data-ui='prism'] .prism-settings-window-close {
+  flex: 0 0 26px;
+  width: 26px;
+  min-height: 23px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: transparent;
+  color: #cfcfcf;
+  font: 18px/1 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-settings-window-close:hover,
+:root[data-ui='prism'] .prism-settings-window-close:focus-visible {
+  border-color: #686868;
+  background: #404040;
+  outline: none;
+}
+:root[data-ui='prism'] .prism-settings-dialog-body {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-tabs {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex !important;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 2px;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 7px 6px;
+  overflow: auto;
+  border-right: 1px solid #424242;
+  border-bottom: 0;
+  background: #242424;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-tabs button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  min-height: 30px;
+  padding: 5px 7px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: transparent;
+  color: #d1d1d1;
+  text-align: left;
+  font: 12px/1.2 'Inter', sans-serif;
+  box-shadow: none;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-tabs button:hover {
+  border-color: #404040;
+  background: #303030;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-tabs button.active {
+  border-color: #8ecb69;
+  background: #91d85a;
+  color: #192714;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-tab-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #565656;
+  border-radius: 2px;
+  background: #343434;
+  color: #8ed17b;
+  font-size: 14px;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-tabs button.active .prism-settings-tab-icon {
+  border-color: #9be778;
+  background: #f0f8e9;
+  color: #3c8e43;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-content {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  min-height: 0;
+  padding: 14px 16px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: #555 #282828;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-content > h2 {
+  margin: 12px 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #444;
+  color: #d0d0d0;
+  font: 600 11px/1.3 'Inter', sans-serif;
+  letter-spacing: .02em;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-content > h2:first-child { margin-top: 0; }
+:root[data-ui='prism'] #page-settings .prism-settings-content > .row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-content .row input:not([type='checkbox']):not([type='range']),
+:root[data-ui='prism'] #page-settings .prism-settings-content .row select {
+  min-width: 0;
+  min-height: 28px;
+  border: 1px solid #4a4a4a;
+  border-radius: 2px;
+  background: #202020;
+  color: #e2e2e2;
+  font: 12px 'Inter', sans-serif;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-content .customize-launcher-card,
+:root[data-ui='prism'] #page-settings .prism-settings-content .catpack-settings,
+:root[data-ui='prism'] #page-settings .prism-settings-content .security-card,
+:root[data-ui='prism'] #page-settings .prism-settings-content .settings-ai-tab {
+  margin: 0 0 12px;
+  padding: 10px;
+  border: 1px solid #444;
+  border-radius: 2px;
+  background: #292929;
+  box-shadow: none;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-content .customize-launcher-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-content .customize-launcher-card strong { font-size: 12px; }
+:root[data-ui='prism'] #page-settings .prism-settings-content .customize-launcher-card p { margin: 5px 0 0; }
+:root[data-ui='prism'] #page-settings .prism-settings-content .customize-launcher-card .big-btn {
+  flex: 0 0 auto;
+  min-height: 29px;
+  padding: 5px 9px;
+  border-radius: 2px;
+  font: 500 10px/1.2 'Inter', sans-serif;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 5px 8px;
+  border-top: 1px solid #424242;
+  background: #282828;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-footer > span {
+  min-width: 0;
+  color: #999;
+  font-size: 10px;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+  gap: 6px;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-footer-actions button {
+  min-width: 64px;
+  min-height: 27px;
+  padding: 4px 10px;
+  border: 1px solid #4b4b4b;
+  border-radius: 2px;
+  background: linear-gradient(#383838, #2c2c2c);
+  color: #ddd;
+  font: 11px/1.2 'Inter', sans-serif;
+  box-shadow: none;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-footer-actions button.primary {
+  border-color: #5d8a4d;
+  color: #e6f6dc;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-footer-actions button:hover {
+  border-color: #747474;
+  background: #414141;
+}
+:root[data-ui='prism'] #page-settings :is(button, input, select, textarea):focus-visible {
+  outline: 1px solid #91d85a;
+  outline-offset: 1px;
+}
+:root:not([data-ui='prism']) .prism-settings-window,
+:root:not([data-ui='prism']) .prism-settings-titlebar,
+:root:not([data-ui='prism']) .prism-settings-dialog-body,
+:root:not([data-ui='prism']) .prism-settings-content {
+  display: contents;
+}
+:root:not([data-ui='prism']) .prism-settings-title-icon,
+:root:not([data-ui='prism']) .prism-settings-window-close,
+:root:not([data-ui='prism']) .prism-settings-footer {
+  display: none !important;
+}
+@media (max-width: 620px) {
+  :root[data-ui='prism'].prism-settings-open #page-settings { padding: 8px !important; }
+  :root[data-ui='prism'].prism-settings-open #page-settings > .prism-settings-window {
+    width: calc(100vw - 16px);
+    height: calc(100vh - 16px);
+    min-height: 0;
+    grid-template-rows: 31px minmax(0, 1fr) 43px;
+  }
+  :root[data-ui='prism'] .prism-settings-dialog-body { grid-template-columns: 112px minmax(0, 1fr); }
+  :root[data-ui='prism'] #page-settings .prism-settings-tabs { padding: 5px 3px; }
+  :root[data-ui='prism'] #page-settings .prism-settings-tabs button { gap: 4px; padding: 4px; font-size: 10px; }
+  :root[data-ui='prism'] #page-settings .prism-settings-tab-icon { flex-basis: 17px; width: 17px; height: 17px; }
+  :root[data-ui='prism'] #page-settings .prism-settings-content { padding: 9px; }
+  :root[data-ui='prism'] #page-settings .prism-settings-content .customize-launcher-card { align-items: flex-start; flex-direction: column; }
+  :root[data-ui='prism'] #page-settings .prism-settings-footer > span { display: none; }
+}
+
+
+/* Prism/Pinecone Add Instance — reference-sized source browser, profile fields and version catalog. */
+:root[data-ui='prism'] .create-instance-modal {
+  padding: 20px !important;
+  background: rgba(0,0,0,.68);
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(1px);
+}
+:root[data-ui='prism'] .create-instance-panel {
+  display: block;
+  width: min(800px, calc(100vw - 40px)) !important;
+  max-width: 800px;
+  height: min(510px, calc(100vh - 40px));
+  max-height: calc(100vh - 40px) !important;
+  min-height: 0;
+  padding: 0 !important;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #454545;
+  border-radius: 3px;
+  background: #292929;
+  color: #e5e5e5;
+  box-shadow: 0 16px 50px #000b;
+}
+:root[data-ui='prism'] .create-instance-layout.prism-create-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 30px 70px minmax(0, 1fr) 42px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+:root[data-ui='prism'] .prism-create-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 0 7px;
+  border-bottom: 1px solid #454545;
+  background: linear-gradient(#333, #292929);
+}
+:root[data-ui='prism'] .prism-create-title-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 17px;
+  width: 17px;
+  height: 17px;
+  border: 1px solid #4f8645;
+  border-radius: 2px;
+  background: linear-gradient(#9be477, #4fa340);
+  color: #203c1a;
+  font: 700 15px/1 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-create-titlebar h2 {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  color: #ededed;
+  font: 500 12px/1 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-create-titlebar .create-instance-close {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  min-width: 28px;
+  height: 23px;
+  min-height: 23px;
+  margin: 0 0 0 auto;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: transparent;
+  color: #cfcfcf;
+  font: 19px/1 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-create-titlebar .create-instance-close:hover {
+  border-color: #666;
+  background: #424242;
+}
+:root[data-ui='prism'] .prism-create-identity {
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr);
+  grid-template-rows: repeat(2, minmax(30px, auto));
+  align-items: center;
+  gap: 5px 10px;
+  min-width: 0;
+  padding: 7px 9px;
+  border-bottom: 1px solid #454545;
+  background: #292929;
+}
+:root[data-ui='prism'] .prism-create-preview {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  width: 82px;
+  height: 82px;
+}
+:root[data-ui='prism'] .prism-create-name-field {
+  grid-column: 2;
+  grid-row: 1;
+}
+:root[data-ui='prism'] .prism-create-group-field {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+:root[data-ui='prism'] .prism-create-preview {
+  position: relative;
+  display: block;
+  width: 74px;
+  height: 70px;
+  overflow: hidden;
+  border: 1px solid #484848;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, #a8c959 0 48%, #766043 48% 100%);
+}
+:root[data-ui='prism'] .prism-create-preview::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 50% 0;
+  background:
+    linear-gradient(to right, transparent 0 13%, #6a943c 13% 28%, transparent 28% 48%, #749a41 48% 60%, transparent 60% 75%, #69933c 75% 89%, transparent 89%),
+    linear-gradient(#aacd58, #9ec34d);
+}
+:root[data-ui='prism'] .prism-create-preview::after {
+  content: '';
+  position: absolute;
+  inset: 50% 0 0;
+  background:
+    linear-gradient(to right, transparent 0 23%, #604c36 23% 37%, transparent 37% 59%, #5e4b37 59% 74%, transparent 74%),
+    linear-gradient(#8b6b48, #705237);
+}
+:root[data-ui='prism'] .prism-create-preview span {
+  position: absolute;
+  left: 18px;
+  top: 25px;
+  z-index: 1;
+  width: 15px;
+  height: 11px;
+  background: #c3dd73;
+  box-shadow: 23px 8px 0 #c3dd73, -8px 17px 0 #c3dd73;
+  opacity: .7;
+}
+:root[data-ui='prism'] .prism-create-identity-field {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  color: #e2e2e2;
+  font: 12px 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-create-identity-field span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:root[data-ui='prism'] .prism-create-identity-field input {
+  min-width: 0;
+  width: 100%;
+  height: 27px;
+  padding: 4px 7px;
+  border: 1px solid #3e3e3e;
+  border-radius: 2px;
+  outline: none;
+  background: #1d1d1d;
+  color: #e5e5e5;
+  font: 12px 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-create-identity-field input:focus {
+  border-color: #8fbe60;
+}
+:root[data-ui='prism'] .prism-create-body {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+:root[data-ui='prism'] .create-instance-sidebar.prism-create-sidebar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  min-width: 0;
+  min-height: 0;
+  padding: 5px 4px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 0;
+  border-right: 1px solid #444;
+  border-radius: 0;
+  background: #252525;
+  overscroll-behavior: contain;
+}
+:root[data-ui='prism'] .prism-create-sidebar button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+  flex: 0 0 auto;
+  width: 100%;
+  min-width: 0;
+  min-height: 30px;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: 1px;
+  background: transparent;
+  color: #ddd;
+  text-align: left;
+  font: 12px/1.2 'Inter', sans-serif;
+  box-shadow: none;
+}
+:root[data-ui='prism'] .prism-create-sidebar button > span:last-child {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:root[data-ui='prism'] .prism-create-sidebar button:hover {
+  background: #333;
+  color: #fff;
+}
+:root[data-ui='prism'] .prism-create-sidebar button.active,
+:root[data-ui='prism'] .prism-create-sidebar button[aria-selected='true'] {
+  border-color: #9bdd67;
+  background: #91d85a;
+  color: #1e3217;
+}
+:root[data-ui='prism'] .create-provider-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  border-radius: 2px;
+  background: #343434;
+  color: #ddd;
+  font: 700 11px/1 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .create-provider-icon.grass { background: linear-gradient(#8fc855 0 35%, #74583c 35%); color: #dff3be; }
+:root[data-ui='prism'] .create-provider-icon.folder { background: #dfd3af; color: #4f6544; }
+:root[data-ui='prism'] .create-provider-icon.at { background: #26382b; color: #8fd267; }
+:root[data-ui='prism'] .create-provider-icon.curse { background: #52382c; color: #ef9a60; }
+:root[data-ui='prism'] .create-provider-icon.ftb { background: #293e44; color: #78cce3; font-size: 8px; }
+:root[data-ui='prism'] .create-provider-icon.modrinth { background: #1c513d; color: #61e0a7; }
+:root[data-ui='prism'] .create-provider-icon.technic { background: #21435e; color: #62b6e9; }
+:root[data-ui='prism'] .prism-create-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  min-height: 0;
+  padding: 10px 11px 8px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: #2a2a2a;
+}
+:root[data-ui='prism'] .prism-create-workspace > #ni-description {
+  flex: 0 0 auto;
+  margin: 0;
+  color: #a9a9a9;
+  font-size: 10px;
+  line-height: 1.35;
+}
+:root[data-ui='prism'] .prism-create-workspace [data-create-panel][hidden] { display: none !important; }
+:root[data-ui='prism'] .prism-create-custom-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  min-height: 0;
+}
+:root[data-ui='prism'] .prism-version-browser {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 136px;
+  grid-template-rows: minmax(170px, 1fr) 30px;
+  gap: 7px;
+  min-width: 0;
+  min-height: 0;
+}
+:root[data-ui='prism'] .prism-version-table-wrap {
+  min-width: 0;
+  min-height: 0;
+  max-height: 210px;
+  overflow: auto;
+  border: 1px solid #454545;
+  background: #202020;
+  scrollbar-color: #555 #262626;
+}
+:root[data-ui='prism'] .prism-version-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  color: #e4e4e4;
+  font: 11px/1.2 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-version-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 4px 6px;
+  border-bottom: 1px solid #4a4a4a;
+  background: #2c2c2c;
+  color: #d2d2d2;
+  text-align: left;
+  font-weight: 500;
+}
+:root[data-ui='prism'] .prism-version-table td {
+  padding: 3px 6px;
+  overflow: hidden;
+  border-bottom: 1px solid #292929;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:root[data-ui='prism'] .prism-version-table tbody tr { cursor: pointer; }
+:root[data-ui='prism'] .prism-version-table tbody tr:nth-child(even) { background: #252525; }
+:root[data-ui='prism'] .prism-version-table tbody tr:hover,
+:root[data-ui='prism'] .prism-version-table tbody tr:focus-visible {
+  outline: none;
+  background: #343f2c;
+}
+:root[data-ui='prism'] .prism-version-table tbody tr.active,
+:root[data-ui='prism'] .prism-version-table tbody tr[aria-selected='true'] {
+  background: #91d85a;
+  color: #172414;
+}
+:root[data-ui='prism'] .prism-version-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 4px 0;
+  color: #dedede;
+  font: 11px/1.2 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-version-filters strong {
+  margin-bottom: 2px;
+  font-size: 11px;
+  font-weight: 500;
+}
+:root[data-ui='prism'] .prism-version-filters label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #ddd;
+  font-weight: 400;
+}
+:root[data-ui='prism'] .prism-version-filters input {
+  flex: 0 0 auto;
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  accent-color: #91d85a;
+}
+:root[data-ui='prism'] .prism-version-search-row {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: 6px;
+  min-width: 0;
+}
+:root[data-ui='prism'] .prism-version-search-row input {
+  min-width: 0;
+  flex: 1 1 auto;
+  height: 27px;
+  padding: 4px 7px;
+  border: 1px solid #454545;
+  border-radius: 2px;
+  background: #1d1d1d;
+  color: #e4e4e4;
+  font: 11px 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-version-search-row button {
+  flex: 0 0 112px;
+  min-width: 0;
+  min-height: 27px;
+  padding: 4px 7px;
+  border: 1px solid #4a4a4a;
+  border-radius: 2px;
+  background: #353535;
+  color: #ddd;
+  font: 11px 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-version-search-row button:hover { background: #414141; }
+:root[data-ui='prism'] .prism-create-loader-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: #d0d0d0;
+  font: 11px 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-create-loader-field select {
+  min-width: 160px;
+  min-height: 27px;
+  padding: 4px 7px;
+  border: 1px solid #454545;
+  border-radius: 2px;
+  background: #202020;
+  color: #e4e4e4;
+  font: 11px 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-create-custom-mode .create-instance-note {
+  margin: 0;
+  color: #999;
+  font-size: 10px;
+  line-height: 1.35;
+}
+:root[data-ui='prism'] .prism-create-workspace .create-provider-card {
+  margin: 0;
+  padding: 10px;
+  border: 1px solid #424242;
+  border-radius: 2px;
+  background: #242424;
+}
+:root[data-ui='prism'] .prism-create-workspace .create-provider-card h3 {
+  margin: 5px 0 7px;
+  color: #eee;
+  font: 500 14px/1.2 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-create-workspace .create-provider-card p {
+  margin: 6px 0 10px;
+  max-width: 600px;
+  color: #b6b6b6;
+  font: 11px/1.4 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-create-workspace .create-provider-card button {
+  min-height: 28px;
+  margin: 3px 6px 0 0;
+  padding: 5px 9px;
+  border: 1px solid #4a4a4a;
+  border-radius: 2px;
+  background: #353535;
+  color: #e2e2e2;
+  font: 11px/1.2 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-create-workspace .create-provider-card button:hover {
+  border-color: #6d6d6d;
+  background: #414141;
+}
+:root[data-ui='prism'] #ni-msg {
+  min-height: 14px;
+  margin: auto 0 0;
+  color: #9fc98a;
+  overflow-wrap: anywhere;
+  font-size: 10px;
+}
+:root[data-ui='prism'] .prism-create-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  min-width: 0;
+  padding: 5px 8px;
+  border-top: 1px solid #454545;
+  background: #282828;
+}
+:root[data-ui='prism'] .prism-create-footer-note {
+  min-width: 0;
+  overflow: hidden;
+  color: #9e9e9e;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+}
+:root[data-ui='prism'] .prism-create-footer-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+}
+:root[data-ui='prism'] .prism-create-footer-actions button {
+  min-width: 72px;
+  min-height: 27px;
+  padding: 4px 10px;
+  border: 1px solid #4a4a4a;
+  border-radius: 2px;
+  background: #363636;
+  color: #ddd;
+  font: 11px/1.2 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-create-footer-actions #ni-create {
+  border-color: #688b55;
+  background: #383f35;
+  color: #dcebd3;
+}
+:root[data-ui='prism'] .prism-create-footer-actions #ni-create:hover { background: #485a3f; }
+:root[data-ui='prism'] .prism-create-footer-actions #ni-create[hidden] { display: none !important; }
+:root[data-ui='prism'] #new-instance :is(button, input, select):focus-visible {
+  outline: 1px solid #91d85a;
+  outline-offset: 1px;
+}
+:root:not([data-ui='prism']) .create-instance-layout.prism-create-layout {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  min-height: 350px;
+  overflow: visible;
+}
+:root:not([data-ui='prism']) .prism-create-titlebar,
+:root:not([data-ui='prism']) .prism-create-identity,
+:root:not([data-ui='prism']) .prism-create-footer { display: none !important; }
+:root:not([data-ui='prism']) .prism-create-body { display: block; }
+:root:not([data-ui='prism']) .create-instance-sidebar.prism-create-sidebar { display: none !important; }
+:root:not([data-ui='prism']) .prism-create-workspace { padding: 0; overflow: visible; }
+@media (max-width: 640px) {
+  :root[data-ui='prism'] .create-instance-modal { padding: 8px !important; align-items: flex-start; }
+  :root[data-ui='prism'] .create-instance-panel {
+    width: calc(100vw - 16px) !important;
+    height: calc(100vh - 16px);
+    max-height: calc(100vh - 16px) !important;
+  }
+  :root[data-ui='prism'] .create-instance-layout.prism-create-layout {
+    grid-template-rows: 30px auto minmax(0, 1fr) 42px;
+  }
+  :root[data-ui='prism'] .prism-create-identity {
+    grid-template-columns: 55px minmax(0, 1fr);
+    gap: 6px;
+    padding: 6px;
+  }
+  :root[data-ui='prism'] .prism-create-preview { width: 55px; height: 57px; grid-row: 1 / 3; }
+  :root[data-ui='prism'] .prism-create-identity-field {
+    grid-column: 2;
+    grid-template-columns: 35px minmax(0, 1fr);
+    font-size: 10px;
+  }
+  :root[data-ui='prism'] .prism-create-body { grid-template-columns: 132px minmax(0, 1fr); }
+  :root[data-ui='prism'] .prism-create-sidebar button { min-height: 29px; gap: 4px; padding: 4px; font-size: 10px; }
+  :root[data-ui='prism'] .create-provider-icon { flex-basis: 18px; width: 18px; height: 18px; font-size: 9px; }
+  :root[data-ui='prism'] .prism-create-workspace { padding: 7px; gap: 6px; }
+  :root[data-ui='prism'] .prism-version-browser { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(125px, 1fr) auto auto; }
+  :root[data-ui='prism'] .prism-version-table-wrap { max-height: 180px; }
+  :root[data-ui='prism'] .prism-version-filters { flex-direction: row; flex-wrap: wrap; gap: 6px 10px; }
+  :root[data-ui='prism'] .prism-version-filters strong { width: 100%; }
+  :root[data-ui='prism'] .prism-version-search-row { grid-column: 1; }
+  :root[data-ui='prism'] .prism-version-search-row button { flex-basis: 78px; }
+  :root[data-ui='prism'] .prism-create-footer-note { display: none; }
+  :root[data-ui='prism'] .prism-create-footer-actions { margin-left: auto; }
+}
+
+
+/* Additional settings categories mirror the reference navigation without inventing unsupported controls. */
+:root[data-ui='prism'] #page-settings .prism-settings-content .prism-settings-reference-card {
+  margin: 0 0 12px;
+  padding: 12px;
+  border: 1px solid #444;
+  border-radius: 2px;
+  background: #292929;
+  color: #dedede;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-content .prism-settings-reference-card h2 {
+  margin: 0 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #424242;
+  color: #d3d3d3;
+  font: 600 11px/1.3 'Inter', sans-serif;
+  letter-spacing: .02em;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-content .prism-settings-reference-card p {
+  margin: 6px 0;
+  color: #adadad;
+  font: 11px/1.45 'Inter', sans-serif;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-content .prism-settings-reference-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-content .prism-settings-reference-actions button {
+  min-height: 28px;
+  padding: 4px 9px;
+  border: 1px solid #4b4b4b;
+  border-radius: 2px;
+  background: #353535;
+  color: #dfdfdf;
+  font: 11px/1.2 'Inter', sans-serif;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-content .prism-settings-reference-actions button:hover {
+  border-color: #6c6c6c;
+  background: #404040;
+}
+
+
+/* Prism/Pinecone interior pass — settings General page, reference dates and menu icon treatments. */
+:root[data-ui='prism'] #page-settings .prism-settings-general-card {
+  padding: 10px;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-preference-block {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0;
+  padding: 9px 8px;
+  border-bottom: 1px solid #3d3d3d;
+  background: #292929;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-preference-block:last-child {
+  border-bottom: 0;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-preference-block > strong {
+  color: #dedede;
+  font: 500 11px/1.3 'Inter', sans-serif;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-option {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 21px;
+  color: #d3d3d3;
+  font: 11px/1.3 'Inter', sans-serif;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-option input {
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: #91d85a;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-option-fixed {
+  color: #aaa;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-preference-block > p {
+  margin: 2px 0 3px;
+  color: #969696;
+  font: 10px/1.4 'Inter', sans-serif;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-path-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-path-row {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) minmax(80px, 1.1fr) 70px;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  min-height: 27px;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-path-row > span {
+  min-width: 0;
+  overflow: hidden;
+  color: #cfcfcf;
+  font: 11px 'Inter', sans-serif;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-path-row > code {
+  min-width: 0;
+  overflow: hidden;
+  padding: 4px 6px;
+  border: 1px solid #3d3d3d;
+  border-radius: 2px;
+  background: #1e1e1e;
+  color: #ddd;
+  font: 10px 'JetBrains Mono', monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-path-row > button {
+  min-width: 0;
+  min-height: 25px;
+  padding: 3px 6px;
+  border: 1px solid #4b4b4b;
+  border-radius: 2px;
+  background: #353535;
+  color: #ddd;
+  font: 10px 'Inter', sans-serif;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-path-row > button:hover {
+  border-color: #6c6c6c;
+  background: #404040;
+}
+:root[data-ui='prism'] #page-settings .prism-settings-general-card .prism-settings-reference-actions {
+  margin-top: 4px;
+}
+:root[data-ui='prism'] .prism-version-table th:nth-child(1),
+:root[data-ui='prism'] .prism-version-table td:nth-child(1) { width: 43%; }
+:root[data-ui='prism'] .prism-version-table th:nth-child(2),
+:root[data-ui='prism'] .prism-version-table td:nth-child(2) { width: 31%; }
+:root[data-ui='prism'] .prism-version-table th:nth-child(3),
+:root[data-ui='prism'] .prism-version-table td:nth-child(3) { width: 26%; }
+:root[data-ui='prism'] .prism-version-release-date {
+  color: #b7b7b7;
+  font-variant-numeric: tabular-nums;
+}
+:root[data-ui='prism'] .prism-version-table tr.active .prism-version-release-date {
+  color: #263a1e;
+}
+
+/* Folder menu pictograms: compact folder silhouettes with resource-specific color marks. */
+:root[data-ui='prism'] .prism-folders-menu-icon {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 19px;
+  width: 19px;
+  height: 16px;
+  overflow: visible;
+  border: 1px solid #c4b58e;
+  border-radius: 2px;
+  background: linear-gradient(#ead9ae 0 26%, #c9a96e 26% 100%);
+  color: transparent;
+  font-size: 0;
+  line-height: 1;
+}
+:root[data-ui='prism'] .prism-folders-menu-icon::before {
+  content: '';
+  position: absolute;
+  left: 1px;
+  top: -4px;
+  width: 8px;
+  height: 4px;
+  border: 1px solid #c4b58e;
+  border-bottom: 0;
+  border-radius: 2px 2px 0 0;
+  background: #e5d2a1;
+}
+:root[data-ui='prism'] .prism-folders-menu-icon::after {
+  content: '';
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 5px;
+  height: 5px;
+  border: 1px solid #e8e8d5;
+  border-radius: 1px;
+  background: #70a95d;
+}
+:root[data-ui='prism'] .prism-folders-menu-item[data-folder-action='mods'] .prism-folders-menu-icon::after { background: #d36c5d; }
+:root[data-ui='prism'] .prism-folders-menu-item[data-folder-action='skins'] .prism-folders-menu-icon::after { background: #d38b55; }
+:root[data-ui='prism'] .prism-folders-menu-item[data-folder-action='java'] .prism-folders-menu-icon::after { background: #7aa8d5; }
+:root[data-ui='prism'] .prism-folders-menu-item[data-folder-action='icon-themes'] .prism-folders-menu-icon::after { background: #9b8ad5; }
+:root[data-ui='prism'] .prism-folders-menu-item[data-folder-action='widget-themes'] .prism-folders-menu-icon::after { background: #64b9b0; }
+:root[data-ui='prism'] .prism-folders-menu-item[data-folder-action='cat-packs'] .prism-folders-menu-icon::after { background: #d58bb4; }
+:root[data-ui='prism'] .prism-folders-menu-item[data-folder-action='instance-icons'] .prism-folders-menu-icon::after { background: #87bd68; }
+:root[data-ui='prism'] .prism-folders-menu-item[data-folder-action='logs'] .prism-folders-menu-icon::after {
+  right: 3px;
+  bottom: 1px;
+  width: 2px;
+  height: 8px;
+  border: 0;
+  background: repeating-linear-gradient(to bottom, #5b6c7d 0 1px, transparent 1px 3px);
+}
+
+/* Help menu uses colored, consistent 18 px icon tiles rather than a row of monochrome glyphs. */
+:root[data-ui='prism'] .prism-help-menu-icon {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 19px;
+  width: 19px;
+  height: 19px;
+  border: 1px solid #4d7251;
+  border-radius: 3px;
+  background: linear-gradient(#65bd70, #2f7e48);
+  color: #f5fff2;
+  font: 700 12px/1 'Inter', sans-serif;
+  text-shadow: 0 1px #1c4b2c;
+}
+:root[data-ui='prism'] .prism-help-menu-item[data-help-action='refresh-metadata'] .prism-help-menu-icon {
+  background: linear-gradient(#69c96f, #318649);
+}
+:root[data-ui='prism'] .prism-help-menu-item[data-help-action='report'] .prism-help-menu-icon {
+  border-color: #967349;
+  background: linear-gradient(#bd8d51, #855b35);
+}
+:root[data-ui='prism'] .prism-help-menu-item[data-help-action='logs'] .prism-help-menu-icon {
+  border-color: #70879b;
+  background: linear-gradient(#7d9eb8, #4d6e8b);
+}
+:root[data-ui='prism'] .prism-help-menu-item[data-help-action='community'] .prism-help-menu-icon {
+  border-color: #5e66ad;
+  background: linear-gradient(#777de0, #4c52a9);
+}
+:root[data-ui='prism'] .prism-help-menu-item[data-help-action='news'] .prism-help-menu-icon {
+  border-color: #4d926d;
+  background: linear-gradient(#61c58d, #268459);
+}
+:root[data-ui='prism'] .prism-help-menu-item[data-help-action='wiki'] .prism-help-menu-icon {
+  border-color: #8c8c7d;
+  background: linear-gradient(#b7b59d, #777966);
+}
+:root[data-ui='prism'] .prism-help-menu-item[data-help-action='about'] .prism-help-menu-icon {
+  border-color: #777;
+  background: linear-gradient(#bababa, #777);
+  color: #333;
+  text-shadow: 0 1px #eee;
+}
+@media (max-width: 740px) {
+  :root[data-ui='prism'] #page-settings .prism-settings-path-row {
+    grid-template-columns: minmax(85px, 1fr) minmax(55px, .8fr) 62px;
+    gap: 5px;
+  }
+  :root[data-ui='prism'] #page-settings .prism-settings-path-row > span { font-size: 10px; }
+  :root[data-ui='prism'] #page-settings .prism-settings-path-row > code { font-size: 9px; }
+}
+
+
+/* Prism Add Instance: compact icon sizing matching the desktop reference. */
+@media (min-width: 641px) {
+  :root[data-ui='prism'] .prism-create-identity {
+    grid-template-columns: 52px minmax(0, 1fr);
+    grid-template-rows: repeat(2, minmax(30px, auto));
+    column-gap: 12px;
+  }
+  :root[data-ui='prism'] .prism-create-preview {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    width: 48px !important;
+    height: 48px !important;
+    align-self: center;
+    justify-self: center;
+  }
+  :root[data-ui='prism'] .prism-create-name-field { grid-column: 2; grid-row: 1; }
+  :root[data-ui='prism'] .prism-create-group-field { grid-column: 2; grid-row: 2; }
+}
+:root[data-ui='prism'] .create-instance-panel {
+  color: #dedede;
+  font-family: 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .create-instance-panel :is(input, select) {
+  min-width: 0;
+  border: 1px solid #484848;
+  border-radius: 3px;
+  background: #1e1e1e;
+  color: #e2e2e2;
+  box-shadow: none;
+  font: 12px 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .create-instance-panel :is(input, select):hover {
+  border-color: #626262;
+}
+:root[data-ui='prism'] .create-instance-panel label,
+:root[data-ui='prism'] .create-instance-panel .dim {
+  color: #bdbdbd;
+}
+
+
+/* Prism Add Instance — loader chooser follows the reference: vertical radio rail on the right,
+   with a broad loader preview area below the version table. */
+:root[data-ui='prism'] .prism-create-custom-mode {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 136px;
+  grid-template-rows: minmax(205px, auto) minmax(112px, 1fr);
+  align-items: stretch;
+  gap: 7px;
+}
+:root[data-ui='prism'] .prism-version-browser {
+  grid-column: 1;
+  grid-row: 1;
+  grid-template-columns: minmax(0, 1fr) 136px;
+  grid-template-rows: minmax(170px, 1fr) 30px;
+}
+:root[data-ui='prism'] .prism-create-loader-field {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 5px 2px 5px 8px;
+  border-left: 1px solid #414141;
+  color: #dedede;
+  font: 11px/1.3 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-create-loader-field > span {
+  color: #dedede;
+  font-weight: 500;
+}
+:root[data-ui='prism'] .prism-create-loader-field > select { display: none !important; }
+:root[data-ui='prism'] .prism-loader-options {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+  margin-top: 13px;
+}
+:root[data-ui='prism'] .prism-loader-option {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 20px;
+  margin: 0;
+  color: #e0e0e0;
+  cursor: pointer;
+  font: 11px/1.25 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-loader-option input {
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: #91d85a;
+}
+:root[data-ui='prism'] .prism-loader-option:has(input:checked) {
+  color: #a8df83;
+}
+:root[data-ui='prism'] .prism-loader-preview {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  min-height: 112px;
+  margin: 0;
+  padding: 18px;
+  border: 1px solid #383838;
+  background: #242424;
+  color: #bdbdbd;
+  text-align: center;
+}
+:root[data-ui='prism'] .prism-loader-preview strong {
+  color: #d5d5d5;
+  font: 600 16px/1.3 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-loader-preview span {
+  max-width: 520px;
+  color: #a7a7a7;
+  font: 11px/1.45 'Inter', sans-serif;
+}
+@media (max-width: 640px) {
+  :root[data-ui='prism'] .prism-create-custom-mode {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+  }
+  :root[data-ui='prism'] .prism-version-browser,
+  :root[data-ui='prism'] .prism-create-loader-field,
+  :root[data-ui='prism'] .prism-loader-preview {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  :root[data-ui='prism'] .prism-create-loader-field {
+    border-left: 0;
+    border-top: 1px solid #414141;
+    padding: 8px 2px;
+  }
+  :root[data-ui='prism'] .prism-loader-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  :root[data-ui='prism'] .prism-loader-preview { min-height: 82px; }
+}
+
+
+/* The native loader select remains the internal value source, not a visible control in Prism mode. */
+:root[data-ui='prism'] #new-instance .prism-create-loader-field #ni-loader,
+:root[data-ui='prism'] .prism-create-loader-field > select#ni-loader {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+
+/* Prism Add Instance: hide the native fallback select completely; keep it as the JS value source. */
+:root[data-ui='prism'] label.prism-create-loader-field > select#ni-loader {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  position: absolute !important;
+  width: 0 !important;
+  height: 0 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  pointer-events: none !important;
+}
+:root[data-ui='prism'] #ni-loader-options.prism-loader-options {
+  gap: 5px !important;
+  margin-top: 9px !important;
+}
+:root[data-ui='prism'] #ni-loader-options .prism-loader-option {
+  min-height: 18px !important;
+}
+
+
+/* The global custom-select enhancer wraps #ni-loader in .cselect.
+   Hide that generated wrapper too; the select itself remains the internal value source. */
+:root[data-ui='prism'] .prism-create-loader-field > .cselect:has(> select#ni-loader) {
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+:root[data-ui='prism'] #ni-loader-options .prism-loader-option {
+  gap: 6px !important;
+  min-height: 17px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.15 !important;
+}
+:root[data-ui='prism'] #ni-loader-options .prism-loader-option span {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.15 !important;
+}
+
+
+/* Prism Add Instance pass 44 — make the chosen loader obvious and keep targets easy to hit. */
+:root[data-ui='prism'] #ni-loader-options.prism-loader-options {
+  gap: 3px !important;
+  margin-top: 7px !important;
+}
+:root[data-ui='prism'] #ni-loader-options .prism-loader-option {
+  min-height: 21px !important;
+  box-sizing: border-box;
+  padding: 2px 5px !important;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  line-height: 1.2 !important;
+  transition: background-color .12s ease, border-color .12s ease, color .12s ease;
+}
+:root[data-ui='prism'] #ni-loader-options .prism-loader-option:hover {
+  background: #303630;
+  border-color: #485448;
+}
+:root[data-ui='prism'] #ni-loader-options .prism-loader-option:has(input:checked) {
+  background: #30412b;
+  border-color: #58784b;
+  color: #d5efc3;
+}
+:root[data-ui='prism'] #ni-loader-options .prism-loader-option:focus-within {
+  outline: 1px solid #9ad878;
+  outline-offset: 1px;
+}
+:root[data-ui='prism'] #ni-loader-options .prism-loader-option input {
+  width: 13px;
+  height: 13px;
+  accent-color: #91d85a;
+}
+:root[data-ui='prism'] .prism-loader-preview[data-loader='fabric'] strong,
+:root[data-ui='prism'] .prism-loader-preview[data-loader='quilt'] strong {
+  color: #c8e8d8;
+}
+:root[data-ui='prism'] .prism-loader-preview[data-loader='forge'] strong,
+:root[data-ui='prism'] .prism-loader-preview[data-loader='neoforge'] strong {
+  color: #e5c7a4;
+}
+
+
+/* Prism Add Instance — the lower-left panel lists real compatible versions of the selected mod loader. */
+:root[data-ui='prism'] .prism-loader-version-browser {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 7px 8px;
+  border: 1px solid #383838;
+  background: #242424;
+}
+:root[data-ui='prism'] .prism-loader-version-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+:root[data-ui='prism'] .prism-loader-version-heading strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #dedede;
+  font: 600 11px/1.3 'Inter', sans-serif;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:root[data-ui='prism'] .prism-loader-version-heading button {
+  flex: 0 0 auto;
+  min-height: 23px;
+  padding: 3px 8px;
+  border: 1px solid #4a4a4a;
+  border-radius: 2px;
+  background: #353535;
+  color: #ddd;
+  font: 10px 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-loader-version-table-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  max-height: 130px;
+  overflow: auto;
+  border: 1px solid #454545;
+  background: #202020;
+  scrollbar-color: #555 #262626;
+}
+:root[data-ui='prism'] .prism-loader-version-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  color: #e4e4e4;
+  font: 10px/1.2 'Inter', sans-serif;
+}
+:root[data-ui='prism'] .prism-loader-version-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 4px 6px;
+  border-bottom: 1px solid #4a4a4a;
+  background: #2c2c2c;
+  color: #d2d2d2;
+  text-align: left;
+  font-weight: 500;
+}
+:root[data-ui='prism'] .prism-loader-version-table td {
+  padding: 3px 6px;
+  border-bottom: 1px solid #292929;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:root[data-ui='prism'] .prism-loader-version-table tbody tr { cursor: pointer; }
+:root[data-ui='prism'] .prism-loader-version-table tbody tr:nth-child(even) { background: #252525; }
+:root[data-ui='prism'] .prism-loader-version-table tbody tr:hover,
+:root[data-ui='prism'] .prism-loader-version-table tbody tr:focus-visible {
+  outline: none;
+  background: #343f2c;
+}
+:root[data-ui='prism'] .prism-loader-version-table tbody tr.active,
+:root[data-ui='prism'] .prism-loader-version-table tbody tr[aria-selected='true'] {
+  background: #91d85a;
+  color: #172414;
+}
+@media (max-width: 640px) {
+  :root[data-ui='prism'] .prism-create-custom-mode {
+    grid-template-rows: minmax(170px, auto) minmax(100px, 1fr) auto;
+  }
+  :root[data-ui='prism'] .prism-version-browser,
+  :root[data-ui='prism'] .prism-create-loader-field,
+  :root[data-ui='prism'] .prism-loader-version-browser {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  :root[data-ui='prism'] .prism-loader-version-table-wrap { max-height: 150px; }
+}
+
+
+/* Modrinth workspace fidelity pass — distinct three-column desktop shell. */
+:root[data-ui='modrinth'] .layout {
+  display:grid;
+  grid-template-columns:72px minmax(0,1fr) 304px;
+  grid-template-rows:minmax(0,1fr) auto;
+  gap:0;
+  width:100%;
+  height:100vh;
+  min-width:0;
+  overflow:hidden;
+  background:#0c0e0f;
+}
+:root[data-ui='modrinth'] .sidebar {
+  grid-column:1;
+  grid-row:1 / span 2;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:7px;
+  width:72px;
+  height:100vh;
+  min-width:0;
+  padding:10px 7px;
+  border:0;
+  border-right:1px solid #252a27;
+  background:#101312;
+}
+:root[data-ui='modrinth'] .sidebar .sb-arrow,
+:root[data-ui='modrinth'] .sidebar .logo,
+:root[data-ui='modrinth'] .sidebar > nav:not(#modrinth-nav),
+:root[data-ui='modrinth'] .sidebar > #prism-help,
+:root[data-ui='modrinth'] .sidebar > #prism-cat-toggle,
+:root[data-ui='modrinth'] .sidebar > #prism-update,
+:root[data-ui='modrinth'] .sidebar > #account-box { display:none !important; }
+:root[data-ui='modrinth'] #modrinth-nav {
+  display:flex !important;
+  flex:1 1 auto;
+  flex-direction:column;
+  align-items:stretch;
+  gap:7px;
+  width:100%;
+  margin:0;
+}
+:root[data-ui='modrinth'] .modrinth-nav-btn {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  width:100%;
+  min-width:0;
+  min-height:54px;
+  padding:7px 2px;
+  border:1px solid transparent;
+  border-radius:10px;
+  background:transparent;
+  color:#9da7a0;
+  font:500 9px/1.2 Inter,sans-serif;
+  box-shadow:none;
+  white-space:nowrap;
+}
+:root[data-ui='modrinth'] .modrinth-nav-btn > span:first-child {
+  font:500 22px/1 Inter,sans-serif;
+}
+:root[data-ui='modrinth'] .modrinth-nav-btn:hover {
+  background:#1b231e;
+  color:#e5eee8;
+  filter:none;
+}
+:root[data-ui='modrinth'] .modrinth-nav-btn.active {
+  border-color:#254b35;
+  background:#1b3324;
+  color:#7fe6a4;
+  box-shadow:inset 0 0 0 1px #1f5738;
+}
+:root[data-ui='modrinth'] .modrinth-sidebar-tools {
+  display:flex;
+  flex:0 0 auto;
+  flex-direction:column;
+  gap:8px;
+  width:100%;
+  margin-top:auto;
+}
+:root[data-ui='modrinth'] .modrinth-sidebar-tools button {
+  display:grid;
+  place-items:center;
+  width:100%;
+  min-height:40px;
+  padding:0;
+  border:1px solid #303b34;
+  border-radius:9px;
+  background:#171d19;
+  color:#c3d0c8;
+  font-size:19px;
+  box-shadow:none;
+}
+:root[data-ui='modrinth'] .modrinth-sidebar-tools button:hover {
+  border-color:#4a805e;
+  background:#202c24;
+  filter:none;
+}
+:root[data-ui='modrinth'] #page-play #launcher-banner { display:none !important; }
+:root[data-ui='modrinth'] #pet { display:none !important; }
+:root[data-ui='modrinth'] .content {
+  grid-column:2;
+  grid-row:1;
+  display:flex;
+  width:auto;
+  min-width:0;
+  min-height:0;
+  height:auto;
+  overflow:hidden;
+  background:#0c0e0f;
+}
+:root[data-ui='modrinth'] .content main {
+  flex:1 1 auto;
+  width:100%;
+  min-width:0;
+  min-height:0;
+  max-width:none;
+  padding:0 28px 26px;
+  overflow-x:hidden;
+  overflow-y:auto;
+  scrollbar-color:#343d37 #121614;
+}
+:root[data-ui='modrinth'] #page-play {
+  width:100%;
+  max-width:none;
+  min-width:0;
+}
+:root[data-ui='modrinth'] #page-play > h1 { display:none; }
+:root[data-ui='modrinth'] .modrinth-app-header {
+  position:sticky;
+  top:0;
+  z-index:12;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  min-height:52px;
+  margin:0 -28px 24px;
+  padding:0 28px;
+  border-bottom:1px solid #252b27;
+  background:#0f1210;
+  color:#e8eee9;
+}
+:root[data-ui='modrinth'] .modrinth-app-identity {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  color:#dce5df;
+  font-size:13px;
+}
+:root[data-ui='modrinth'] .modrinth-app-identity strong {
+  font-size:11px;
+  letter-spacing:1.2px;
+}
+:root[data-ui='modrinth'] .modrinth-app-mark {
+  display:grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border:1px solid #41664d;
+  border-radius:7px;
+  background:#1c3424;
+  color:#8ce7a7;
+  font:700 13px Inter,sans-serif;
+}
+:root[data-ui='modrinth'] .modrinth-header-separator { color:#515a54; }
+:root[data-ui='modrinth'] .modrinth-app-status {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#93a097;
+  font-size:11px;
+  white-space:nowrap;
+}
+:root[data-ui='modrinth'] .modrinth-status-dot {
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#68766d;
+  box-shadow:0 0 0 3px #68766d1b;
+}
+:root[data-ui='modrinth'] .modrinth-home-section { margin:0 0 26px; scroll-margin-top:72px; }
+:root[data-ui='modrinth'] .modrinth-section-heading { margin:0 0 12px; }
+:root[data-ui='modrinth'] .modrinth-section-heading h2 {
+  font-size:18px;
+  line-height:1.25;
+  letter-spacing:-.2px;
+  text-transform:none;
+}
+:root[data-ui='modrinth'] .modrinth-section-heading p { margin-top:4px; font-size:11px; }
+:root[data-ui='modrinth'] .modrinth-section-note { display:none; }
+:root[data-ui='modrinth'] .modrinth-jump-list {
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:8px;
+}
+:root[data-ui='modrinth'] .modrinth-jump-card {
+  position:relative;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+  min-height:70px;
+  padding:10px 12px;
+  border:1px solid #262d29;
+  border-radius:12px;
+  background:#151918;
+  transition:border-color .14s ease,background-color .14s ease;
+}
+:root[data-ui='modrinth'] .modrinth-jump-card:hover {
+  border-color:#3d5947;
+  background:#19201b;
+}
+:root[data-ui='modrinth'] .modrinth-jump-select {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:#e8eee9;
+  text-align:left;
+  box-shadow:none;
+}
+:root[data-ui='modrinth'] .modrinth-jump-icon {
+  flex:0 0 46px;
+  width:46px;
+  height:46px;
+  border:1px solid #45544b;
+  border-radius:10px;
+  background:#202b24;
+  color:#d5e5da;
+  font-size:19px;
+}
+:root[data-ui='modrinth'] .modrinth-jump-copy {
+  display:flex;
+  flex:1 1 auto;
+  flex-direction:column;
+  gap:5px;
+  min-width:0;
+}
+:root[data-ui='modrinth'] .modrinth-jump-copy strong {
+  color:#edf3ef;
+  font-size:13px;
+  font-weight:650;
+}
+:root[data-ui='modrinth'] .modrinth-jump-copy .small {
+  margin:0;
+  color:#8c9991;
+  font-size:11px;
+}
+:root[data-ui='modrinth'] .modrinth-jump-play {
+  min-width:92px;
+  min-height:36px;
+  padding:0 13px;
+  border:1px solid #5cce81;
+  border-radius:10px;
+  background:#58d17f;
+  color:#0b1d11;
+  font:700 12px Inter,sans-serif;
+  box-shadow:none;
+  white-space:nowrap;
+}
+:root[data-ui='modrinth'] .modrinth-jump-play:hover {
+  background:#76e397;
+  filter:none;
+}
+:root[data-ui='modrinth'] .modrinth-jump-more {
+  display:grid;
+  place-items:center;
+  width:29px;
+  height:36px;
+  padding:0;
+  border:0;
+  border-radius:7px;
+  background:transparent;
+  color:#aab4ad;
+  font-size:19px;
+  box-shadow:none;
+}
+:root[data-ui='modrinth'] .modrinth-jump-more:hover {
+  background:#29322c;
+  color:#fff;
+  filter:none;
+}
+:root[data-ui='modrinth'] .modrinth-jump-card .inst-menu {
+  z-index:30;
+  top:calc(100% - 3px);
+  right:8px;
+  left:auto;
+  min-width:220px;
+}
+:root[data-ui='modrinth'] .modrinth-jump-empty { min-height:72px; }
+:root[data-ui='modrinth'] #page-play .library-wrap { margin-top:8px; }
+:root[data-ui='modrinth'] #page-play .library-toolbar {
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:13px;
+  margin:0 0 10px;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+}
+:root[data-ui='modrinth'] .library-toolbar-heading {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+:root[data-ui='modrinth'] .library-toolbar-title {
+  color:#eef4ef;
+  font-size:19px;
+  font-weight:700;
+}
+:root[data-ui='modrinth'] .library-count { color:#85938a; }
+:root[data-ui='modrinth'] #page-play .library-toolbar-actions {
+  display:grid;
+  grid-template-columns:minmax(180px,1fr) auto;
+  align-items:center;
+  gap:9px;
+}
+:root[data-ui='modrinth'] #page-play .library-toolbar-actions .library-search {
+  min-width:0;
+  min-height:38px;
+  padding:0 12px;
+  border:1px solid #2b332e;
+  border-radius:10px;
+  background:#171c19;
+}
+:root[data-ui='modrinth'] #page-play .library-toolbar-actions .library-search input {
+  min-width:0;
+  border:0;
+  background:transparent;
+  box-shadow:none;
+  font:12px Inter,sans-serif;
+}
+:root[data-ui='modrinth'] #page-play .library-toolbar-actions > button { display:none !important; }
+:root[data-ui='modrinth'] #page-play .library-toolbar-actions > #library-add {
+  display:inline-flex !important;
+  grid-column:2;
+  justify-self:end;
+  width:auto;
+  min-width:158px;
+  align-items:center;
+  justify-content:center;
+  min-height:38px;
+  padding:0 17px;
+  border:1px solid #58cf7f;
+  border-radius:10px;
+  background:#58d17f;
+  color:#0b1d11;
+  font-size:12px;
+  white-space:nowrap;
+  box-shadow:none;
+}
+:root[data-ui='modrinth'] #page-play .library-toolbar-actions > #library-add:hover {
+  background:#76e397;
+  filter:none;
+}
+:root[data-ui='modrinth'] .modrinth-library-filters {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:0 0 12px;
+}
+:root[data-ui='modrinth'] .modrinth-library-filters label {
+  display:flex;
+  align-items:center;
+  gap:7px;
+  min-width:0;
+  padding:0 10px;
+  border:1px solid #303833;
+  border-radius:9px;
+  background:#171c19;
+  color:#b7c2ba;
+  font-size:11px;
+}
+:root[data-ui='modrinth'] .modrinth-library-filters label > span { white-space:nowrap; }
+:root[data-ui='modrinth'] .modrinth-library-filters select {
+  width:auto;
+  min-width:88px;
+  min-height:32px;
+  padding:5px 18px 5px 2px;
+  border:0;
+  background:transparent;
+  color:#e5ece7;
+  font:11px Inter,sans-serif;
+  box-shadow:none;
+}
+:root[data-ui='modrinth'] .modrinth-filter-count {
+  margin-left:auto;
+  color:#78867d;
+  font:10px 'JetBrains Mono',monospace;
+}
+:root[data-ui='modrinth'] #modrinth-library-tools { display:none !important; }
+:root[data-ui='modrinth'] #library:not(.list-view) {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(min(230px,100%),1fr));
+  align-items:stretch;
+  gap:10px;
+}
+:root[data-ui='modrinth'] #library .inst-card:not(.add) {
+  position:relative;
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr) 32px;
+  grid-template-rows:minmax(22px,auto) minmax(22px,auto);
+  align-items:center;
+  column-gap:10px;
+  row-gap:4px;
+  min-width:0;
+  min-height:82px;
+  padding:11px 12px;
+  border:1px solid #2b342e;
+  border-radius:12px;
+  background:#151a17;
+  box-shadow:none;
+}
+:root[data-ui='modrinth'] #library .inst-card:not(.add):hover {
+  transform:translateY(-1px);
+  border-color:#52695a;
+  background:#19211c;
+}
+:root[data-ui='modrinth'] #library .inst-card.active {
+  border-color:#397c50;
+  background:#1b2a20;
+  box-shadow:inset 3px 0 #58d17f;
+}
+:root[data-ui='modrinth'] #library .inst-card .inst-icon {
+  grid-column:1;
+  grid-row:1 / span 2;
+  width:46px;
+  height:46px;
+  border:1px solid #435348;
+  border-radius:10px;
+  background:#27382d;
+  color:#c3e2cc;
+}
+:root[data-ui='modrinth'] #library .inst-card .inst-name {
+  grid-column:2;
+  grid-row:1;
+  min-width:0;
+  color:#eaf1ec;
+  font-size:12px;
+}
+:root[data-ui='modrinth'] #library .inst-card .chip {
+  grid-column:2;
+  grid-row:2;
+  justify-self:start;
+  max-width:100%;
+  margin:0;
+  overflow:hidden;
+  border-radius:5px;
+  background:#202d25;
+  color:#9ac9a8;
+  font:10px Inter,sans-serif;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+:root[data-ui='modrinth'] #library .inst-card .inst-play,
+:root[data-ui='modrinth'] #library .inst-card .inst-more {
+  position:static;
+  top:auto;
+  right:auto;
+  display:grid;
+  place-items:center;
+  grid-column:3;
+  width:30px;
+  height:30px;
+  padding:0;
+  transform:none;
+  border-radius:8px;
+  box-shadow:none;
+}
+:root[data-ui='modrinth'] #library .inst-card .inst-play {
+  grid-row:1;
+  align-self:end;
+  background:#58d17f;
+  color:#0a1b10;
+}
+:root[data-ui='modrinth'] #library .inst-card .inst-more {
+  grid-row:2;
+  align-self:start;
+  border:1px solid #313c35;
+  background:#202622;
+  color:#c0cbc3;
+}
+:root[data-ui='modrinth'] #library .inst-card.add {
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  justify-content:flex-start;
+  min-height:82px;
+  padding:12px;
+  border:1px dashed #3c5543;
+  border-radius:12px;
+  background:#121814;
+  color:#9bb4a3;
+}
+:root[data-ui='modrinth'] #library .inst-card.add .inst-icon {
+  width:40px;
+  height:40px;
+  border-radius:9px;
+  background:#1e3526;
+}
+:root[data-ui='modrinth'] .playbar {
+  grid-column:2;
+  grid-row:2;
+  display:flex;
+  width:auto;
+  min-width:0;
+  max-width:none;
+  padding:10px 20px;
+  border:0;
+  border-top:1px solid #252d28;
+  border-radius:0;
+  background:#121714;
+  box-shadow:0 -8px 20px #0002;
+}
+:root[data-ui='modrinth'] .playbar .play-ui {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  width:100%;
+  min-width:0;
+}
+:root[data-ui='modrinth'] .playbar .play-ui .pb-selects { flex:0 1 330px; min-width:0; }
+:root[data-ui='modrinth'] .playbar .play-ui .pb-info { flex:1 1 auto; min-width:0; }
+:root[data-ui='modrinth'] .playbar .play-ui #play-btn {
+  flex:0 0 160px;
+  min-width:140px;
+  min-height:40px;
+  margin:0;
+  border:1px solid #5dd184;
+  border-radius:9px;
+  background:#58d17f;
+  color:#0a1b10;
+  font-size:13px;
+  box-shadow:none;
+}
+:root[data-ui='modrinth'] .playbar .play-ui #stop-btn { flex:0 0 auto; }
+:root[data-ui='modrinth'] .modrinth-account-panel {
+  grid-column:3;
+  grid-row:1 / span 2;
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  min-width:0;
+  width:304px;
+  height:100vh;
+  padding:22px 16px 15px;
+  border-left:1px solid #252d28;
+  background:#101512;
+  color:#e5ece7;
+  overflow-y:auto;
+}
+:root[data-ui='modrinth'] .modrinth-account-section,
+:root[data-ui='modrinth'] .modrinth-selected-section,
+:root[data-ui='modrinth'] .modrinth-quick-section {
+  min-width:0;
+  padding:0 0 20px;
+  margin:0 0 19px;
+  border-bottom:1px solid #27312a;
+}
+:root[data-ui='modrinth'] .modrinth-panel-heading {
+  margin:0 0 12px;
+  color:#9ba99f;
+  font-size:11px;
+  font-weight:650;
+  letter-spacing:.35px;
+}
+:root[data-ui='modrinth'] .modrinth-account-card {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  min-width:0;
+  min-height:58px;
+  padding:8px 10px;
+  border:1px solid #2d3931;
+  border-radius:10px;
+  background:#1b231e;
+  color:#eef4ef;
+  text-align:left;
+  box-shadow:none;
+}
+:root[data-ui='modrinth'] .modrinth-account-card:hover {
+  border-color:#4b7658;
+  background:#202b24;
+  filter:none;
+}
+:root[data-ui='modrinth'] .modrinth-account-avatar {
+  display:grid;
+  flex:0 0 36px;
+  place-items:center;
+  width:36px;
+  height:36px;
+  border:1px solid #49634f;
+  border-radius:8px;
+  background:#2d4633;
+  color:#c7f0d1;
+  font-weight:700;
+}
+:root[data-ui='modrinth'] .modrinth-account-copy {
+  display:flex;
+  flex:1 1 auto;
+  flex-direction:column;
+  gap:4px;
+  min-width:0;
+}
+:root[data-ui='modrinth'] .modrinth-account-copy strong {
+  overflow:hidden;
+  color:#f0f5f1;
+  font-size:13px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+:root[data-ui='modrinth'] .modrinth-account-copy small,
+:root[data-ui='modrinth'] .modrinth-account-caption {
+  color:#8f9d93;
+  font-size:10px;
+}
+:root[data-ui='modrinth'] .modrinth-account-chevron { color:#aab6ae; }
+:root[data-ui='modrinth'] .modrinth-account-caption { margin:9px 1px 0; line-height:1.5; }
+:root[data-ui='modrinth'] .modrinth-selected-card {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  margin-bottom:12px;
+}
+:root[data-ui='modrinth'] .modrinth-selected-icon {
+  display:grid;
+  flex:0 0 48px;
+  place-items:center;
+  width:48px;
+  height:48px;
+  border:1px solid #405348;
+  border-radius:10px;
+  background:#23352a;
+  color:#b8e8c5;
+  font-size:20px;
+  font-weight:700;
+}
+:root[data-ui='modrinth'] .modrinth-selected-copy {
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  min-width:0;
+}
+:root[data-ui='modrinth'] .modrinth-selected-copy strong {
+  overflow:hidden;
+  color:#edf3ef;
+  font-size:12px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+:root[data-ui='modrinth'] .modrinth-selected-copy small {
+  color:#8c9a91;
+  font-size:10px;
+}
+:root[data-ui='modrinth'] .modrinth-side-play {
+  width:100%;
+  min-height:38px;
+  padding:0 12px;
+  border:1px solid #5bce80;
+  border-radius:9px;
+  background:#58d17f;
+  color:#0b1d11;
+  font-size:12px;
+  box-shadow:none;
+}
+:root[data-ui='modrinth'] .modrinth-quick-section { padding-bottom:14px; }
+:root[data-ui='modrinth'] .modrinth-quick-section > button {
+  display:flex;
+  align-items:center;
+  gap:9px;
+  width:100%;
+  min-height:38px;
+  padding:7px 8px;
+  border:1px solid transparent;
+  border-radius:8px;
+  background:transparent;
+  color:#bfcac2;
+  font-size:11px;
+  text-align:left;
+  box-shadow:none;
+}
+:root[data-ui='modrinth'] .modrinth-quick-section > button span:last-child { margin-left:auto; color:#79867e; }
+:root[data-ui='modrinth'] .modrinth-quick-section > button:hover { background:#1c251f; color:#eff7f1; filter:none; }
+:root[data-ui='modrinth'] .modrinth-panel-footer {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:auto;
+  padding:14px 4px 0;
+  color:#b4c0b7;
+}
+:root[data-ui='modrinth'] .modrinth-footer-mark {
+  display:grid;
+  place-items:center;
+  width:30px;
+  height:30px;
+  border:1px solid #3b5a43;
+  border-radius:8px;
+  background:#1a3020;
+  color:#93e1a6;
+  font-weight:750;
+}
+:root[data-ui='modrinth'] .modrinth-panel-footer > span:last-child {
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+:root[data-ui='modrinth'] .modrinth-panel-footer strong { font-size:10px; letter-spacing:1px; }
+:root[data-ui='modrinth'] .modrinth-panel-footer small { color:#78867d; font-size:9px; }
+:root[data-ui='modrinth'] #prism-status-bar { display:none !important; }
+:root[data-ui='modrinth'] .pet { z-index:8; }
+@media (max-width:1180px) {
+  :root[data-ui='modrinth'] .layout { grid-template-columns:68px minmax(0,1fr); }
+  :root[data-ui='modrinth'] .modrinth-account-panel { display:none; }
+  :root[data-ui='modrinth'] .sidebar { width:68px; }
+  :root[data-ui='modrinth'] .content main { padding-right:22px; padding-left:22px; }
+  :root[data-ui='modrinth'] .modrinth-app-header { margin-right:-22px; margin-left:-22px; padding-right:22px; padding-left:22px; }
+}
+@media (max-width:760px) {
+  :root[data-ui='modrinth'] .layout {
+    grid-template-columns:58px minmax(0,1fr);
+    grid-template-rows:minmax(0,1fr) auto;
+    width:100%;
+    overflow:hidden;
+  }
+  :root[data-ui='modrinth'] .sidebar { width:58px; padding:8px 4px; }
+  :root[data-ui='modrinth'] .modrinth-nav-btn { min-height:48px; font-size:8px; }
+  :root[data-ui='modrinth'] .modrinth-nav-btn > span:first-child { font-size:19px; }
+  :root[data-ui='modrinth'] .content { grid-column:2; grid-row:1; }
+  :root[data-ui='modrinth'] .content main { padding:0 12px 18px; }
+  :root[data-ui='modrinth'] .modrinth-app-header {
+    min-height:46px;
+    margin-right:-12px;
+    margin-left:-12px;
+    padding:0 12px;
+  }
+  :root[data-ui='modrinth'] .modrinth-app-status { display:none; }
+  :root[data-ui='modrinth'] .modrinth-app-identity { font-size:11px; }
+  :root[data-ui='modrinth'] .modrinth-home-section { margin-bottom:20px; }
+  :root[data-ui='modrinth'] .modrinth-jump-card { grid-template-columns:minmax(0,1fr) auto; gap:6px; min-height:64px; padding:8px; }
+  :root[data-ui='modrinth'] .modrinth-jump-select { gap:8px; }
+  :root[data-ui='modrinth'] .modrinth-jump-icon { flex-basis:38px; width:38px; height:38px; }
+  :root[data-ui='modrinth'] .modrinth-jump-play { min-width:72px; min-height:32px; padding:0 8px; font-size:10px; }
+  :root[data-ui='modrinth'] .modrinth-jump-more { display:none; }
+  :root[data-ui='modrinth'] .modrinth-library-filters { gap:5px; }
+  :root[data-ui='modrinth'] .modrinth-library-filters label { flex:1 1 100%; justify-content:space-between; min-height:34px; }
+  :root[data-ui='modrinth'] .modrinth-filter-count { width:100%; text-align:right; }
+  :root[data-ui='modrinth'] #page-play .library-toolbar-actions { grid-template-columns:minmax(0,1fr); }
+  :root[data-ui='modrinth'] #page-play .library-toolbar-actions > #library-add { width:100%; }
+  :root[data-ui='modrinth'] #library:not(.list-view) { grid-template-columns:minmax(0,1fr); }
+  :root[data-ui='modrinth'] #library .inst-card:not(.add) { min-height:72px; }
+  :root[data-ui='modrinth'] .playbar {
+    grid-column:2;
+    grid-row:2;
+    padding:8px 10px;
+  }
+  :root[data-ui='modrinth'] .playbar .play-ui { flex-wrap:wrap; gap:7px; }
+  :root[data-ui='modrinth'] .playbar .play-ui .pb-selects { flex:1 1 100%; }
+  :root[data-ui='modrinth'] .playbar .play-ui .pb-info { display:none; }
+  :root[data-ui='modrinth'] .playbar .play-ui #play-btn { flex:1 1 auto; min-width:0; }
+  :root[data-ui='modrinth'] .modrinth-pack-grid { grid-template-columns:minmax(0,1fr); }
+}
+
+/* Keep Modrinth-only structure out of every other launcher shell. */
+:root:not([data-ui='modrinth']) #modrinth-nav,
+:root:not([data-ui='modrinth']) .modrinth-sidebar-tools,
+:root:not([data-ui='modrinth']) .modrinth-app-header,
+:root:not([data-ui='modrinth']) .modrinth-account-panel,
+:root:not([data-ui='modrinth']) .modrinth-library-filters {
+  display:none !important;
+}

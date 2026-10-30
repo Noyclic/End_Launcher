@@ -1,0 +1,137 @@
+name: Gemini Night Agent
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "Optional focus for this run (leave empty for the next safe backlog task)"
+        required: false
+        type: string
+  schedule:
+    - cron: "0 4 * * *"
+
+permissions:
+  contents: write
+
+# Serialize all Gemini runs. A SHA lease below also protects against commits
+# made by another collaborator outside this workflow.
+concurrency:
+  group: end-launcher-shared-branch-night-agent
+  cancel-in-progress: false
+
+jobs:
+  night-agent:
+    name: Gemini Night Agent on ui-fidelity-pass
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout the shared working branch
+        uses: actions/checkout@v4
+        with:
+          ref: ui-fidelity-pass
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust dependencies
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Record the branch lease
+        id: lease
+        shell: bash
+        run: |
+          set -euo pipefail
+          git switch ui-fidelity-pass
+          BASE_SHA="$(git rev-parse HEAD)"
+          REMOTE_SHA="$(git ls-remote origin refs/heads/ui-fidelity-pass | cut -f1)"
+          if [[ "$BASE_SHA" != "$REMOTE_SHA" ]]; then
+            echo "::error::Branch changed during checkout; refusing to start on a stale snapshot."
+            exit 1
+          fi
+          echo "base_sha=$BASE_SHA" >> "$GITHUB_OUTPUT"
+          echo "Night Agent base: $BASE_SHA"
+
+      - name: Let Gemini inspect and implement one bounded task
+        uses: google-github-actions/run-gemini-cli@v0.1.22
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          gemini_cli_version: "latest"
+          prompt: |
+            You are the Gemini Night Agent for End Launcher.
+            Read GEMINI.md completely before doing anything. Work only in the already checked out
+            ui-fidelity-pass branch. Inspect the current code and existing CHANGELOG before choosing
+            exactly ONE small, coherent, useful improvement. If a task was supplied, use it only if
+            it respects every project boundary in GEMINI.md; otherwise explain why and choose a safe
+            backlog task.
+
+            You may inspect references in the sibling repository Noyclic/End-Launcher-References
+            only if available locally; do not assume it is checked out. Do not fabricate reference
+            details. Preserve every existing feature. Prefer focused fixes and tests over broad
+            redesign. Do not attempt pixel-perfect claims without a real runtime screenshot.
+
+            Make the code changes and add regression coverage. Update CHANGELOG.md with a concise
+            entry describing the actual changes. Run relevant tests available in this environment.
+            Do NOT commit, push, create branches, merge, edit workflow files, edit GEMINI.md,
+            change repository secrets/settings, or modify release/signing credentials. The workflow
+            validates, commits and pushes after you finish. If no safe improvement is possible,
+            leave the tree clean and explain that in your final response.
+
+            Optional task from the user: ${{ inputs.task }}
+
+      - name: Validate the proposed changes
+        id: validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$(git status --porcelain)" ]]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Gemini made no changes; nothing to publish."
+            exit 0
+          fi
+
+          echo "Gemini changed:"
+          git status --short
+          node --check src/main.js
+          npm run test:ui
+          cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
+          cargo test --manifest-path src-tauri/Cargo.toml --no-default-features
+
+          # Agent instructions/workflows are immutable to the agent itself.
+          CHANGED_PATHS="$( { git diff --name-only; git ls-files --others --exclude-standard; } | sort -u )"
+          if printf '%s\\n' "$CHANGED_PATHS" | grep -E '^(\\.github/workflows/|GEMINI\\.md$|.*(\\.pem$|\\.p12$|\\.keystore$|credentials|secrets))'; then
+            echo "::error::Gemini attempted to modify protected agent configuration or credentials."
+            exit 1
+          fi
+
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push with a branch SHA lease
+        if: steps.validate.outputs.changed == 'true'
+        shell: bash
+        env:
+          BASE_SHA: ${{ steps.lease.outputs.base_sha }}
+        run: |
+          set -euo pipefail
+          git config user.name "Gemini Night Agent"
+          git config user.email "gemini-night-agent@users.noreply.github.com"
+          git add -A
+          git commit -m "Night Agent: focused launcher improvement"
+
+          # Do not overwrite work made by ChatGPT, the user, or another writer.
+          CURRENT_REMOTE="$(git ls-remote origin refs/heads/ui-fidelity-pass | cut -f1)"
+          if [[ "$CURRENT_REMOTE" != "$BASE_SHA" ]]; then
+            echo "::error::Shared branch moved from $BASE_SHA to $CURRENT_REMOTE. Changes were not pushed."
+            exit 1
+          fi
+
+          git push --force-with-lease="refs/heads/ui-fidelity-pass:$BASE_SHA" origin HEAD:refs/heads/ui-fidelity-pass
+          echo "Published Gemini Night Agent commit: $(git rev-parse HEAD)"

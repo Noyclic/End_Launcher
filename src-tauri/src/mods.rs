@@ -82,11 +82,12 @@ fn mods_dir() -> PathBuf {
     dir
 }
 
-/// "mod" | "resourcepack" | "shader" (всё остальное = мод)
+/// Supported Modrinth search categories. Unknown values safely fall back to mods.
 fn project_type_of(t: &Option<String>) -> &'static str {
     match t.as_deref() {
         Some("resourcepack") => "resourcepack",
         Some("shader") => "shader",
+        Some("modpack") => "modpack",
         _ => "mod",
     }
 }
@@ -870,6 +871,20 @@ pub async fn apply_mod_update(file: String, url: String, new_file: String, sha1:
     Ok(name)
 }
 
+
+#[cfg(test)]
+mod project_type_tests {
+    use super::project_type_of;
+
+    #[test]
+    fn supports_modpack_search_without_changing_install_types() {
+        assert_eq!(project_type_of(&Some("modpack".into())), "modpack");
+        assert_eq!(project_type_of(&Some("resourcepack".into())), "resourcepack");
+        assert_eq!(project_type_of(&Some("shader".into())), "shader");
+        assert_eq!(project_type_of(&Some("unknown".into())), "mod");
+        assert_eq!(project_type_of(&None), "mod");
+    }
+}
 
 #[cfg(test)]
 mod safe_mod_file_tests {

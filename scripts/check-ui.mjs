@@ -353,6 +353,28 @@ check(css.includes(":root[data-ui='modrinth'] .modrinth-jump-card")
     && css.includes(":root[data-ui='modrinth'] #library .inst-card .inst-play"),
   'Modrinth home needs its own recent-play, discovery and green row-action design');
 
+check(html.includes('id="modrinth-nav"')
+    && html.includes('id="modrinth-account-panel"')
+    && html.includes('id="modrinth-app-header"')
+    && html.includes('id="modrinth-library-filters"')
+    && html.includes('id="modrinth-sort"')
+    && html.includes('id="modrinth-group-filter"')
+    && html.includes('id="modrinth-loader-filter"'),
+  'Modrinth must have its own navigation, account rail, top bar and library filter controls');
+check(js.includes('function syncModrinthAccountPanel()')
+    && js.includes('function formatModrinthLastPlayed(timestamp)')
+    && js.includes('.slice(0, 5)')
+    && js.includes('toggleMenu(card, inst)')
+    && js.includes("modrinthGroupFilter === 'grouped'")
+    && js.includes("modrinthLoaderFilter !== 'all'"),
+  'Modrinth Jump In must show up to five real recent instances and filters must affect the library');
+check(repairCss.includes("grid-template-columns:72px minmax(0,1fr) 304px")
+    && repairCss.includes(":root[data-ui='modrinth'] .modrinth-account-panel")
+    && repairCss.includes(":root[data-ui='modrinth'] .modrinth-jump-list")
+    && repairCss.includes(":root[data-ui='modrinth'] .modrinth-library-filters"),
+  'Modrinth must use a dedicated three-column desktop workspace and responsive layout');
+
+
 check(js.includes('function homeModsSelectionKey()')
     && js.includes('let homeModsRequestId = 0;')
     && js.includes('if (requestId !== homeModsRequestId || homeModsSelectionKey() !== key) return;')

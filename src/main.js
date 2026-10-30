@@ -3724,6 +3724,19 @@ if (modrinthLoaderSelect) {
 }
 $('library-add')?.addEventListener('click', openNewInstance);
 
+function scrollModrinthWorkspaceTo(target, { behavior = 'smooth' } = {}) {
+  const main = document.querySelector('.content main');
+  const element = typeof target === 'string' ? $(target) : target;
+  if (!main || !element) return false;
+  const header = $('modrinth-app-header');
+  const offset = (header?.getBoundingClientRect().height || 0) + 12;
+  const mainRect = main.getBoundingClientRect();
+  const targetRect = element.getBoundingClientRect();
+  const top = Math.max(0, main.scrollTop + targetRect.top - mainRect.top - offset);
+  main.scrollTo({ top, behavior });
+  return true;
+}
+
 function setModrinthNavActive(id) {
   document.querySelectorAll('#modrinth-nav .modrinth-nav-btn').forEach((button) => {
     button.classList.toggle('active', button.id === id);
@@ -3752,7 +3765,7 @@ $('modrinth-nav-home')?.addEventListener('click', () => {
 $('modrinth-nav-discover')?.addEventListener('click', () => {
   setModrinthNavActive('modrinth-nav-discover');
   goPage('play');
-  $('modrinth-discover')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  scrollModrinthWorkspaceTo('modrinth-discover');
 });
 $('modrinth-nav-mods')?.addEventListener('click', () => {
   if (!currentInstance()) { showToast('Сначала выбери сборку.', false); return; }
@@ -3763,7 +3776,7 @@ $('modrinth-nav-mods')?.addEventListener('click', () => {
 $('modrinth-nav-library')?.addEventListener('click', () => {
   setModrinthNavActive('modrinth-nav-library');
   goPage('play');
-  $('library-toolbar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  scrollModrinthWorkspaceTo('library-toolbar');
 });
 $('modrinth-nav-add')?.addEventListener('click', () => $('library-add')?.click());
 $('modrinth-nav-settings')?.addEventListener('click', () => {

@@ -805,6 +805,20 @@ jobs:
               || !String(modrinthState.selectedInstanceName || '').trim()) {
             throw new Error('Modrinth desktop workspace did not match its reference layout or lost a functional control.');
           }
+          // Capture the stable Modrinth home before running interaction assertions.
+          // A previous Prism edit intentionally leaves a transient success toast; it is not part of the Modrinth reference.
+          await page.evaluate(() => {
+            const toast = document.getElementById('toast');
+            if (toast) {
+              toast.classList.remove('show');
+              toast.style.display = 'none';
+              toast.textContent = '';
+            }
+            document.querySelector('.content main')?.scrollTo({ top: 0, behavior: 'instant' });
+          });
+          await page.waitForTimeout(250);
+          // Home and Discover captures were saved before the interactive checks above.
+
           // Exercise the actual client-side library controls, not just their presence.
           await page.evaluate(() => {
             const control = document.getElementById('modrinth-loader-filter');
@@ -842,9 +856,9 @@ jobs:
           }));
           console.log('MODRINTH GROUP FILTER:', JSON.stringify(groupedFilterState));
           const groupedFilterWorks = groupedFilterState.value === 'grouped'
-            && groupedFilterState.cards.length === 6
-            && groupedFilterState.cards.every((id) => ['1002', '1006', '1007', '1008', '1009', '1010'].includes(id));
-          if (!groupedFilterWorks) throw new Error('Modrinth group filter did not return the six named test profiles.');
+            && groupedFilterState.cards.length === 7
+            && groupedFilterState.cards.every((id) => ['1001', '1002', '1006', '1007', '1008', '1009', '1010'].includes(id));
+          if (!groupedFilterWorks) throw new Error('Modrinth group filter did not return the seven profiles, including the edited Prism test instance.');
 
           await page.evaluate(() => {
             const group = document.getElementById('modrinth-group-filter');

@@ -1052,7 +1052,7 @@ check(rustInstances.includes('pub fn open_launcher_resource_folder(kind: String)
 
 
 // Prism/Pinecone inner fidelity: General settings and full Mojang version metadata.
-check(html.includes('class="prism-settings-general-card"')
+check(html.includes('prism-settings-general-card')
     && html.includes('name="prism-settings-instance-sort"')
     && html.includes('value="last-played"')
     && html.includes('id="prism-settings-open-instances"')

@@ -1993,7 +1993,7 @@ function renderPrismLoaderOptions() {
   const list = $('ni-loader-options');
   if (!select || !list) return;
   list.replaceChildren();
-  [...select.options].forEach((option) => {
+  [...select.options].filter((option) => option.value !== 'vanilla').forEach((option) => {
     const label = document.createElement('label');
     label.className = 'prism-loader-option';
     const radio = document.createElement('input');

@@ -1,5 +1,13 @@
 # Changelog
 
+## Modrinth — profile-aware home recommendations
+
+- Popular mods on the home screen now reload when the selected Minecraft version or loader changes, rather than remaining tied to the first profile opened.
+- Modrinth modpack discovery now refreshes when the active profile's Minecraft version changes.
+- Added request sequencing and selection checks so slower responses from an older profile cannot overwrite recommendations for the newly selected profile.
+- Added regression assertions for profile-keyed loading, refresh triggers, and stale-response protection.
+
+
 ## Prism/Pinecone — selection cue refinement
 
 - Removed the legacy blue border/background cue from the selected tile icon in Prism mode; the reference's green label strip is the main active-selection marker.

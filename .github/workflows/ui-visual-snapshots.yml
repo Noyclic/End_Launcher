@@ -753,9 +753,9 @@ jobs:
               ui: document.documentElement.dataset.ui,
               layout: document.getElementById('library')?.dataset.layout,
               playUiParent: document.getElementById('play-ui')?.parentElement?.id,
-              bannerVisible: !!document.getElementById('launcher-banner')
-                && getComputedStyle(document.getElementById('launcher-banner')).display !== 'none'
-                && !document.getElementById('launcher-banner').hidden,
+              bannerHidden: !document.getElementById('launcher-banner')
+                || getComputedStyle(document.getElementById('launcher-banner')).display === 'none'
+                || document.getElementById('launcher-banner').hidden,
               accountPanelVisible: !!accountPanel && getComputedStyle(accountPanel).display !== 'none',
               topbarVisible: !!topbar && topbar.getBoundingClientRect().height > 0,
               navButtons: document.querySelectorAll('#modrinth-nav .modrinth-nav-btn').length,
@@ -781,7 +781,7 @@ jobs:
           if (modrinthState.ui !== 'modrinth'
               || modrinthState.layout !== 'modrinth'
               || modrinthState.playUiParent !== 'slot-bar'
-              || !modrinthState.bannerVisible
+              || !modrinthState.bannerHidden
               || !modrinthState.accountPanelVisible
               || !modrinthState.topbarVisible
               || modrinthState.navButtons !== 4

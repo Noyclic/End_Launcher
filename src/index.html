@@ -203,14 +203,14 @@
                             <button id="ni-version-refresh" class="ghost" type="button">Обновить</button>
                           </div>
                         </div>
-                        <label class="create-field prism-create-loader-field"><span>Загрузчик модов</span><select id="ni-loader" data-seg title="Загрузчик">
+                        <label class="create-field prism-create-loader-field"><span>Загрузчик модов</span><div id="ni-loader-options" class="prism-loader-options" role="radiogroup" aria-label="Загрузчик модов"></div><select id="ni-loader" title="Загрузчик">
                           <option value="vanilla">Vanilla</option>
                           <option value="fabric">Fabric</option>
                           <option value="quilt">Quilt</option>
                           <option value="forge">Forge</option>
                           <option value="neoforge">NeoForge</option>
                         </select></label>
-                        <p class="create-instance-note dim small">Vanilla — чистая игра; Fabric и Quilt — лёгкие моды и оптимизация; Forge и NeoForge — загрузчики для модов и модпаков.</p>
+                        <div class="create-instance-note prism-loader-preview"><strong id="ni-loader-preview-title">Не выбран загрузчик модов.</strong><span id="ni-loader-preview-description">Выберите вариант справа, чтобы настроить установку Minecraft.</span></div>
                         <select id="ni-version" title="Версия игры" aria-label="Выбранная версия Minecraft" hidden></select>
                       </div>
                       <div class="create-instance-mode" data-create-panel="import" hidden>

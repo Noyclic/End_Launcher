@@ -2153,3 +2153,27 @@
   display: none !important;
   visibility: hidden !important;
 }
+
+
+/* Prism Add Instance: hide the native fallback select completely; keep it as the JS value source. */
+:root[data-ui='prism'] label.prism-create-loader-field > select#ni-loader {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  position: absolute !important;
+  width: 0 !important;
+  height: 0 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  pointer-events: none !important;
+}
+:root[data-ui='prism'] #ni-loader-options.prism-loader-options {
+  gap: 5px !important;
+  margin-top: 9px !important;
+}
+:root[data-ui='prism'] #ni-loader-options .prism-loader-option {
+  min-height: 18px !important;
+}

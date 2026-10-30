@@ -2621,6 +2621,7 @@ async function loadHomeModpacks({ force = false } = {}) {
         img.alt = '';
         img.loading = 'lazy';
         img.referrerPolicy = 'no-referrer';
+        img.addEventListener('error', () => { art.textContent = 'M'; }, { once: true });
         art.replaceChildren(img);
       }
       const copy = mk('span', 'modrinth-pack-copy');

@@ -361,7 +361,7 @@ check(js.includes('function homeModsSelectionKey()')
 check(js.includes('let homeModpacksRequestId = 0;')
     && js.includes('homeModpacksKey === gameVersion')
     && js.includes('latestVersion !== gameVersion')
-    && (js.match(/if \\(currentUi === 'modrinth'\\) void loadHomeModpacks\\(\\);/g) || []).length >= 2,
+    && (js.split("if (currentUi === 'modrinth') void loadHomeModpacks();").length - 1) >= 2,
   'Modrinth discovery must refresh for the selected Minecraft version and ignore stale responses');
 check(rustMods.includes('Some("modpack") => "modpack"')
     && rustMods.includes('supports_modpack_search_without_changing_install_types'),

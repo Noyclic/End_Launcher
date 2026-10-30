@@ -76,7 +76,12 @@ jobs:
               ],
               get_active_instance: 1001,
               list_installed_versions: ['1.21.1', '1.20.1', '1.12.2', '26.1-snapshot', '1.21.11'],
-              list_java_versions: [{ id: '1.21.11' }, { id: '1.21.1' }, { id: '1.20.1' }, { id: '1.12.2' }],
+              list_java_versions: [
+                { id: '1.21.11', kind: 'release', release_time: '2025-12-09T12:00:00+00:00' },
+                { id: '1.21.1', kind: 'release', release_time: '2024-06-13T12:00:00+00:00' },
+                { id: '26.1-snapshot', kind: 'snapshot', release_time: '2026-01-07T12:00:00+00:00' },
+                { id: 'b1.7.3', kind: 'old_beta', release_time: '2011-07-08T12:00:00+00:00' },
+              ],
               list_mods: [],
               check_java: { source: 'managed', required_major: 21 },
               get_ui_style: 'prism',
@@ -386,6 +391,9 @@ jobs:
             providerLabels: [...document.querySelectorAll('#new-instance [data-create-view] > span:last-child')].map((item) => item.textContent.trim()),
             sidebarButtons: document.querySelectorAll('#new-instance [data-create-view]').length,
             versionRows: document.querySelectorAll('#ni-version-rows tr[data-version]').length,
+            versionHeaders: [...document.querySelectorAll('.prism-version-table thead th')].map((item) => item.textContent.trim()),
+            firstReleaseDate: document.querySelector('#ni-version-rows tr[data-version] .prism-version-release-date')?.textContent.trim(),
+            releaseTypeRows: [...document.querySelectorAll('#ni-version-rows tr[data-version]')].map((row) => row.dataset.kind),
             versionBrowserVisible: !!document.querySelector('.prism-version-browser') && getComputedStyle(document.querySelector('.prism-version-browser')).display !== 'none',
             overlayRect: (() => { const r = document.getElementById('new-instance').getBoundingClientRect(); return { left: r.left, top: r.top, width: r.width, height: r.height }; })(),
             minecraftPanelVisible: !document.querySelector('[data-create-panel="minecraft"]')?.hidden,
@@ -400,8 +408,12 @@ jobs:
           if (!wizardState.visible || wizardState.title !== 'Добавить экземпляр'
               || wizardState.sidebarButtons !== 9
               || wizardState.providerLabels.join('|') !== expectedProviderLabels.join('|')
-              || !wizardState.versionBrowserVisible || wizardState.versionRows < 1 || !wizardState.minecraftPanelVisible
-              || !wizardState.importPanelHidden || wizardState.versionOptions < 1
+              || !wizardState.versionBrowserVisible || wizardState.versionRows !== 4
+              || wizardState.versionHeaders.join('|') !== 'Версия|Выпущено|Тип'
+              || !wizardState.firstReleaseDate
+              || !wizardState.releaseTypeRows.includes('snapshots')
+              || !wizardState.releaseTypeRows.includes('betas')
+              || !wizardState.minecraftPanelVisible || !wizardState.importPanelHidden || wizardState.versionOptions < 4
               || Math.abs(wizardState.overlayRect.left) > 1 || Math.abs(wizardState.overlayRect.top) > 1
               || Math.abs(wizardState.overlayRect.width - 1440) > 2
               || Math.abs(wizardState.overlayRect.height - 900) > 2) {
@@ -476,6 +488,10 @@ jobs:
               javaHidden: !!document.querySelector('[data-prism-settings-section="java"]')?.hidden,
               hasAccountsAction: !!document.getElementById('prism-settings-account-open'),
               hasProxyInfo: !!document.querySelector('[data-prism-settings-fixed-section="proxy"]'),
+              generalSortOptions: document.querySelectorAll('input[name="prism-settings-instance-sort"]').length,
+              activeSort: document.querySelector('input[name="prism-settings-instance-sort"]:checked')?.value,
+              pathBrowseActions: ['prism-settings-open-root','prism-settings-open-instances','prism-settings-open-mods','prism-settings-open-icons','prism-settings-open-java','prism-settings-open-skins','prism-settings-open-logs'].filter((id) => !!document.getElementById(id)).length,
+              updateModeIsHonest: !!document.querySelector('.prism-settings-general-card .prism-settings-preference-block p')?.textContent.includes('не поддерживается'),
             };
           });
           console.log('PRISM SETTINGS ASSERTIONS:', JSON.stringify(settingsVisible));
@@ -483,11 +499,31 @@ jobs:
               || !settingsVisible.dialogCentered || settingsVisible.tabCount !== 9
               || !settingsVisible.tabsVisible || settingsVisible.selectedTab !== 'general'
               || !settingsVisible.generalVisible || settingsVisible.javaHidden
-              || !settingsVisible.hasAccountsAction || !settingsVisible.hasProxyInfo) {
+              || !settingsVisible.hasAccountsAction || !settingsVisible.hasProxyInfo
+              || settingsVisible.generalSortOptions !== 2 || settingsVisible.activeSort !== 'name-asc'
+              || settingsVisible.pathBrowseActions !== 7 || !settingsVisible.updateModeIsHonest) {
             throw new Error('Prism Parameters dialog did not match the reference categories or modal geometry.');
           }
           await page.waitForTimeout(500); // Wait for the application page transition animation before capturing.
           await page.screenshot({ path: 'artifacts/ui/prism-settings-general.png', fullPage: true });
+          await page.locator('input[name="prism-settings-instance-sort"][value="last-played"]').check();
+          const lastPlayedSetting = await page.evaluate(() => ({
+            radio: document.querySelector('input[name="prism-settings-instance-sort"]:checked')?.value,
+            toolbarValue: document.getElementById('prism-library-sort')?.value,
+            stored: localStorage.getItem('el-prism-library-sort'),
+          }));
+          if (lastPlayedSetting.radio !== 'last-played' || lastPlayedSetting.toolbarValue !== 'last-played'
+              || lastPlayedSetting.stored !== 'last-played') {
+            throw new Error('Prism General setting did not persist and apply the last-played sorting preference.');
+          }
+          await page.locator('input[name="prism-settings-instance-sort"][value="name-asc"]').check();
+          await page.locator('#prism-settings-open-instances').click();
+          const openedInstancesFolder = await page.evaluate(() => window.__TAURI_CALL_LOG.some((entry) => entry.command === 'open_instances_folder'));
+          if (!openedInstancesFolder) throw new Error('Prism General folder shortcut did not call open_instances_folder.');
+          await page.locator('#prism-settings-open-java').click();
+          const openedJavaFolder = await page.evaluate(() => window.__TAURI_CALL_LOG.some((entry) =>
+            entry.command === 'open_launcher_resource_folder' && entry.args?.kind === 'java'));
+          if (!openedJavaFolder) throw new Error('Prism General Java shortcut did not call its native folder command.');
           await page.locator('[data-prism-settings-tab="accounts"]').click();
           if (await page.locator('[data-prism-settings-fixed-section="accounts"]').evaluate((el) => el.hidden)) {
             throw new Error('Prism Accounts settings category did not show its real account-manager action.');

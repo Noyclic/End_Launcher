@@ -3631,7 +3631,7 @@ function applyUi(mode) {
   const target = ['end', 'tl'].includes(mode) ? $('slot-page') : $('slot-bar');
   if ($('play-ui').parentElement !== target) target.appendChild($('play-ui'));
   const banner = $('launcher-banner');
-  if (banner) banner.hidden = !['modrinth', 'gd', 'official', 'lunar'].includes(mode);
+  if (banner) banner.hidden = !['gd', 'official', 'lunar'].includes(mode);
   const toolbar = $('library-toolbar');
   if (toolbar) toolbar.dataset.mode = mode;
   const playHeading = $('page-play')?.querySelector('h1 .not-classic');

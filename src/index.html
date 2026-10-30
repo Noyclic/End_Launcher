@@ -30,6 +30,16 @@
           <button id="nav-ai-button" class="nav-btn" data-page="ai" title="ИИ-помощник"><span class="ico">🧠</span><span class="lbl">ИИ-Помощник</span></button>
           <button id="nav-settings-button" class="nav-btn" data-page="settings" title="Настройки"><span class="ico">⚙</span><span class="lbl">Настройки</span></button>
         </nav>
+        <nav id="modrinth-nav" aria-label="Навигация Modrinth">
+          <button class="modrinth-nav-btn active" id="modrinth-nav-home" type="button" title="Главная"><span aria-hidden="true">▶</span><span>Главная</span></button>
+          <button class="modrinth-nav-btn" id="modrinth-nav-discover" type="button" title="Обзор"><span aria-hidden="true">⌕</span><span>Обзор</span></button>
+          <button class="modrinth-nav-btn" id="modrinth-nav-mods" type="button" title="Моды"><span aria-hidden="true">◇</span><span>Моды</span></button>
+          <button class="modrinth-nav-btn" id="modrinth-nav-library" type="button" title="Экземпляры"><span aria-hidden="true">▦</span><span>Сборки</span></button>
+        </nav>
+        <div class="modrinth-sidebar-tools" aria-label="Быстрые действия">
+          <button id="modrinth-nav-add" type="button" title="Добавить сборку" aria-label="Добавить сборку">＋</button>
+          <button id="modrinth-nav-settings" type="button" title="Настройки" aria-label="Настройки">⚙</button>
+        </div>
         <button id="prism-help" class="prism-header-action" type="button" title="Открыть справку лаунчера">Справка</button>
         <button id="prism-cat-toggle" class="prism-header-action" type="button" aria-pressed="false" title="Показать или скрыть котика на фоне">🐈 Котик</button>
         <button id="prism-update" class="prism-header-action" type="button" title="Проверить новую версию End Launcher">Обновить…</button>
@@ -49,6 +59,15 @@
           <button id="update-open" class="ghost">Открыть релиз</button>
         </div>
         <section class="page active" id="page-play">
+          <header class="modrinth-app-header" id="modrinth-app-header">
+            <div class="modrinth-app-identity">
+              <span class="modrinth-app-mark" aria-hidden="true">E</span>
+              <strong>END LAUNCHER</strong>
+              <span class="modrinth-header-separator">/</span>
+              <span>Главная</span>
+            </div>
+            <div class="modrinth-app-status"><span class="modrinth-status-dot"></span><span id="modrinth-running-status">Нет запущенной игры</span></div>
+          </header>
           <h1><span class="only-classic">ИГРАТЬ</span><span class="not-classic">БИБЛИОТЕКА</span></h1>
 
           <!-- блок «Играть»: в классике он здесь, в остальных раскладках JS переносит его в нижнюю/боковую панель -->
@@ -105,6 +124,12 @@
                 <button id="layout-extras-toggle" class="ghost" title="Показать дополнительные функции End Launcher">⋯ Дополнительно</button>
                 <button id="library-add" title="Создать новую сборку">Добавить экземпляр…</button>
               </div>
+            </div>
+            <div id="modrinth-library-filters" class="modrinth-library-filters" role="group" aria-label="Фильтры библиотеки Modrinth">
+              <label><span>Сортировка</span><select id="modrinth-sort" aria-label="Сортировка сборок"><option value="name-asc">Имя</option><option value="name-desc">Имя: Я–А</option><option value="last-played">Последний запуск</option><option value="version">Версия</option><option value="loader">Загрузчик</option></select></label>
+              <label><span>Группа</span><select id="modrinth-group-filter" aria-label="Фильтр по группам"><option value="all">Все группы</option><option value="grouped">Мои группы</option><option value="ungrouped">Без группы</option></select></label>
+              <label><span>Загрузчик</span><select id="modrinth-loader-filter" aria-label="Фильтр по загрузчику"><option value="all">Все</option><option value="vanilla">Vanilla</option><option value="fabric">Fabric</option><option value="forge">Forge</option><option value="neoforge">NeoForge</option><option value="quilt">Quilt</option></select></label>
+              <span class="modrinth-filter-count" id="modrinth-filter-count">Все сборки</span>
             </div>
             <div id="prism-library-tools" class="layout-feature-tools" role="group" aria-label="Настройки списка Prism">
               <label>Сортировка
@@ -669,6 +694,31 @@
       </main>
 
       </div>
+      <aside class="modrinth-account-panel" id="modrinth-account-panel" aria-label="Аккаунт и выбранная сборка">
+        <section class="modrinth-account-section">
+          <div class="modrinth-panel-heading">ТЕКУЩИЙ АККАУНТ</div>
+          <button id="modrinth-account-open" class="modrinth-account-card" type="button">
+            <span class="modrinth-account-avatar" id="modrinth-account-avatar">E</span>
+            <span class="modrinth-account-copy"><strong id="modrinth-account-name">Enderman</strong><small id="modrinth-account-mode">ОФЛАЙН</small></span>
+            <span class="modrinth-account-chevron" aria-hidden="true">⌄</span>
+          </button>
+          <p class="modrinth-account-caption">Учётная запись End Launcher</p>
+        </section>
+        <section class="modrinth-selected-section">
+          <div class="modrinth-panel-heading">ВЫБРАННАЯ СБОРКА</div>
+          <div class="modrinth-selected-card">
+            <span class="modrinth-selected-icon" id="modrinth-selected-icon">E</span>
+            <span class="modrinth-selected-copy"><strong id="modrinth-selected-name">Нет сборки</strong><small id="modrinth-selected-meta">Создайте или выберите сборку</small></span>
+          </div>
+          <button id="modrinth-side-play" class="modrinth-side-play" type="button">▶ Запустить</button>
+        </section>
+        <section class="modrinth-quick-section">
+          <div class="modrinth-panel-heading">БЫСТРЫЕ ДЕЙСТВИЯ</div>
+          <button id="modrinth-side-mods" type="button"><span>◇</span> Моды выбранной сборки <span>›</span></button>
+          <button id="modrinth-side-settings" type="button"><span>⚙</span> Параметры лаунчера <span>›</span></button>
+        </section>
+        <div class="modrinth-panel-footer"><span class="modrinth-footer-mark">E</span><span><strong>END LAUNCHER</strong><small>Все сборки в одном месте</small></span></div>
+      </aside>
       <!-- Отдельный layout-элемент: разные раскладки могут размещать панель запуска независимо от основного контента. -->
       <footer class="playbar" id="slot-bar"></footer>
       <footer class="prism-status-bar" id="prism-status-bar" hidden aria-label="Строка состояния Prism">

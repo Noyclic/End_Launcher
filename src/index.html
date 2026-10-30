@@ -100,7 +100,7 @@
               <label>Сортировка
                 <select id="prism-library-sort" aria-label="Сортировка сборок Prism">
                   <option value="name-asc">Имя: А–Я</option><option value="name-desc">Имя: Я–А</option>
-                  <option value="version-desc">Версия: новая сначала</option><option value="loader">Загрузчик</option>
+                  <option value="version-desc">Версия: новая сначала</option><option value="loader">Загрузчик</option><option value="last-played">Последний запуск</option>
                 </select>
               </label>
               <label>Группировка
@@ -186,8 +186,8 @@
                         <div class="prism-version-browser">
                           <div class="prism-version-table-wrap">
                             <table class="prism-version-table" aria-label="Версии Minecraft">
-                              <thead><tr><th>Версия</th><th>Тип</th></tr></thead>
-                              <tbody id="ni-version-rows"><tr><td colspan="2" class="dim">Загружаю список версий…</td></tr></tbody>
+                              <thead><tr><th>Версия</th><th>Выпущено</th><th>Тип</th></tr></thead>
+                              <tbody id="ni-version-rows"><tr><td colspan="3" class="dim">Загружаю список версий…</td></tr></tbody>
                             </table>
                           </div>
                           <div class="prism-version-filters">
@@ -419,12 +419,41 @@
             <button type="button" role="tab" data-prism-settings-tab="proxy" aria-selected="false"><span class="prism-settings-tab-icon" aria-hidden="true">⇄</span><span>Прокси-сервер</span></button>
           </div>
           <div class="prism-settings-content">
-          <section class="prism-settings-reference-card" data-prism-settings-fixed-section="general">
-            <h2>ГЛАВНЫЕ ПАРАМЕТРЫ</h2>
-            <p>Быстрый доступ к каталогам и проверке версии лаунчера.</p>
-            <div class="prism-settings-reference-actions">
-              <button id="prism-settings-open-root" type="button">Открыть корневую папку</button>
-              <button id="prism-settings-check-update" type="button">Проверить обновления</button>
+          <section class="prism-settings-reference-card prism-settings-general-card" data-prism-settings-fixed-section="general">
+            <h2>ГЛАВНОЕ</h2>
+            <div class="prism-settings-preference-block">
+              <strong>Сортировка экземпляров</strong>
+              <label class="prism-settings-option"><input type="radio" name="prism-settings-instance-sort" value="name-asc" /> По имени</label>
+              <label class="prism-settings-option"><input type="radio" name="prism-settings-instance-sort" value="last-played" /> По последнему запуску</label>
+            </div>
+            <div class="prism-settings-preference-block">
+              <strong>Переименование экземпляра</strong>
+              <label class="prism-settings-option prism-settings-option-fixed"><input type="radio" checked disabled /> Сохранять папку по внутреннему ID</label>
+              <p>Изменение имени меняет подпись сборки, но не перемещает папку с мирами, модами и настройками. Это сохраняет стабильные пути и ярлыки.</p>
+            </div>
+            <div class="prism-settings-preference-block">
+              <strong>Панель инструментов</strong>
+              <label class="prism-settings-option prism-settings-option-fixed"><input type="checkbox" checked disabled /> Использовать компактную панель команд</label>
+            </div>
+            <div class="prism-settings-preference-block">
+              <strong>Обновления</strong>
+              <label class="prism-settings-option prism-settings-option-fixed"><input type="checkbox" disabled /> Проверять наличие обновлений автоматически</label>
+              <p>Автоматическая проверка по расписанию пока не поддерживается. Проверить обновления можно вручную.</p>
+              <div class="prism-settings-reference-actions">
+                <button id="prism-settings-check-update" type="button">Проверить обновления…</button>
+              </div>
+            </div>
+            <div class="prism-settings-preference-block prism-settings-folders-block">
+              <strong>Папки</strong>
+              <div class="prism-settings-path-list">
+                <div class="prism-settings-path-row"><span>Корневая папка игры</span><code>game</code><button id="prism-settings-open-root" type="button">Обзор…</button></div>
+                <div class="prism-settings-path-row"><span>Экземпляры</span><code>instances</code><button id="prism-settings-open-instances" type="button">Обзор…</button></div>
+                <div class="prism-settings-path-row"><span>Основная папка модов</span><code>mods</code><button id="prism-settings-open-mods" type="button">Обзор…</button></div>
+                <div class="prism-settings-path-row"><span>Значки интерфейса</span><code>icon-themes</code><button id="prism-settings-open-icons" type="button">Обзор…</button></div>
+                <div class="prism-settings-path-row"><span>Java</span><code>runtime</code><button id="prism-settings-open-java" type="button">Обзор…</button></div>
+                <div class="prism-settings-path-row"><span>Скины</span><code>skins</code><button id="prism-settings-open-skins" type="button">Обзор…</button></div>
+                <div class="prism-settings-path-row"><span>Журналы Minecraft</span><code>logs</code><button id="prism-settings-open-logs" type="button">Обзор…</button></div>
+              </div>
             </div>
           </section>
           <section class="prism-settings-reference-card" data-prism-settings-fixed-section="language">

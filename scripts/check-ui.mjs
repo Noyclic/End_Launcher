@@ -352,6 +352,17 @@ check(css.includes(":root[data-ui='modrinth'] .modrinth-jump-card")
     && css.includes(":root[data-ui='modrinth'] .modrinth-pack-card")
     && css.includes(":root[data-ui='modrinth'] #library .inst-card .inst-play"),
   'Modrinth home needs its own recent-play, discovery and green row-action design');
+
+check(js.includes('function homeModsSelectionKey()')
+    && js.includes('let homeModsRequestId = 0;')
+    && js.includes('if (requestId !== homeModsRequestId || homeModsSelectionKey() !== key) return;')
+    && js.includes('ensureHomeModsLoaded.observerKey === key'),
+  'Popular home mods must reload for the selected version/loader and ignore stale search responses');
+check(js.includes('let homeModpacksRequestId = 0;')
+    && js.includes('homeModpacksKey === gameVersion')
+    && js.includes('latestVersion !== gameVersion')
+    && (js.match(/if \\(currentUi === 'modrinth'\\) void loadHomeModpacks\\(\\);/g) || []).length >= 2,
+  'Modrinth discovery must refresh for the selected Minecraft version and ignore stale responses');
 check(rustMods.includes('Some("modpack") => "modpack"')
     && rustMods.includes('supports_modpack_search_without_changing_install_types'),
   'Rust Modrinth search must support modpack facets without changing installation categories');

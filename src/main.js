@@ -1636,6 +1636,11 @@ function renderLibrary() {
       if (prismLibrarySort === 'name-desc') return nameCompare(b, a);
       if (prismLibrarySort === 'version-desc') return versionCompare(a, b);
       if (prismLibrarySort === 'loader') return loaderCompare(a, b);
+      if (prismLibrarySort === 'last-played') {
+        const lastA = Number(prismPlayStats[String(a.id)]?.lastPlayedAt || 0);
+        const lastB = Number(prismPlayStats[String(b.id)]?.lastPlayedAt || 0);
+        return (lastB - lastA) || nameCompare(a, b);
+      }
       return nameCompare(a, b);
     }
     if (currentUi === 'official') {
@@ -1827,6 +1832,7 @@ function renderLibrary() {
 
 // ── список версий игры (для формы сборки и для страницы модов) ──
 let releaseIds = [];
+let prismCreateVersionMetadata = Object.create(null);
 function fillSelect(sel, ids, selected) {
   sel.replaceChildren();
   for (const id of ids) {
@@ -1838,11 +1844,24 @@ function fillSelect(sel, ids, selected) {
 }
 function prismCreateVersionKind(id) {
   const value = String(id || '').toLowerCase();
+  const sourceKind = prismCreateVersionMetadata[value]?.kind;
+  if (sourceKind === 'old_alpha') return 'alphas';
+  if (sourceKind === 'old_beta') return 'betas';
+  if (sourceKind === 'snapshot') return 'snapshots';
   if (/experimental|combat|test/.test(value)) return 'experimental';
   if (/alpha/.test(value)) return 'alphas';
   if (/beta/.test(value)) return 'betas';
   if (/snapshot|w[0-9]{2,}/.test(value)) return 'snapshots';
   return 'releases';
+}
+
+function formatPrismReleaseDate(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return new Intl.DateTimeFormat('ru-RU', {
+    day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC',
+  }).format(date);
 }
 
 function renderPrismCreateVersionBrowser() {
@@ -1861,7 +1880,7 @@ function renderPrismCreateVersionBrowser() {
   if (!visible.length) {
     const row = document.createElement('tr');
     const cell = document.createElement('td');
-    cell.colSpan = 2;
+    cell.colSpan = 3;
     cell.className = 'dim';
     cell.textContent = releaseIds.length
       ? 'Нет версий по выбранным фильтрам.'
@@ -1887,9 +1906,12 @@ function renderPrismCreateVersionBrowser() {
     row.classList.toggle('active', id === selected);
     const versionCell = document.createElement('td');
     versionCell.textContent = id;
+    const releaseDateCell = document.createElement('td');
+    releaseDateCell.textContent = formatPrismReleaseDate(prismCreateVersionMetadata[id.toLowerCase()]?.release_time);
+    releaseDateCell.className = 'prism-version-release-date';
     const typeCell = document.createElement('td');
     typeCell.textContent = kindLabels[kind] || 'release';
-    row.append(versionCell, typeCell);
+    row.append(versionCell, releaseDateCell, typeCell);
     const choose = () => {
       select.value = id;
       if (select.value !== id) {
@@ -1925,11 +1947,25 @@ function renderPrismCreateVersionBrowser() {
 }
 
 async function loadReleases({ refresh = false } = {}) {
-  if (refresh) releaseIds = [];
+  if (refresh) {
+    releaseIds = [];
+    prismCreateVersionMetadata = Object.create(null);
+  }
   if (!releaseIds.length) {
-    // -> Rust: java.rs :: list_java_versions()
+    // -> Rust: java.rs :: list_java_versions() (Mojang manifest metadata)
     const rel = await invoke('list_java_versions').catch(() => []);
-    releaseIds = rel.map((v) => v.id).filter(Boolean);
+    prismCreateVersionMetadata = Object.create(null);
+    releaseIds = rel.map((version) => {
+      const item = typeof version === 'string' ? { id: version } : version;
+      const id = String(item?.id || '').trim();
+      if (id) {
+        prismCreateVersionMetadata[id.toLowerCase()] = {
+          kind: String(item.kind || ''),
+          release_time: String(item.release_time || item.releaseTime || ''),
+        };
+      }
+      return id;
+    }).filter(Boolean);
     if (releaseIds.length) {
       fillSelect($('mod-version'), releaseIds, $('mod-version').value);
       const current = $('ni-version')?.value;
@@ -1947,7 +1983,7 @@ $('ni-version-refresh')?.addEventListener('click', async () => {
   const button = $('ni-version-refresh');
   if (button) button.disabled = true;
   const body = $('ni-version-rows');
-  if (body) body.innerHTML = '<tr><td colspan="2" class="dim">Обновляю список версий…</td></tr>';
+  if (body) body.innerHTML = '<tr><td colspan="3" class="dim">Обновляю список версий…</td></tr>';
   try {
     const ids = await loadReleases({ refresh: true });
     if (ids.length) {

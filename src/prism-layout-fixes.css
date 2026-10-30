@@ -2145,3 +2145,11 @@
   }
   :root[data-ui='prism'] .prism-loader-preview { min-height: 82px; }
 }
+
+
+/* The native loader select remains the internal value source, not a visible control in Prism mode. */
+:root[data-ui='prism'] #new-instance .prism-create-loader-field #ni-loader,
+:root[data-ui='prism'] .prism-create-loader-field > select#ni-loader {
+  display: none !important;
+  visibility: hidden !important;
+}

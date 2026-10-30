@@ -7272,3 +7272,32 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 :root[data-ui='prism'] .sidebar #nav-settings-button { order: 3 !important; }
 :root[data-ui='prism'] .sidebar #prism-help { order: 4 !important; }
 :root[data-ui='prism'] .sidebar #prism-update { order: 5 !important; }
+
+
+/* Prism shell hand-off: remove End-specific chrome from the switched workspace. */
+:root[data-ui='prism'] .logo-cube {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #6e9b4f;
+  border-radius: 3px;
+  background: linear-gradient(to bottom, #78b94f 0 30%, #936a43 30% 100%);
+  box-shadow: none;
+  color: transparent;
+  font-size: 0;
+}
+:root[data-ui='prism'] .logo-cube::after {
+  content: '';
+  position: absolute;
+  inset: 4px 5px 5px;
+  border: 2px solid #d0e6ac;
+  border-bottom-color: #5b8743;
+  background: linear-gradient(135deg, #91c96a 0 45%, #629e46 45% 100%);
+  box-shadow: 5px 5px 0 -3px #d9c08c;
+}
+:root[data-ui='prism'] .logo-text {
+  display: none !important;
+}
+:root[data-ui='prism'] .end-void,
+:root[data-ui='prism'] #ender-particles {
+  display: none !important;
+}

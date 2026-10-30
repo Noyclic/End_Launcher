@@ -2449,7 +2449,8 @@
   background:#202c24;
   filter:none;
 }
-:root[data-ui='modrinth'] .launcher-banner { display:none !important; }
+:root[data-ui='modrinth'] #page-play #launcher-banner { display:none !important; }
+:root[data-ui='modrinth'] #pet { display:none !important; }
 :root[data-ui='modrinth'] .content {
   grid-column:2;
   grid-row:1;
@@ -2693,6 +2694,10 @@
 :root[data-ui='modrinth'] #page-play .library-toolbar-actions > button { display:none !important; }
 :root[data-ui='modrinth'] #page-play .library-toolbar-actions > #library-add {
   display:inline-flex !important;
+  grid-column:2;
+  justify-self:end;
+  width:auto;
+  min-width:158px;
   align-items:center;
   justify-content:center;
   min-height:38px;

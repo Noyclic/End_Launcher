@@ -3118,3 +3118,12 @@
   :root[data-ui='modrinth'] .playbar .play-ui #play-btn { flex:1 1 auto; min-width:0; }
   :root[data-ui='modrinth'] .modrinth-pack-grid { grid-template-columns:minmax(0,1fr); }
 }
+
+/* Keep Modrinth-only structure out of every other launcher shell. */
+:root:not([data-ui='modrinth']) #modrinth-nav,
+:root:not([data-ui='modrinth']) .modrinth-sidebar-tools,
+:root:not([data-ui='modrinth']) .modrinth-app-header,
+:root:not([data-ui='modrinth']) .modrinth-account-panel,
+:root:not([data-ui='modrinth']) .modrinth-library-filters {
+  display:none !important;
+}

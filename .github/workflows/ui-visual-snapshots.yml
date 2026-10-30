@@ -510,7 +510,7 @@ jobs:
           if (!settingsVisible.pageActive || !settingsVisible.dialogVisible || settingsVisible.dialogRole !== 'dialog'
               || !settingsVisible.dialogCentered || settingsVisible.tabCount !== 9
               || !settingsVisible.tabsVisible || settingsVisible.selectedTab !== 'general'
-              || !settingsVisible.generalVisible || settingsVisible.javaHidden
+              || !settingsVisible.generalVisible || !settingsVisible.javaHidden
               || !settingsVisible.hasAccountsAction || !settingsVisible.hasProxyInfo
               || settingsVisible.generalSortOptions !== 2 || settingsVisible.activeSort !== 'name-asc'
               || settingsVisible.pathBrowseActions !== 7 || !settingsVisible.updateModeIsHonest) {

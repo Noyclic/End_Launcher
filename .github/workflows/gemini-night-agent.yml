@@ -32,6 +32,19 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust dependencies
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
       - name: Record the branch lease
         id: lease
         shell: bash
@@ -90,7 +103,7 @@ jobs:
           node --check src/main.js
           npm run test:ui
           cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
-          cargo test --manifest-path src-tauri/Cargo.toml
+          cargo test --manifest-path src-tauri/Cargo.toml --no-default-features
 
           # Agent instructions/workflows are immutable to the agent itself.
           CHANGED_PATHS="$( { git diff --name-only; git ls-files --others --exclude-standard; } | sort -u )"

@@ -431,8 +431,8 @@ check(css.includes(":root:not([data-ui='end']) #page-mods,")
 
 check(js.includes("const target = ['end', 'tl'].includes(mode) ? $('slot-page') : $('slot-bar');"),
   'TL layout must place the working play controls inside its centered launcher panel');
-check(js.includes("!['modrinth', 'gd', 'official', 'lunar'].includes(mode)"),
-  'Modrinth, GD, official and Lunar layouts must expose their selected-instance header where designed');
+check(js.includes("!['gd', 'official', 'lunar'].includes(mode)"),
+  'Modrinth uses its dedicated top bar and right-side selected-instance panel instead of the generic hero banner');
 check(js.includes("if (currentUi === 'modrinth')") && js.includes("title.textContent = 'С возвращением!'"),
   'Modrinth home must use a welcome-back header instead of the generic End hero');
 check(js.includes("$('launcher-banner-play')?.addEventListener('click', () => {")

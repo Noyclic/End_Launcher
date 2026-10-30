@@ -17,6 +17,7 @@ use crate::runtime::{self, JavaRequirement};
 pub struct JavaVersion {
     pub id: String,
     pub kind: String,
+    pub release_time: String,
 }
 
 /// Какая Java нужна версии (для check_java в runtime.rs).
@@ -28,15 +29,18 @@ pub async fn requirement_for(id: &str) -> JavaRequirement {
         .unwrap_or_default()
 }
 
-/// Список свежих релизов Java Edition (для выпадающего списка на фронте).
+/// Список версий Minecraft из манифеста Mojang для браузера создания экземпляра.
 #[tauri::command]
 pub async fn list_java_versions() -> Result<Vec<JavaVersion>, String> {
     let m = mc::manifest().await?;
     Ok(m.versions
         .iter()
-        .filter(|v| v.kind == "release")
-        .take(200)
-        .map(|v| JavaVersion { id: v.id.clone(), kind: v.kind.clone() })
+        .take(400)
+        .map(|v| JavaVersion {
+            id: v.id.clone(),
+            kind: v.kind.clone(),
+            release_time: v.release_time.clone(),
+        })
         .collect())
 }
 

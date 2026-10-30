@@ -1,5 +1,14 @@
 # Changelog
 
+## Modrinth — dedicated workspace and library pass
+
+- Rebuilt the Modrinth-inspired shell as a separate three-column desktop workspace: narrow icon navigation, central home/library, and an End Launcher account and selected-instance panel.
+- Added a compact workspace header and a vertical Jump In list with up to five instances that have real recorded launch timestamps; missing timestamps are labelled honestly instead of inventing recent activity.
+- Added working library sort, custom-group and loader filters, with each selection persisted locally.
+- Added direct navigation to Home, Discover, Mods, Instances, and Settings while preserving the existing launcher account, instance selection, play and modpack actions.
+- Added responsive rules for narrower windows and mobile screens.
+- Expanded static and browser checks to cover the new navigation, filters, account panel, and desktop/mobile visual snapshots.
+
 ## Modrinth — profile-aware home recommendations
 
 - Popular mods on the home screen now reload when the selected Minecraft version or loader changes, rather than remaining tied to the first profile opened.

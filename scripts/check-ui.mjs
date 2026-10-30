@@ -1048,3 +1048,39 @@ check(html.includes('id="prism-settings-open-root"')
 check(rustInstances.includes('pub fn open_launcher_resource_folder(kind: String)')
     && rustMain.includes('instances::open_launcher_resource_folder,'),
   'Prism resource-folder menu must map to a registered native folder-opening command');
+
+
+// Prism/Pinecone inner fidelity: General settings and full Mojang version metadata.
+check(html.includes('class="prism-settings-general-card"')
+    && html.includes('name="prism-settings-instance-sort"')
+    && html.includes('value="last-played"')
+    && html.includes('id="prism-settings-open-instances"')
+    && html.includes('id="prism-settings-open-mods"')
+    && html.includes('id="prism-settings-open-java"')
+    && js.includes('function syncPrismSettingsSortChoices()')
+    && js.includes("localStorage.setItem('el-prism-library-sort', prismLibrarySort)")
+    && js.includes("if (prismLibrarySort === 'last-played')")
+    && repairCss.includes('.prism-settings-preference-block')
+    && repairCss.includes('.prism-settings-path-row'),
+  'Prism General settings must expose working last-played sorting and native folder shortcuts without pretending unsupported options work');
+
+check(html.includes('<th>Версия</th><th>Выпущено</th><th>Тип</th>')
+    && html.includes('colspan="3"')
+    && js.includes('let prismCreateVersionMetadata = Object.create(null)')
+    && js.includes('function formatPrismReleaseDate(value)')
+    && js.includes('className = \'prism-version-release-date\'')
+    && js.includes('item.release_time || item.releaseTime')
+    && js.includes("sourceKind === 'old_alpha'")
+    && js.includes("sourceKind === 'old_beta'")
+    && java.includes('pub release_time: String')
+    && java.includes('kind: v.kind.clone()')
+    && java.includes('release_time: v.release_time.clone()')
+    && mc.includes('#[serde(rename = "releaseTime", default)]'),
+  'Prism Add Instance version browser must show Mojang release dates and correctly classify releases, snapshots, betas and alphas');
+
+check(repairCss.includes('.prism-folders-menu-icon::before')
+    && repairCss.includes("[data-folder-action='mods'] .prism-folders-menu-icon::after")
+    && repairCss.includes('.prism-help-menu-item[data-help-action=\'report\'] .prism-help-menu-icon')
+    && repairCss.includes('.prism-settings-general-card')
+    && repairCss.includes('.prism-version-release-date'),
+  'Prism inner menus and dialogs must keep resource-specific icon treatments and compact reference spacing');

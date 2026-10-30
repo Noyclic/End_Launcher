@@ -415,6 +415,7 @@ jobs:
               return r ? { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height } : null;
             })(),
             loaderOptionCount: document.querySelectorAll('.prism-create-loader-field .prism-loader-option').length,
+            vanillaFallbackVisible: (() => { const wrapper = document.querySelector('.prism-create-loader-field > .cselect:has(> #ni-loader)'); return !!wrapper && getComputedStyle(wrapper).display !== 'none' && wrapper.getBoundingClientRect().width > 0; })(),
             vanillaRadioVisible: [...document.querySelectorAll('.prism-create-loader-field input[type="radio"]')].some((input) => input.value === 'vanilla'),
             versionBrowserVisible: !!document.querySelector('.prism-version-browser') && getComputedStyle(document.querySelector('.prism-version-browser')).display !== 'none',
             overlayRect: (() => { const r = document.getElementById('new-instance').getBoundingClientRect(); return { left: r.left, top: r.top, width: r.width, height: r.height }; })(),
@@ -435,7 +436,7 @@ jobs:
               || !wizardState.firstReleaseDate
               || !wizardState.versionSearch || wizardState.versionSearch.width < 220 || wizardState.versionSearch.height < 20
               || !wizardState.loaderField || wizardState.loaderField.width < 70 || wizardState.loaderField.height < 40
-              || wizardState.loaderOptionCount !== 4 || wizardState.vanillaRadioVisible
+              || wizardState.loaderOptionCount !== 4 || wizardState.vanillaRadioVisible || wizardState.vanillaFallbackVisible
               || !wizardState.minecraftPanelVisible || !wizardState.importPanelHidden || wizardState.versionOptions !== 4
               || Math.abs(wizardState.overlayRect.left) > 1 || Math.abs(wizardState.overlayRect.top) > 1
               || Math.abs(wizardState.overlayRect.width - 1440) > 2

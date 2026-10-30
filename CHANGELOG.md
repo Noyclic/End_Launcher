@@ -4,6 +4,7 @@
 
 - Popular mods on the home screen now reload when the selected Minecraft version or loader changes, rather than remaining tied to the first profile opened.
 - Modrinth modpack discovery now refreshes when the active profile's Minecraft version changes.
+- Modpack cards fall back to a neutral “M” tile when a remote project icon fails to load, instead of displaying a broken-image placeholder.
 - Added request sequencing and selection checks so slower responses from an older profile cannot overwrite recommendations for the newly selected profile.
 - Added regression assertions for profile-keyed loading, refresh triggers, and stale-response protection.
 

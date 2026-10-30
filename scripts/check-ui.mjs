@@ -363,6 +363,8 @@ check(js.includes('let homeModpacksRequestId = 0;')
     && js.includes('latestVersion !== gameVersion')
     && (js.split("if (currentUi === 'modrinth') void loadHomeModpacks();").length - 1) >= 2,
   'Modrinth discovery must refresh for the selected Minecraft version and ignore stale responses');
+check(js.includes("img.addEventListener('error', () => { art.textContent = 'M'; }, { once: true });"),
+  'Modrinth discovery cards must keep a clean fallback when a remote icon fails to load');
 check(rustMods.includes('Some("modpack") => "modpack"')
     && rustMods.includes('supports_modpack_search_without_changing_install_types'),
   'Rust Modrinth search must support modpack facets without changing installation categories');

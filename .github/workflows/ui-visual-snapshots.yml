@@ -285,7 +285,7 @@ jobs:
           console.log('PRISM HELP MENU:', JSON.stringify(helpMenuState));
           const expectedHelpLabels = [
             'Обновить метаданные версий', 'Сообщить об ошибке или предложить функцию', 'Просмотр журналов',
-            'Обсуждения End Launcher', 'Больше новостей…', 'Справка End Launcher', 'О проекте End Launcher',
+            'Обсуждения', 'Новости и релизы', 'Справка', 'О проекте',
           ];
           if (!helpMenuState.visible || helpMenuState.labels.join('|') !== expectedHelpLabels.join('|')) {
             throw new Error('Prism Help menu does not expose the expected project actions.');

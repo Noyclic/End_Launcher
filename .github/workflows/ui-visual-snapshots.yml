@@ -410,10 +410,12 @@ jobs:
               return r ? { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height } : null;
             })(),
             loaderField: (() => {
-              // Measure the actual select, not its label wrapper (which also contains the caption).
-              const r = document.getElementById('ni-loader')?.getBoundingClientRect();
+              // The native select is intentionally hidden; measure the visible custom radio chooser.
+              const r = document.querySelector('.prism-create-loader-field .prism-loader-options')?.getBoundingClientRect();
               return r ? { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height } : null;
             })(),
+            loaderOptionCount: document.querySelectorAll('.prism-create-loader-field .prism-loader-option').length,
+            vanillaRadioVisible: [...document.querySelectorAll('.prism-create-loader-field input[type="radio"]')].some((input) => input.value === 'vanilla'),
             versionBrowserVisible: !!document.querySelector('.prism-version-browser') && getComputedStyle(document.querySelector('.prism-version-browser')).display !== 'none',
             overlayRect: (() => { const r = document.getElementById('new-instance').getBoundingClientRect(); return { left: r.left, top: r.top, width: r.width, height: r.height }; })(),
             minecraftPanelVisible: !document.querySelector('[data-create-panel="minecraft"]')?.hidden,
@@ -432,7 +434,8 @@ jobs:
               || wizardState.versionHeaders.join('|') !== 'Версия|Выпущено|Тип'
               || !wizardState.firstReleaseDate
               || !wizardState.versionSearch || wizardState.versionSearch.width < 220 || wizardState.versionSearch.height < 20
-              || !wizardState.loaderField || wizardState.loaderField.top < wizardState.versionSearch.bottom - 1
+              || !wizardState.loaderField || wizardState.loaderField.width < 70 || wizardState.loaderField.height < 40
+              || wizardState.loaderOptionCount !== 4 || wizardState.vanillaRadioVisible
               || !wizardState.minecraftPanelVisible || !wizardState.importPanelHidden || wizardState.versionOptions !== 4
               || Math.abs(wizardState.overlayRect.left) > 1 || Math.abs(wizardState.overlayRect.top) > 1
               || Math.abs(wizardState.overlayRect.width - 1440) > 2

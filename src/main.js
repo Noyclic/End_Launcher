@@ -544,6 +544,7 @@ async function loadInstances() {
   showJavaStatus();
   renderHomeStats();
   ensureHomeModsLoaded();
+  if (currentUi === 'modrinth') void loadHomeModpacks();
 }
 
 async function setActive(id) {
@@ -558,6 +559,7 @@ async function setActive(id) {
   showJavaStatus();
   renderHomeStats();
   ensureHomeModsLoaded();
+  if (currentUi === 'modrinth') void loadHomeModpacks();
 }
 $('instance-select').addEventListener('change', (e) => setActive(e.target.value));
 
@@ -2550,44 +2552,64 @@ async function renderHomeStats() {
 }
 
 let homeModsKey = '';
+let homeModsLoadingKey = '';
+let homeModsRequestId = 0;
+function homeModsSelectionKey() {
+  const inst = currentInstance();
+  const gameVersion = inst ? inst.version : '';
+  const loader = inst ? (inst.loader === 'vanilla' ? 'any' : inst.loader) : 'any';
+  return `${gameVersion}|${loader}`;
+}
 // Не загружаем витрину модов, пока пользователь до неё не прокрутил.
+// Если выбранная сборка меняется до прокрутки, наблюдатель привязывается к новому ключу.
 function ensureHomeModsLoaded() {
   const section = $('home-mods')?.closest('section, .home-mods-section') || $('home-mods');
-  if (!section || ensureHomeModsLoaded.loading || homeModsKey) return;
-  if (!document.getElementById('page-play')?.classList.contains('active')) return;
+  if (!section || !document.getElementById('page-play')?.classList.contains('active')) return;
+  const key = homeModsSelectionKey();
+  if (key === homeModsKey || key === homeModsLoadingKey) return;
   if ('IntersectionObserver' in window) {
-    if (ensureHomeModsLoaded.observer) return;
-    ensureHomeModsLoaded.observer = new IntersectionObserver((entries) => {
+    if (ensureHomeModsLoaded.observer && ensureHomeModsLoaded.observerKey === key) return;
+    ensureHomeModsLoaded.observer?.disconnect();
+    const observer = new IntersectionObserver((entries) => {
       if (entries.some((entry) => entry.isIntersecting)) {
-        ensureHomeModsLoaded.observer.disconnect();
-        ensureHomeModsLoaded.observer = null;
-        ensureHomeModsLoaded.loading = true;
-        loadHomeMods().finally(() => { ensureHomeModsLoaded.loading = false; });
+        observer.disconnect();
+        if (ensureHomeModsLoaded.observer === observer) {
+          ensureHomeModsLoaded.observer = null;
+          ensureHomeModsLoaded.observerKey = '';
+        }
+        if (key === homeModsSelectionKey()) void loadHomeMods();
       }
     }, { root: null, rootMargin: '80px 0px', threshold: 0.01 });
-    ensureHomeModsLoaded.observer.observe(section);
+    ensureHomeModsLoaded.observer = observer;
+    ensureHomeModsLoaded.observerKey = key;
+    observer.observe(section);
   } else {
     const rect = section.getBoundingClientRect();
-    if (rect.top < innerHeight && rect.bottom > 0) loadHomeMods();
+    if (rect.top < innerHeight && rect.bottom > 0) void loadHomeMods();
   }
 }
-let homeModpacksLoaded = false;
-let homeModpacksLoading = false;
-async function loadHomeModpacks() {
+let homeModpacksKey = '';
+let homeModpacksLoadingKey = '';
+let homeModpacksRequestId = 0;
+async function loadHomeModpacks({ force = false } = {}) {
   const box = $('home-modpacks');
-  if (!box || currentUi !== 'modrinth' || homeModpacksLoaded || homeModpacksLoading) return;
-  homeModpacksLoading = true;
+  if (!box || currentUi !== 'modrinth') return;
+  const inst = currentInstance();
+  const gameVersion = String(inst?.version || '');
+  if (!force && (homeModpacksKey === gameVersion || homeModpacksLoadingKey === gameVersion)) return;
+  const requestId = ++homeModpacksRequestId;
+  homeModpacksLoadingKey = gameVersion;
   box.replaceChildren(mk('p', 'mono dim small', 'Загружаю популярные модпаки…'));
   try {
-    const inst = instances.find((item) => String(item.id) === String(activeId));
     const packs = await invoke('modrinth_search', {
       query: '',
-      gameVersion: inst?.version || '',
+      gameVersion,
       loader: 'any',
       projectType: 'modpack',
       offset: 0,
     });
-    if (currentUi !== 'modrinth') return;
+    const latestVersion = String(currentInstance()?.version || '');
+    if (requestId !== homeModpacksRequestId || currentUi !== 'modrinth' || latestVersion !== gameVersion) return;
     box.replaceChildren();
     for (const pack of packs.slice(0, 6)) {
       const card = mk('button', 'modrinth-pack-card');
@@ -2622,12 +2644,12 @@ async function loadHomeModpacks() {
       box.appendChild(card);
     }
     if (!packs.length) box.appendChild(mk('p', 'mono dim small', 'Пока не удалось найти подходящие модпаки.'));
-    homeModpacksLoaded = true;
+    homeModpacksKey = gameVersion;
   } catch (error) {
+    if (requestId !== homeModpacksRequestId || currentUi !== 'modrinth') return;
     box.replaceChildren(mk('p', 'mono dim small', 'Не удалось загрузить каталог Modrinth. Проверь подключение к интернету.'));
-    homeModpacksLoaded = false;
   } finally {
-    homeModpacksLoading = false;
+    if (requestId === homeModpacksRequestId) homeModpacksLoadingKey = '';
   }
 }
 
@@ -2636,14 +2658,16 @@ async function loadHomeMods() {
   const gameVersion = inst ? inst.version : '';
   const loader = inst ? (inst.loader === 'vanilla' ? 'any' : inst.loader) : 'any';
   const key = `${gameVersion}|${loader}`;
-  if (key === homeModsKey) return; // та же сборка — не грузим повторно
-  homeModsKey = key;
+  if (key === homeModsKey || key === homeModsLoadingKey) return;
+  const requestId = ++homeModsRequestId;
+  homeModsLoadingKey = key;
   $('home-mods-hint').textContent = inst ? `· для ${inst.version} · ${LOADER_NAME[inst.loader]}` : '· для любой версии';
   const box = $('home-mods');
-  box.replaceChildren(mk('p', 'mono dim small', 'загружаю…'));
+  box.replaceChildren(mk('p', 'mono dim small', 'Загружаю популярные моды…'));
   try {
     // -> Rust: mods.rs :: modrinth_search — пустой запрос = самые популярные моды
     const mods = await invoke('modrinth_search', { query: '', gameVersion, loader, projectType: 'mod', offset: 0 });
+    if (requestId !== homeModsRequestId || homeModsSelectionKey() !== key) return;
     box.replaceChildren();
     for (const m of mods.slice(0, 12)) {
       const card = mk('div', 'mini-mod');
@@ -2664,10 +2688,13 @@ async function loadHomeMods() {
       });
       box.appendChild(card);
     }
-    if (!mods.length) box.appendChild(mk('p', 'mono dim small', 'ничего не нашлось'));
+    if (!mods.length) box.appendChild(mk('p', 'mono dim small', 'Ничего не нашлось.'));
+    homeModsKey = key;
   } catch {
-    box.replaceChildren(mk('p', 'mono dim small', 'не удалось загрузить (нет интернета?)'));
-    homeModsKey = ''; // в следующий раз попробуем снова
+    if (requestId !== homeModsRequestId) return;
+    box.replaceChildren(mk('p', 'mono dim small', 'Не удалось загрузить каталог. Проверь подключение к интернету.'));
+  } finally {
+    if (requestId === homeModsRequestId) homeModsLoadingKey = '';
   }
 }
 

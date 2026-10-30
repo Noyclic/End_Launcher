@@ -3724,33 +3724,52 @@ if (modrinthLoaderSelect) {
 }
 $('library-add')?.addEventListener('click', openNewInstance);
 
+function setModrinthNavActive(id) {
+  document.querySelectorAll('#modrinth-nav .modrinth-nav-btn').forEach((button) => {
+    button.classList.toggle('active', button.id === id);
+  });
+}
 $('modrinth-account-open')?.addEventListener('click', () => $('account-box')?.click());
-$('modrinth-side-play')?.addEventListener('click', () => playBtn.click());
+$('modrinth-side-play')?.addEventListener('click', () => {
+  setModrinthNavActive('modrinth-nav-home');
+  playBtn.click();
+});
 $('modrinth-side-mods')?.addEventListener('click', () => {
   if (!currentInstance()) { showToast('Сначала выбери сборку.', false); return; }
+  setModrinthNavActive('modrinth-nav-mods');
   refreshInstalled();
   goPage('mods');
 });
-$('modrinth-side-settings')?.addEventListener('click', () => goPage('settings'));
+$('modrinth-side-settings')?.addEventListener('click', () => {
+  document.querySelectorAll('#modrinth-nav .modrinth-nav-btn').forEach((button) => button.classList.remove('active'));
+  goPage('settings');
+});
 $('modrinth-nav-home')?.addEventListener('click', () => {
+  setModrinthNavActive('modrinth-nav-home');
   goPage('play');
   document.querySelector('.content main')?.scrollTo({ top: 0, behavior: 'smooth' });
 });
 $('modrinth-nav-discover')?.addEventListener('click', () => {
+  setModrinthNavActive('modrinth-nav-discover');
   goPage('play');
   $('modrinth-discover')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 $('modrinth-nav-mods')?.addEventListener('click', () => {
   if (!currentInstance()) { showToast('Сначала выбери сборку.', false); return; }
+  setModrinthNavActive('modrinth-nav-mods');
   refreshInstalled();
   goPage('mods');
 });
 $('modrinth-nav-library')?.addEventListener('click', () => {
+  setModrinthNavActive('modrinth-nav-library');
   goPage('play');
   $('library-toolbar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 $('modrinth-nav-add')?.addEventListener('click', () => $('library-add')?.click());
-$('modrinth-nav-settings')?.addEventListener('click', () => goPage('settings'));
+$('modrinth-nav-settings')?.addEventListener('click', () => {
+  document.querySelectorAll('#modrinth-nav .modrinth-nav-btn').forEach((button) => button.classList.remove('active'));
+  goPage('settings');
+});
 
 $('prism-open-folder')?.addEventListener('click', (event) => {
   event.stopPropagation();

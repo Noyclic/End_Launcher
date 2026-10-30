@@ -2430,7 +2430,7 @@ function ensureNewsLoaded() {
 const UI_STYLES = {
   end:      ['End (классический)',   'Своя оболочка: боковое меню и большая кнопка'],
   modrinth: ['Modrinth App · стиль', 'Зелёные акценты, компактная библиотека и нижняя панель запуска'],
-  prism:    ['Prism / PineconeMC · стиль','Компактная сетка профилей и панели управления по семейству Prism/Pinecone; брендинг и функции остаются End Launcher'],
+  prism:    ['Prism-подобная оболочка','Главный экран полностью переключается на Prism-стиль; общие функции остаются рабочими, а диалоги открываются внутри окна'],
   tl:       ['TL Legacy · стиль',    'Классическая тёмная оболочка, профиль и закреплённый запуск снизу'],
   gd:       ['GDLauncher Carbon · стиль','Просторные карточки, широкая библиотека и зелёные акценты'],
   official: ['Minecraft Launcher · стиль','Горизонтальная навигация, большая игровая область и зелёный акцент'],
@@ -2902,11 +2902,11 @@ function ensurePrismHelpMenu(sidebar) {
       { action: 'report', icon: '✎', label: 'Сообщить об ошибке или предложить функцию', title: 'Открыть форму предложения или сообщения об ошибке' },
       { action: 'logs', icon: '▤', label: 'Просмотр журналов', title: 'Открыть журналы Minecraft для диагностики' },
       { separator: true },
-      { action: 'community', icon: '◉', label: 'Обсуждения End Launcher', title: 'Открыть обсуждения проекта' },
-      { action: 'news', icon: '▤', label: 'Больше новостей…', title: 'Открыть новости и релизы End Launcher' },
+      { action: 'community', icon: '◉', label: 'Обсуждения', title: 'Открыть обсуждения проекта' },
+      { action: 'news', icon: '▤', label: 'Новости и релизы', title: 'Открыть новости и релизы проекта' },
       { separator: true },
-      { action: 'wiki', icon: '?', label: 'Справка End Launcher', title: 'Открыть документацию End Launcher' },
-      { action: 'about', icon: 'ⓘ', label: 'О проекте End Launcher', title: 'Открыть репозиторий проекта' },
+      { action: 'wiki', icon: '?', label: 'Справка', title: 'Открыть документацию лаунчера' },
+      { action: 'about', icon: 'ⓘ', label: 'О проекте', title: 'Открыть страницу проекта' },
     ];
     for (const choice of choices) {
       if (choice.separator) {
@@ -3214,7 +3214,20 @@ let uiChoiceRevision = 0;
 async function chooseUi(mode) {
   if (!UI_STYLES[mode]) mode = 'end';
   const revision = ++uiChoiceRevision;
+
+  // A layout switch replaces the current workspace, not just its colors.
+  // Dismiss transient UI first, then land on the selected shell's home screen.
+  if (root.classList.contains('prism-settings-open')) {
+    closePrismSettingsDialog({ restoreFocus: false });
+  }
+  closePrismFoldersMenu();
+  closePrismHelpMenu();
+  closePrismOverflow();
+  const createDialog = $('new-instance');
+  if (createDialog && createDialog.style.display !== 'none') closeNewInstance();
+
   applyUi(mode);
+  goPage('play');
   try {
     // -> Rust: config.rs :: set_ui_style(style) — запоминаем между запусками
     await invoke('set_ui_style', { style: mode });

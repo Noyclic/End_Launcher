@@ -2177,3 +2177,30 @@
 :root[data-ui='prism'] #ni-loader-options .prism-loader-option {
   min-height: 18px !important;
 }
+
+
+/* The global custom-select enhancer wraps #ni-loader in .cselect.
+   Hide that generated wrapper too; the select itself remains the internal value source. */
+:root[data-ui='prism'] .prism-create-loader-field > .cselect:has(> select#ni-loader) {
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+:root[data-ui='prism'] #ni-loader-options .prism-loader-option {
+  gap: 6px !important;
+  min-height: 17px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.15 !important;
+}
+:root[data-ui='prism'] #ni-loader-options .prism-loader-option span {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.15 !important;
+}

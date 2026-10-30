@@ -399,7 +399,8 @@ jobs:
               return r ? { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height } : null;
             })(),
             loaderField: (() => {
-              const r = document.querySelector('.prism-create-loader-field')?.getBoundingClientRect();
+              // Measure the actual select, not its label wrapper (which also contains the caption).
+              const r = document.getElementById('ni-loader')?.getBoundingClientRect();
               return r ? { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height } : null;
             })(),
             versionBrowserVisible: !!document.querySelector('.prism-version-browser') && getComputedStyle(document.querySelector('.prism-version-browser')).display !== 'none',

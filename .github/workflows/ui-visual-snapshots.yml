@@ -805,6 +805,67 @@ jobs:
               || !String(modrinthState.selectedInstanceName || '').trim()) {
             throw new Error('Modrinth desktop workspace did not match its reference layout or lost a functional control.');
           }
+          // Exercise the actual client-side library controls, not just their presence.
+          await page.evaluate(() => {
+            const control = document.getElementById('modrinth-loader-filter');
+            control.value = 'forge';
+            control.dispatchEvent(new Event('change', { bubbles: true }));
+          });
+          await page.waitForFunction(() => document.querySelectorAll('#library .inst-card:not(.add)').length === 2);
+          const forgeFilterWorks = await page.evaluate(() => [...document.querySelectorAll('#library .inst-card:not(.add)')]
+            .every((card) => card.dataset.loader === 'forge'));
+          if (!forgeFilterWorks) throw new Error('Modrinth loader filter did not restrict the library to Forge instances.');
+
+          await page.evaluate(() => {
+            const control = document.getElementById('modrinth-loader-filter');
+            control.value = 'all';
+            control.dispatchEvent(new Event('change', { bubbles: true }));
+            const group = document.getElementById('modrinth-group-filter');
+            group.value = 'grouped';
+            group.dispatchEvent(new Event('change', { bubbles: true }));
+          });
+          await page.waitForFunction(() => document.querySelectorAll('#library .inst-card:not(.add)').length === 6);
+          const groupedFilterWorks = await page.evaluate(() => [...document.querySelectorAll('#library .inst-card:not(.add)')]
+            .every((card) => ['1002', '1006', '1007', '1008', '1009', '1010'].includes(card.dataset.instanceId)));
+          if (!groupedFilterWorks) throw new Error('Modrinth group filter did not return the six named test profiles.');
+
+          await page.evaluate(() => {
+            const group = document.getElementById('modrinth-group-filter');
+            group.value = 'all';
+            group.dispatchEvent(new Event('change', { bubbles: true }));
+            const sort = document.getElementById('modrinth-sort');
+            sort.value = 'last-played';
+            sort.dispatchEvent(new Event('change', { bubbles: true }));
+          });
+          await page.waitForFunction(() =>
+            document.querySelector('#library .inst-card:not(.add)')?.dataset.instanceId === '1001');
+          const lastPlayedSortWorks = await page.evaluate(() =>
+            document.querySelector('#library .inst-card:not(.add)')?.dataset.instanceId === '1001');
+          if (!lastPlayedSortWorks) throw new Error('Modrinth last-played sort did not place the most recently played instance first.');
+
+          await page.evaluate(() => {
+            const sort = document.getElementById('modrinth-sort');
+            sort.value = 'name-asc';
+            sort.dispatchEvent(new Event('change', { bubbles: true }));
+            document.getElementById('modrinth-nav-discover')?.click();
+          });
+          await page.waitForFunction(() => document.getElementById('modrinth-nav-discover')?.classList.contains('active'));
+          await page.evaluate(() => document.getElementById('modrinth-nav-mods')?.click());
+          await page.waitForFunction(() => document.getElementById('page-mods')?.classList.contains('active'));
+          const modsNavigationWorks = await page.evaluate(() =>
+            document.getElementById('modrinth-nav-mods')?.classList.contains('active'));
+          if (!modsNavigationWorks) throw new Error('Modrinth navigation did not switch into the selected instance Mods page.');
+          await page.evaluate(() => document.getElementById('modrinth-nav-home')?.click());
+          await page.waitForFunction(() => document.getElementById('page-play')?.classList.contains('active'));
+
+          await page.locator('#modrinth-jump-in-list .modrinth-jump-more').first().click();
+          await page.waitForFunction(() => document.querySelector('#modrinth-jump-in-list .inst-menu'));
+          const jumpInMenuWorks = await page.locator('#modrinth-jump-in-list .inst-menu').count() === 1;
+          if (!jumpInMenuWorks) throw new Error('Modrinth Jump In overflow menu did not open.');
+          await page.locator('#modrinth-app-header').click();
+          await page.evaluate(() => document.querySelector('.content main')?.scrollTo({ top: 0, behavior: 'instant' }));
+          await page.waitForTimeout(150);
+
           if (pageErrors.length) {
             throw new Error(`Modrinth page emitted ${pageErrors.length} JavaScript error(s).`);
           }

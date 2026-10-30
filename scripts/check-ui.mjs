@@ -344,7 +344,7 @@ check(html.includes('id="modrinth-jump-in-list"')
   'Modrinth home must expose recent-play and modpack discovery sections');
 check(js.includes('function renderModrinthJumpIn()')
     && js.includes('lastPlayedAt')
-    && js.includes('async function loadHomeModpacks()')
+    && js.includes('async function loadHomeModpacks({ force = false } = {})')
     && js.includes("projectType: 'modpack'")
     && js.includes('https://modrinth.com/modpack/'),
   'Modrinth home shortcuts must use recent launch history and real modpack pages');

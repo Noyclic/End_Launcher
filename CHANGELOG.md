@@ -1,3 +1,9 @@
+## UI fidelity pass 44 — Modrinth compact navigation focus
+
+- Added a scoped focus ring for Modrinth navigation, quick-action buttons, the main navigation and account entry so keyboard movement remains visible in the icon rail.
+- Bounded Modrinth navigation labels and quick actions at the 560 px breakpoint so they cannot overflow or collapse the narrow sidebar.
+- Kept the existing navigation handlers, layout order, dialogs and user data unchanged.
+
 # Changelog
 
 ## Modrinth — sticky-header-safe section navigation

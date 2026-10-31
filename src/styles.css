@@ -7371,3 +7371,48 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   :root[data-ui='modrinth'] .modrinth-pack-grid { grid-template-columns:minmax(0,1fr); }
   :root[data-ui='modrinth'] #page-play .library-toolbar-actions > button { flex:1 1 auto; }
 }
+
+
+/* Modrinth compact navigation pass — keep icon-rail controls usable at narrow widths. */
+:root[data-ui='modrinth'] #modrinth-nav,
+:root[data-ui='modrinth'] .modrinth-sidebar-tools {
+  min-width: 0;
+}
+:root[data-ui='modrinth'] #modrinth-nav .modrinth-nav-btn,
+:root[data-ui='modrinth'] .modrinth-sidebar-tools button {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+:root[data-ui='modrinth'] #modrinth-nav .modrinth-nav-btn:focus-visible,
+:root[data-ui='modrinth'] .modrinth-sidebar-tools button:focus-visible,
+:root[data-ui='modrinth'] .sidebar .nav-btn:focus-visible,
+:root[data-ui='modrinth'] .account:focus-visible {
+  outline: 2px solid #74d394;
+  outline-offset: 2px;
+}
+:root[data-ui='modrinth'] #modrinth-nav .modrinth-nav-btn[aria-current='page'] {
+  box-shadow: inset 3px 0 #2acb72;
+}
+@media (max-width:560px) {
+  :root[data-ui='modrinth'] #modrinth-nav {
+    gap: 4px;
+  }
+  :root[data-ui='modrinth'] #modrinth-nav .modrinth-nav-btn {
+    width: 56px;
+    padding-inline: 0;
+    white-space: nowrap;
+  }
+  :root[data-ui='modrinth'] #modrinth-nav .modrinth-nav-btn > span:last-child {
+    max-width: 54px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  :root[data-ui='modrinth'] .modrinth-sidebar-tools {
+    width: 56px;
+  }
+  :root[data-ui='modrinth'] .modrinth-sidebar-tools button {
+    width: 56px;
+    padding-inline: 0;
+  }
+}

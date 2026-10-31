@@ -1178,3 +1178,10 @@ check(js.includes("const PRISM_CREATE_LOADER_STORE = 'end-launcher-prism-create-
     && repairCss.includes('#ni-loader-options .prism-loader-option:has(input:checked)')
     && repairCss.includes('.prism-loader-version-table'),
   'Prism Add Instance must persist the active loader, show its available version catalog and highlight the exact selected version');
+
+
+check(css.includes(":root[data-ui='modrinth'] #modrinth-nav .modrinth-nav-btn:focus-visible")
+    && css.includes(":root[data-ui='modrinth'] .modrinth-sidebar-tools button:focus-visible")
+    && css.includes("@media (max-width:560px)")
+    && css.includes("text-overflow:ellipsis"),
+  'Modrinth icon-rail navigation must retain visible keyboard focus and bounded labels at narrow widths');

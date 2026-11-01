@@ -472,6 +472,13 @@ check(css.includes(":root:not([data-ui='end']) #page-mods,")
   'Reference-inspired secondary pages must use a wider, responsive content surface');
 
 
+check(js.includes("const folderButton = $('prism-open-folder');")
+    && js.includes("element.insertBefore(addButton, element.firstChild);")
+    && js.includes("element.insertBefore(folderButton, addButton.nextSibling);")
+    && js.includes("const originalOrder = [")
+    && js.includes("$('library-search-control'), $('library-view'), folderButton"),
+  'Prism toolbar must keep Add Instance… before Folders and restore the original non-Prism order when leaving the skin');
+
 check(js.includes("const target = ['end', 'tl'].includes(mode) ? $('slot-page') : $('slot-bar');"),
   'TL layout must place the working play controls inside its centered launcher panel');
 check(js.includes("!['gd', 'official', 'lunar'].includes(mode)"),

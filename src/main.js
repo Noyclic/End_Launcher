@@ -4713,8 +4713,8 @@ function showCodes(c) {
   $('p2p-code-tcp').placeholder = c.tcp ? '' : 'недоступно (причина — ниже)';
   $('p2p-codes-note').textContent = [
     c.has_relay
-      ? `Iroh: relay найден, прямых адресов в тикете: ${c.direct}.`
-      : `⚠ Iroh: relay-сервер недоступен, в тикете только прямые адреса (${c.direct}). Нажмите ↻ чуть позже.`,
+      ? `Iroh: соединение с публичным relay подтверждено; прямых адресов: ${c.direct}.`
+      : `⚠ Iroh: подключение к публичному relay не подтверждено; прямых адресов: ${c.direct}. Прямой маршрут ещё может сработать.`,
     c.tcp_note,
   ].join('\n');
 }
@@ -4723,7 +4723,7 @@ const copyText = (t) => { if (t) navigator.clipboard?.writeText(t).catch(() => {
 $('p2p-host-btn').addEventListener('click', async () => {
   const btn = $('p2p-host-btn');
   btn.disabled = true;
-  $('p2p-status').textContent = 'открываю комнату… (до 10 секунд: собираю адреса, пробую UPnP)';
+  $('p2p-status').textContent = 'открываю комнату… (до 15 секунд: проверяю публичный ретранслятор и прямой маршрут)';
   try {
     // -> Rust: p2p.rs :: p2p_host(port) — туннель к порту игры, возвращает все варианты кода
     const codes = await invoke('p2p_host', { port: parseInt($('p2p-port').value, 10) || 0 });
@@ -4764,13 +4764,13 @@ for (const [btnId, fieldId] of [['p2p-copy-all', 'p2p-code-all'], ['p2p-copy-sho
 
 const METHOD_TEXT = {
   tcp: 'прямой TCP, без серверов',
-  ticket: 'тикет: прямые адреса, без DNS Iroh',
-  node_id: 'короткий код: поиск через DNS Iroh',
+  ticket: 'Iroh: адрес комнаты и публичный ретранслятор',
+  node_id: 'поиск адреса через публичную сеть Iroh',
 };
 $('p2p-join-btn').addEventListener('click', async () => {
   const btn = $('p2p-join-btn');
   btn.disabled = true;
-  $('p2p-join-info').textContent = 'подключаюсь… (способы пробуются по очереди, до 30 секунд)';
+  $('p2p-join-info').textContent = 'подключаюсь… (автоматически проверяю прямой маршрут и Iroh, до 35 секунд)';
   try {
     // -> Rust: p2p.rs :: connect_to_peer(input, method) — пробует способы из кода по очереди
     const r = await invoke('connect_to_peer', { input: $('p2p-join-code').value, method: $('p2p-method').value });

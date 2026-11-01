@@ -1,3 +1,8 @@
+## Game modes — initialize the End Voxel handler safely
+
+- Moved the End Voxel placeholder listener below the shared DOM helper initialization; the visual screenshot workflow caught the original ordering bug.
+- Added a regression assertion that prevents handlers from using the DOM helper before it is initialized.
+
 ## Game modes — Horizon permission gate and End Voxel placeholder
 
 - Added a home-page card for Minecraft Rust (Horizon), visibly marked with a yellow/black cross and disabled until integration permission is obtained.

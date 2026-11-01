@@ -50,8 +50,11 @@ check(html.includes('game-mode-warning-mark')
     && css.includes('.game-mode-warning-mark')
     && css.includes('repeating-linear-gradient(135deg, #facc15'),
   'Horizon permission marker must use the yellow/black warning cross');
-check(js.includes("$('end-voxel-launch-btn')?.addEventListener('click'")
-    && js.includes('скачивание и запуск ещё не подключены.'),
+const domHelperIndex = js.indexOf("const $ = (id) => document.getElementById(id);");
+const endVoxelHandlerIndex = js.indexOf("$('end-voxel-launch-btn')?.addEventListener('click'");
+check(domHelperIndex >= 0 && endVoxelHandlerIndex > domHelperIndex,
+  'End Voxel handler must be registered after the DOM helper is initialized');
+check(endVoxelHandlerIndex >= 0 && js.includes('скачивание и запуск ещё не подключены.'),
   'End Voxel placeholder must explain that download/launch is not implemented yet');
 
 // The style IDs and the first-run selector must remain in sync.

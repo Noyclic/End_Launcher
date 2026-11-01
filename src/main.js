@@ -113,13 +113,7 @@ document.querySelectorAll('.nav-btn').forEach((btn) =>
   btn.addEventListener('click', () => goPage(btn.dataset.page))
 );
 
-// End Voxel is a visible future mode, not a connected installer yet.
-$('end-voxel-launch-btn')?.addEventListener('click', () => {
-  const status = $('end-voxel-status');
-  if (!status) return;
-  status.textContent = 'End Voxel пока находится в разработке: скачивание и запуск ещё не подключены.';
-  status.hidden = false;
-});
+
 
 // ─────────────── ТЕМЫ + СВОЯ ПАЛИТРА ───────────────
 const THEMES = {
@@ -275,6 +269,15 @@ renderThemes();
 
 // ─────────────── ПОМОЩНИКИ ───────────────
 const $ = (id) => document.getElementById(id);
+
+// End Voxel is a visible future mode, not a connected installer yet.
+// End Voxel is a visible future mode, not a connected installer yet.
+$('end-voxel-launch-btn')?.addEventListener('click', () => {
+  const status = $('end-voxel-status');
+  if (!status) return;
+  status.textContent = 'End Voxel пока находится в разработке: скачивание и запуск ещё не подключены.';
+  status.hidden = false;
+});
 const mk = (tag, cls, text) => {
   const e = document.createElement(tag);
   if (cls) e.className = cls;

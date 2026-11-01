@@ -7425,6 +7425,9 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   border-radius: 16px;
   background: color-mix(in srgb, var(--el-panel) 88%, transparent);
 }
+:root:not([data-ui='end']) .game-modes-section {
+  display: none !important;
+}
 .game-modes-heading,
 .game-mode-card-heading {
   display: flex;

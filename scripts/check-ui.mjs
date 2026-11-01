@@ -53,6 +53,9 @@ check(!html.includes('собственными ресурсами')
     && !html.includes('end-voxel-launch-btn')
     && !js.includes('end-voxel-launch-btn'),
   'End Voxel must not be presented as a standalone game or an active download/launch control');
+check(css.includes(":root:not([data-ui='end']) .game-modes-section")
+    && css.includes("display: none !important;"),
+  'End Voxel project card must stay out of cloned launcher layouts such as Prism and Modrinth');
 
 // The style IDs and the first-run selector must remain in sync.
 const styleBlock = js.match(/const UI_STYLES\s*=\s*\{([\s\S]*?)\n\};/);

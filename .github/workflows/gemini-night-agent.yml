@@ -9,11 +9,11 @@ on:
         type: string
   schedule:
     - cron: "0 4 * * *"
-  # Temporary/manual trigger: changing only this sentinel starts one Gemini run.
+  # Manual trigger: changing this harmless sentinel starts one Gemini run.
   # Gemini itself is forbidden from editing workflow files, so its own commit will not retrigger this.
   push:
     paths:
-      - ".gemini-trigger"
+      - "GEMINI_TRIGGER.txt"
 
 permissions:
   contents: write

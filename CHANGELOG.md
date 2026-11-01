@@ -1,3 +1,9 @@
+## Prism toolbar order preservation
+
+- Kept the existing Prism controls and handlers, but now places “Добавить экземпляр…” before “Папки” in the shared toolbar block.
+- Restores the original non-Prism toolbar order when switching away from Prism, so other layouts keep their existing controls and behavior.
+- Added a UI regression check for both directions of the reorder.
+
 ## Game modes — initialize the End Voxel handler safely
 
 - Moved the End Voxel placeholder listener below the shared DOM helper initialization; the visual screenshot workflow caught the original ordering bug.

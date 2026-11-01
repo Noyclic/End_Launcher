@@ -12,3 +12,6 @@ cache.json
 # Tauri (генерируется)
 src-tauri/gen/
 *.part
+
+# Gemini CLI local settings
+.gemini/

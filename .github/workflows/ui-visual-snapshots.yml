@@ -1,0 +1,956 @@
+name: UI visual snapshots
+
+on:
+  push:
+    branches: [ui-fidelity-pass]
+  pull_request:
+    branches: [ui-fidelity-pass]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  screenshot:
+    name: Capture Prism, Modrinth and End Launcher screenshots
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --directory src > /tmp/end-launcher-http.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/index.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/end-launcher-http.log
+          exit 1
+      - name: Capture screenshots
+        run: |
+          mkdir -p artifacts/ui
+          node --input-type=module <<'NODE'
+          import { chromium } from 'playwright';
+
+          const browser = await chromium.launch({ headless: true });
+          const page = await browser.newPage({
+            viewport: { width: 1440, height: 900 },
+            deviceScaleFactor: 1,
+          });
+          const pageErrors = [];
+          page.on('pageerror', (error) => {
+            pageErrors.push(error.stack || error.message);
+            console.error('PAGE ERROR:', error.stack || error.message);
+          });
+
+          // Mock only native Tauri services; all DOM/layout changes run through main.js itself.
+          await page.addInitScript(() => {
+            const responses = {
+              get_settings: { username: 'Enderman', max_ram_mb: 2048 },
+              get_theme: 'void',
+              get_palette: null,
+              get_accounts: { active: 'offline', microsoft: null, ely: null },
+              get_ms_client_id: '',
+              create_instance: { id: 'visual-test', name: 'Visual Test', version: '1.21.1', loader: 'fabric' },
+              update_instance: { id: '1001', name: 'Renamed by visual test', version: '1.21.1', loader: 'fabric' },
+              export_instance_to_path: '/tmp/end-launcher-visual-export.zip',
+              pick_local_path: null,
+              list_instances: [
+                { id: 1001, name: 'Prism Preview - Fabric', version: '1.21.1', loader: 'fabric' },
+                { id: 1002, name: 'Vanilla Preview', version: '1.20.1', loader: 'vanilla' },
+                { id: 1003, name: 'NeoForge 1.21.1', version: '1.21.1', loader: 'neoforge' },
+                { id: 1004, name: 'Quilt 1.20.1', version: '1.20.1', loader: 'quilt' },
+                { id: 1005, name: 'Snapshot 26.1', version: '26.1-snapshot', loader: 'vanilla' },
+                { id: 1006, name: 'Cobblemon Modpack', version: '1.21.1', loader: 'fabric' },
+                { id: 1007, name: 'Better MC', version: '1.20.1', loader: 'forge' },
+                { id: 1008, name: 'SkyFactory 4', version: '1.12.2', loader: 'forge' },
+                { id: 1009, name: 'Adrenaline', version: '1.21.1', loader: 'fabric' },
+                { id: 1010, name: 'Vanilla 1.21.11', version: '1.21.11', loader: 'vanilla' },
+              ],
+              get_active_instance: 1001,
+              list_installed_versions: ['1.21.1', '1.20.1', '1.12.2', '26.1-snapshot', '1.21.11'],
+              list_java_versions: [
+                { id: '1.21.11', kind: 'release', release_time: '2025-12-09T12:00:00+00:00' },
+                { id: '1.21.1', kind: 'release', release_time: '2024-06-13T12:00:00+00:00' },
+                { id: '26.1-snapshot', kind: 'snapshot', release_time: '2026-01-07T12:00:00+00:00' },
+                { id: 'b1.7.3', kind: 'old_beta', release_time: '2011-07-08T12:00:00+00:00' },
+              ],
+              list_mods: [],
+              check_java: { source: 'managed', required_major: 21 },
+              get_ui_style: 'prism',
+              get_ai_enabled: false,
+              ai_install_state: { llama: false, micro: false, advanced: false, llama_auto: false },
+              detect_bedrock: { found: false, package_dir: '' },
+              mc_news: [],
+              p2p_status: { mode: 'off', info: '', peers: 0 },
+              p2p_available: false,
+              p2p_detect_port: null,
+              has_api_key: false,
+              get_advanced: { jvm_args: '', java_path: '' },
+              get_startup_instance: null,
+            };
+            window.__TAURI_CALL_LOG = [];
+            window.__TAURI__ = {
+              core: {
+                invoke: async (command, args) => {
+                  window.__TAURI_CALL_LOG.push({ command, args: args || null });
+                  if (command === 'pick_local_path' && args?.kind === 'export') return '/tmp/end-launcher-visual-export.zip';
+                  if (command === 'export_instance_to_path') return args?.path || responses.export_instance_to_path;
+                  if (command === 'modrinth_search') return args?.projectType === 'modpack' ? [
+                    { slug: 'prominence-ii-rpg', title: 'Prominence II RPG', description: 'An adventure-focused pack with quests, exploration and progression.', downloads: 1200000, icon_url: 'https://cdn.modrinth.com/data/prominence/icon.png' },
+                    { slug: 'cobblemon', title: 'Cobblemon Official Modpack', description: 'Explore a blocky world with creatures, battles and a new adventure.', downloads: 850000, icon_url: 'https://cdn.modrinth.com/data/cobblemon/icon.png' },
+                  ] : [];
+                  if (command === 'list_loader_versions') return args?.loader === 'forge'
+                    ? [{ version: '52.0.16', channel: 'Recommended' }, { version: '52.0.15', channel: 'Release' }]
+                    : args?.loader === 'quilt'
+                      ? [{ version: '0.29.0', channel: 'Stable' }, { version: '0.28.1', channel: 'Stable' }]
+                      : args?.loader === 'neoforge'
+                        ? [{ version: '21.1.200', channel: 'Release' }, { version: '21.1.199', channel: 'Release' }]
+                        : [{ version: '0.16.10', channel: 'Stable' }, { version: '0.16.9', channel: 'Stable' }];
+                  return Object.prototype.hasOwnProperty.call(responses, command)
+                    ? responses[command]
+                    : null;
+                },
+              },
+              event: {
+                listen: async () => () => {},
+              },
+              window: {
+                getCurrentWindow: () => ({
+                  onDragDropEvent: async () => () => {},
+                }),
+              },
+            };
+            localStorage.setItem('el-first-run-complete', '1');
+            localStorage.setItem('end-launcher-prism-play-stats-v1', JSON.stringify({
+              1001: { totalMs: 7200000, lastPlayedAt: Date.now() - 3600000, lastSessionMs: 1800000 },
+              1002: { totalMs: 6300000, lastPlayedAt: Date.now() - 7200000, lastSessionMs: 1500000 },
+              1003: { totalMs: 5400000, lastPlayedAt: Date.now() - 10800000, lastSessionMs: 1200000 },
+              1004: { totalMs: 4500000, lastPlayedAt: Date.now() - 14400000, lastSessionMs: 900000 },
+              1005: { totalMs: 3600000, lastPlayedAt: Date.now() - 18000000, lastSessionMs: 600000 },
+              1006: { totalMs: 3600000, lastPlayedAt: Date.now() - 7200000, lastSessionMs: 900000 },
+            }));
+            localStorage.setItem('el-ui-style', 'prism');
+            localStorage.setItem('el-ui-style-v2', 'prism');
+            localStorage.setItem('end-launcher-prism-instance-groups-v1', JSON.stringify({
+              1006: 'Modpack',
+              1007: 'Modpack',
+              1008: 'Modpack',
+              1002: 'Vanilla-like',
+              1009: 'Vanilla-like',
+              1010: 'Vanilla-like',
+            }));
+          });
+
+          await page.goto('http://127.0.0.1:4173/index.html?ui-test=1', {
+            waitUntil: 'networkidle',
+            timeout: 30000,
+          });
+          await page.waitForTimeout(900);
+
+          // Hide onboarding only; use the real application functions for page/style state.
+          await page.evaluate(async () => {
+            document.getElementById('welcome-wizard')?.setAttribute('hidden', '');
+            if (typeof window.__EL_TEST__?.chooseUi !== 'function' || typeof window.__EL_TEST__?.goPage !== 'function') {
+              throw new Error('Test bridge was not enabled by ?ui-test=1.');
+            }
+            // Switch from the ordinary Settings page into Prism. The selected shell must
+            // replace that page itself; the test must not navigate home on its own.
+            await window.__EL_TEST__.chooseUi('end');
+            window.__EL_TEST__.goPage('settings');
+            await window.__EL_TEST__.chooseUi('prism');
+          });
+          await page.waitForTimeout(400);
+
+          const prismState = await page.evaluate(() => ({
+            ui: document.documentElement.dataset.ui,
+            pageActive: document.getElementById('page-play')?.classList.contains('active'),
+            settingsPageActive: document.getElementById('page-settings')?.classList.contains('active'),
+            prismSettingsOpen: document.documentElement.classList.contains('prism-settings-open'),
+            statusHasEndBranding: (document.querySelector('.prism-status-news-row')?.innerText || '').includes('End Launcher'),
+            endLogoTextDisplay: getComputedStyle(document.querySelector('.logo-text')).display,
+            layout: document.getElementById('library')?.dataset.layout,
+            playUiParent: document.getElementById('play-ui')?.parentElement?.id,
+            sidebarVisible: !!document.querySelector('.sidebar')
+              && getComputedStyle(document.querySelector('.sidebar')).display !== 'none',
+            bodyTextLength: (document.body.innerText || '').trim().length,
+            instanceTiles: document.querySelectorAll('#library .inst-card:not(.add):not([hidden])').length,
+            groupHeadings: document.querySelectorAll('#library .library-group-heading').length,
+            navButtons: document.querySelectorAll('.nav-btn').length,
+          }));
+          console.log('PRISM UI ASSERTIONS:', JSON.stringify(prismState));
+          if (prismState.ui !== 'prism'
+              || !prismState.pageActive
+              || prismState.settingsPageActive
+              || prismState.prismSettingsOpen
+              || prismState.statusHasEndBranding
+              || prismState.endLogoTextDisplay !== 'none'
+              || prismState.layout !== 'prism'
+              || prismState.playUiParent !== 'slot-bar'
+              || !prismState.sidebarVisible
+              || prismState.bodyTextLength < 80
+              || prismState.instanceTiles < 8
+              || prismState.groupHeadings < 3
+              || prismState.navButtons < 3) {
+            throw new Error('Prism UI did not render correctly; refusing to publish misleading screenshots.');
+          }
+          if (pageErrors.length) {
+            throw new Error(`Prism page emitted ${pageErrors.length} JavaScript error(s).`);
+          }
+
+          const prismGeometry = await page.evaluate(() => {
+            const card = document.querySelector('#library .inst-card.active:not(.add)');
+            const icon = card?.querySelector(':scope > .inst-icon');
+            const label = card?.querySelector(':scope > .inst-name');
+            const add = document.querySelector('.sidebar #library-add');
+            const sidebar = document.querySelector('.sidebar');
+            const fab = document.getElementById('p2p-fab');
+            const status = document.querySelector('.prism-status-bar');
+            const pet = document.querySelector('.pet');
+            const cardRect = card?.getBoundingClientRect();
+            const iconRect = icon?.getBoundingClientRect();
+            const labelRect = label?.getBoundingClientRect();
+            const labelLineClamp = label ? getComputedStyle(label).webkitLineClamp : 'missing';
+            const fabRect = fab?.getBoundingClientRect();
+            const statusRect = status?.getBoundingClientRect();
+            return {
+              cardDisplay: card ? getComputedStyle(card).display : 'missing',
+              cardDirection: card ? getComputedStyle(card).flexDirection : 'missing',
+              labelBelowIcon: !!iconRect && !!labelRect && labelRect.top >= iconRect.bottom - 1,
+              labelLineClamp,
+              labelInsideCard: !!cardRect && !!labelRect
+                && labelRect.left >= cardRect.left - 1 && labelRect.right <= cardRect.right + 1,
+              addAfterContent: add ? getComputedStyle(add, '::after').content : 'missing',
+              addButtonText: add?.textContent?.trim() ?? 'missing',
+              addButtonWidth: add?.getBoundingClientRect().width ?? 0,
+              sidebarOverflow: !!sidebar && sidebar.scrollWidth > sidebar.clientWidth + 2,
+              petDisplay: pet ? getComputedStyle(pet).display : 'missing',
+              p2pInOverflow: fab?.parentElement?.id === 'prism-toolbar-overflow',
+              p2pPosition: fab ? getComputedStyle(fab).position : 'missing',
+              documentOverflow: document.documentElement.scrollWidth > window.innerWidth + 2,
+            };
+          });
+          console.log('PRISM DESKTOP GEOMETRY:', JSON.stringify(prismGeometry));
+          if (prismGeometry.cardDisplay !== 'flex'
+              || prismGeometry.cardDirection !== 'column'
+              || !prismGeometry.labelBelowIcon
+              || prismGeometry.labelLineClamp !== '2'
+              || !prismGeometry.labelInsideCard
+              || prismGeometry.addAfterContent !== 'none'
+              || prismGeometry.addButtonText !== 'Добавить экземпляр…'
+              || prismGeometry.addButtonWidth < 140
+              || prismGeometry.sidebarOverflow
+              || prismGeometry.petDisplay !== 'none'
+              || !prismGeometry.p2pInOverflow
+              || prismGeometry.p2pPosition !== 'static'
+              || prismGeometry.documentOverflow) {
+            throw new Error('Prism desktop geometry is broken; refusing to publish misleading screenshots.');
+          }
+
+          // Assert the literal left-to-right order and measured spacing from the supplied Pinecone reference.
+          const toolbarOrder = await page.evaluate(() => {
+            const ids = ['library-add', 'prism-open-folder', 'nav-settings-button', 'prism-help', 'prism-update'];
+            return ids.map((id) => {
+              const el = document.getElementById(id);
+              const rect = el?.getBoundingClientRect();
+              const style = el ? getComputedStyle(el) : null;
+              return {
+                id,
+                left: rect?.left ?? null,
+                right: rect?.right ?? null,
+                visible: !!rect && rect.width > 0 && rect.height > 0 && style.display !== 'none',
+              };
+            });
+          });
+          const expectedToolbarIds = ['library-add', 'prism-open-folder', 'nav-settings-button', 'prism-help', 'prism-update'];
+          console.log('PRISM TOOLBAR ORDER:', JSON.stringify(toolbarOrder));
+          if (toolbarOrder.some((item, index) =>
+                !item.visible
+                || item.id !== expectedToolbarIds[index]
+                || (index > 0 && item.left < toolbarOrder[index - 1].right - 1))
+              || toolbarOrder[0].left > 12
+              || toolbarOrder[0].right - toolbarOrder[0].left < 140) {
+            throw new Error('Prism toolbar order is wrong or Add Instance text is hidden/clipped.');
+          }
+
+          await page.mouse.move(820, 450);
+          await page.screenshot({
+            path: 'artifacts/ui/prism-pinecone-desktop.png',
+            fullPage: true,
+          });
+
+          // Capture the real Folders menu from the Pinecone reference and verify the functional destinations.
+          await page.locator('#prism-open-folder').click();
+          const foldersMenuState = await page.evaluate(() => ({
+            visible: !document.getElementById('prism-folders-menu')?.hidden,
+            labels: [...document.querySelectorAll('#prism-folders-menu [role="menuitem"]')].map((item) => item.querySelector('.prism-menu-item-label')?.textContent.trim() || item.textContent.trim()),
+          }));
+          console.log('PRISM FOLDERS MENU:', JSON.stringify(foldersMenuState));
+          const expectedFolderLabels = [
+            'Корневая папка лаунчера', 'Экземпляры', 'Основная папка модов', 'Скины', 'Java',
+            'Набор значков', 'Темы для виджетов', 'Наборы котиков', 'Значки экземпляров', 'Журналы',
+          ];
+          if (!foldersMenuState.visible || foldersMenuState.labels.join('|') !== expectedFolderLabels.join('|')) {
+            throw new Error('Prism Folders menu does not match the reference destinations.');
+          }
+          await page.screenshot({ path: 'artifacts/ui/prism-folders-menu.png', fullPage: true });
+          await page.keyboard.press('Escape');
+          if (await page.locator('#prism-folders-menu').evaluate((el) => !el.hidden)) {
+            throw new Error('Prism Folders menu did not close on Escape.');
+          }
+
+          // Help is a drop-down menu, not a direct navigation link; all rows are End Launcher-owned actions.
+          await page.locator('#prism-help').click();
+          const helpMenuState = await page.evaluate(() => ({
+            visible: !document.getElementById('prism-help-menu')?.hidden,
+            labels: [...document.querySelectorAll('#prism-help-menu [role="menuitem"]')].map((item) => item.querySelector('.prism-menu-item-label')?.textContent.trim() || item.textContent.trim()),
+          }));
+          console.log('PRISM HELP MENU:', JSON.stringify(helpMenuState));
+          const expectedHelpLabels = [
+            'Обновить метаданные версий', 'Сообщить об ошибке или предложить функцию', 'Просмотр журналов',
+            'Обсуждения', 'Новости и релизы', 'Справка', 'О проекте',
+          ];
+          if (!helpMenuState.visible || helpMenuState.labels.join('|') !== expectedHelpLabels.join('|')) {
+            throw new Error('Prism Help menu does not expose the expected project actions.');
+          }
+          await page.screenshot({ path: 'artifacts/ui/prism-help-menu.png', fullPage: true });
+          await page.keyboard.press('Escape');
+          if (await page.locator('#prism-help-menu').evaluate((el) => !el.hidden)) {
+            throw new Error('Prism Help menu did not close on Escape.');
+          }
+
+          await page.setViewportSize({ width: 390, height: 844 });
+          await page.mouse.move(320, 420);
+          await page.waitForTimeout(250);
+          const prismMobileGeometry = await page.evaluate(() => {
+            const root = document.documentElement;
+            const layout = document.querySelector('.layout');
+            const sidebar = document.querySelector('.sidebar');
+            const main = document.querySelector('.content main');
+            const playbar = document.querySelector('.playbar');
+            const status = document.querySelector('.prism-status-bar');
+            const fab = document.getElementById('p2p-fab');
+            const pet = document.querySelector('.pet');
+            const rect = (element) => {
+              if (!element) return null;
+              const r = element.getBoundingClientRect();
+              return { top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height };
+            };
+            const activeCard = document.querySelector('#library .inst-card.active:not(.add)');
+            const iconRect = rect(activeCard?.querySelector(':scope > .inst-icon'));
+            const labelRect = rect(activeCard?.querySelector(':scope > .inst-name'));
+            return {
+              viewportWidth: innerWidth,
+              documentWidth: root.scrollWidth,
+              layout: rect(layout),
+              sidebar: rect(sidebar),
+              main: rect(main),
+              playbar: rect(playbar),
+              status: rect(status),
+              p2pFab: rect(fab),
+              petDisplay: pet ? getComputedStyle(pet).display : 'missing',
+              p2pInOverflow: fab?.parentElement?.id === 'prism-toolbar-overflow',
+              p2pPosition: fab ? getComputedStyle(fab).position : 'missing',
+              tileColumn: activeCard ? getComputedStyle(activeCard).flexDirection : 'missing',
+              labelLineClamp: activeCard ? getComputedStyle(activeCard.querySelector(':scope > .inst-name')).webkitLineClamp : 'missing',
+              labelBelowIcon: !!iconRect && !!labelRect && labelRect.top >= iconRect.bottom - 1,
+              playbarContained: !!playbar && playbar.scrollWidth <= playbar.clientWidth + 2,
+              playbarVerticalFit: !!playbar && playbar.scrollHeight <= playbar.clientHeight + 2,
+              playbarScrollHeight: playbar?.scrollHeight ?? 0,
+              playbarClientHeight: playbar?.clientHeight ?? 0,
+              layoutContained: !!layout && layout.scrollWidth <= layout.clientWidth + 2,
+            };
+          });
+          console.log('PRISM MOBILE GEOMETRY:', JSON.stringify(prismMobileGeometry));
+          const mobileToolbarOrder = await page.evaluate(() => {
+            const ids = ['library-add', 'prism-open-folder', 'nav-settings-button', 'prism-help', 'prism-update'];
+            return ids.map((id) => {
+              const el = document.getElementById(id);
+              const rect = el?.getBoundingClientRect();
+              const style = el ? getComputedStyle(el) : null;
+              return { id, top: rect?.top ?? null, left: rect?.left ?? null, visible: !!rect && rect.width > 0 && rect.height > 0 && style.display !== 'none' };
+            });
+          });
+          const mobileVisualReadingOrder = [...mobileToolbarOrder]
+            .sort((a, b) => a.top - b.top || a.left - b.left)
+            .map((item) => item.id);
+          console.log('PRISM MOBILE TOOLBAR ORDER:', JSON.stringify({ measured: mobileToolbarOrder, readingOrder: mobileVisualReadingOrder }));
+          if (mobileToolbarOrder.some((item) => !item.visible)
+              || mobileVisualReadingOrder.join(',') !== 'library-add,prism-open-folder,nav-settings-button,prism-help,prism-update') {
+            throw new Error('Prism mobile toolbar order drifted from the Pinecone reference.');
+          }
+          const mobilePlaybar = prismMobileGeometry.playbar;
+          const mobileStatus = prismMobileGeometry.status;
+          if (prismMobileGeometry.documentWidth > 392
+              || prismMobileGeometry.tileColumn !== 'column'
+              || prismMobileGeometry.labelLineClamp !== '2'
+              || !prismMobileGeometry.labelBelowIcon
+              || !prismMobileGeometry.playbarContained
+              || !prismMobileGeometry.playbarVerticalFit
+              || !prismMobileGeometry.layoutContained
+              || prismMobileGeometry.petDisplay !== 'none'
+              || !prismMobileGeometry.p2pInOverflow
+              || prismMobileGeometry.p2pPosition !== 'static'
+              || !mobilePlaybar || !mobileStatus
+              || mobilePlaybar.right > 392
+              || mobileStatus.right > 392
+              || mobilePlaybar.bottom > mobileStatus.top + 2
+              || mobileStatus.bottom > 846) {
+            throw new Error('Prism mobile layout overflows or clips the launch/status panels; refusing to publish screenshots.');
+          }
+          await page.screenshot({
+            path: 'artifacts/ui/prism-pinecone-mobile.png',
+            fullPage: true,
+          });
+
+
+          // Exercise the newly added in-app instance wizard, import hand-off, provider actions and settings tabs.
+          await page.setViewportSize({ width: 1440, height: 900 });
+          await page.evaluate(async () => { await window.__EL_TEST__.openNewInstance(); });
+          await page.waitForTimeout(120);
+          const wizardState = await page.evaluate(() => ({
+            visible: getComputedStyle(document.getElementById('new-instance')).display !== 'none',
+            title: document.getElementById('create-instance-title')?.textContent,
+            providerLabels: [...document.querySelectorAll('#new-instance [data-create-view] > span:last-child')].map((item) => item.textContent.trim()),
+            sidebarButtons: document.querySelectorAll('#new-instance [data-create-view]').length,
+            versionRows: document.querySelectorAll('#ni-version-rows tr[data-version]').length,
+            versionHeaders: [...document.querySelectorAll('.prism-version-table thead th')].map((item) => item.textContent.trim()),
+            firstReleaseDate: document.querySelector('#ni-version-rows tr[data-version] .prism-version-release-date')?.textContent.trim(),
+            releaseTypeRows: [...document.querySelectorAll('#ni-version-rows tr[data-version]')].map((row) => row.dataset.kind),
+            versionSearch: (() => {
+              const r = document.querySelector('.prism-version-search-row')?.getBoundingClientRect();
+              return r ? { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height } : null;
+            })(),
+            loaderField: (() => {
+              // The native select is intentionally hidden; measure the visible custom radio chooser.
+              const r = document.querySelector('.prism-create-loader-field .prism-loader-options')?.getBoundingClientRect();
+              return r ? { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height } : null;
+            })(),
+            loaderOptionCount: document.querySelectorAll('.prism-create-loader-field .prism-loader-option').length,
+            selectedLoader: document.querySelector('.prism-create-loader-field input[name="prism-loader-choice"]:checked')?.value || '',
+            loaderVersionRows: document.querySelectorAll('#ni-loader-version-rows tr[data-loader-version]').length,
+            loaderVersionHeaders: [...document.querySelectorAll('.prism-loader-version-table thead th')].map((item) => item.textContent.trim()),
+            selectedLoaderVersion: document.querySelector('#ni-loader-version-rows tr[aria-selected="true"]')?.dataset.loaderVersion || '',
+            vanillaFallbackVisible: (() => { const wrapper = document.querySelector('.prism-create-loader-field > .cselect:has(> #ni-loader)'); return !!wrapper && getComputedStyle(wrapper).display !== 'none' && wrapper.getBoundingClientRect().width > 0; })(),
+            vanillaRadioVisible: [...document.querySelectorAll('.prism-create-loader-field input[type="radio"]')].some((input) => input.value === 'vanilla'),
+            versionBrowserVisible: !!document.querySelector('.prism-version-browser') && getComputedStyle(document.querySelector('.prism-version-browser')).display !== 'none',
+            overlayRect: (() => { const r = document.getElementById('new-instance').getBoundingClientRect(); return { left: r.left, top: r.top, width: r.width, height: r.height }; })(),
+            minecraftPanelVisible: !document.querySelector('[data-create-panel="minecraft"]')?.hidden,
+            importPanelHidden: !!document.querySelector('[data-create-panel="import"]')?.hidden,
+            versionOptions: document.getElementById('ni-version')?.options.length || 0,
+          }));
+          console.log('PRISM CREATE WIZARD ASSERTIONS:', JSON.stringify(wizardState));
+          const expectedProviderLabels = [
+            'Пользовательский', 'Импорт', 'ATLauncher', 'CurseForge', 'FTB',
+            'FTB Legacy', 'Импорт из приложения FTB', 'Modrinth', 'Technic',
+          ];
+          if (!wizardState.visible || wizardState.title !== 'Добавить экземпляр'
+              || wizardState.sidebarButtons !== 9
+              || wizardState.providerLabels.join('|') !== expectedProviderLabels.join('|')
+              || !wizardState.versionBrowserVisible || wizardState.versionRows !== 2
+              || wizardState.versionHeaders.join('|') !== 'Версия|Выпущено|Тип'
+              || !wizardState.firstReleaseDate
+              || !wizardState.versionSearch || wizardState.versionSearch.width < 220 || wizardState.versionSearch.height < 20
+              || !wizardState.loaderField || wizardState.loaderField.width < 70 || wizardState.loaderField.height < 40
+              || wizardState.loaderOptionCount !== 4 || wizardState.vanillaRadioVisible || wizardState.vanillaFallbackVisible
+              || wizardState.selectedLoader !== 'fabric' || wizardState.loaderVersionRows !== 2
+              || wizardState.loaderVersionHeaders.join('|') !== 'Версия загрузчика|Канал'
+              || wizardState.selectedLoaderVersion !== '0.16.10'
+              || !wizardState.minecraftPanelVisible || !wizardState.importPanelHidden || wizardState.versionOptions !== 4
+              || Math.abs(wizardState.overlayRect.left) > 1 || Math.abs(wizardState.overlayRect.top) > 1
+              || Math.abs(wizardState.overlayRect.width - 1440) > 2
+              || Math.abs(wizardState.overlayRect.height - 900) > 2) {
+            throw new Error('Prism Add Instance wizard did not initialize its in-app tabs and version choices.');
+          }
+          await page.locator('#ni-filter-snapshots').check();
+          await page.locator('#ni-filter-betas').check();
+          const extendedVersionFilters = await page.evaluate(() => ({
+            kinds: [...document.querySelectorAll('#ni-version-rows tr[data-version]')].map((row) => row.dataset.kind),
+            count: document.querySelectorAll('#ni-version-rows tr[data-version]').length,
+          }));
+          if (extendedVersionFilters.count !== 4
+              || !extendedVersionFilters.kinds.includes('snapshots')
+              || !extendedVersionFilters.kinds.includes('betas')) {
+            throw new Error('Prism version browser did not reveal snapshot and beta versions when their filters were enabled.');
+          }
+          await page.locator('#ni-filter-snapshots').uncheck();
+          await page.locator('#ni-filter-betas').uncheck();
+          await page.screenshot({ path: 'artifacts/ui/prism-add-instance.png', fullPage: true });
+
+          // Choosing a loader updates both the visible radio rail and the native value consumed by Rust.
+          await page.locator('input[name="prism-loader-choice"][value="forge"]').check();
+          await page.waitForFunction(() => document.querySelector('#ni-loader-version-rows tr[data-loader-version]')?.dataset.loaderVersion === '52.0.16');
+          await page.locator('#ni-loader-version-rows tr[data-loader-version="52.0.15"]').click();
+          const changedLoader = await page.evaluate(() => ({
+            checked: document.querySelector('input[name="prism-loader-choice"]:checked')?.value,
+            nativeValue: document.getElementById('ni-loader')?.value,
+            selectedVersion: document.querySelector('#ni-loader-version-rows tr[aria-selected="true"]')?.dataset.loaderVersion,
+            remembered: localStorage.getItem('end-launcher-prism-create-loader-v1'),
+          }));
+          if (changedLoader.checked !== 'forge' || changedLoader.nativeValue !== 'forge'
+              || changedLoader.selectedVersion !== '52.0.15'
+              || changedLoader.remembered !== 'forge') {
+            throw new Error('Prism loader choice and exact loader version did not stay synchronized.');
+          }
+
+          await page.locator('#ni-name').fill('Visual Test');
+          await page.locator('#ni-group').fill('Survival Test');
+          await page.locator('#ni-create').click();
+          await page.waitForFunction(() => {
+            try { return JSON.parse(localStorage.getItem('end-launcher-prism-instance-groups-v1') || '{}')['visual-test'] === 'Survival Test'; }
+            catch { return false; }
+          }, null, { timeout: 3000 });
+          const createCall = await page.evaluate(() => window.__TAURI_CALL_LOG.some((entry) =>
+            entry.command === 'create_instance'
+              && entry.args?.name === 'Visual Test'
+              && entry.args?.version === document.getElementById('ni-version')?.value
+              && entry.args?.loader === document.getElementById('ni-loader')?.value
+              && entry.args?.loaderVersion === '52.0.15'));
+          if (!createCall) throw new Error('Create Instance did not call the native create_instance action.');
+          await page.waitForFunction(() => getComputedStyle(document.getElementById('new-instance')).display === 'none');
+          await page.evaluate(async () => { await window.__EL_TEST__.openNewInstance(); });
+          const rememberedLoader = await page.evaluate(() => ({
+            checked: document.querySelector('input[name="prism-loader-choice"]:checked')?.value,
+            nativeValue: document.getElementById('ni-loader')?.value,
+            loaderVersion: document.querySelector('#ni-loader-version-rows tr[aria-selected="true"]')?.dataset.loaderVersion,
+          }));
+          if (rememberedLoader.checked !== 'forge' || rememberedLoader.nativeValue !== 'forge'
+              || rememberedLoader.loaderVersion !== '52.0.15') {
+            throw new Error('Prism Add Instance did not restore the last selected loader and exact version.');
+          }
+
+          await page.locator('[data-create-view="import"]').click();
+          const importVisible = await page.locator('[data-create-panel="import"]').evaluate((el) => !el.hidden);
+          if (!importVisible) throw new Error('Prism Import panel did not open.');
+          await page.locator('#ni-import-start').click();
+          const importGuideOpened = await page.locator('#library-import-guide').evaluate((el) => getComputedStyle(el).display !== 'none');
+          const dialogClosed = await page.locator('#new-instance').evaluate((el) => getComputedStyle(el).display === 'none');
+          if (!importGuideOpened || !dialogClosed) throw new Error('Prism Import action did not hand off to the native drag/drop import flow.');
+          await page.locator('#library-import-close').click();
+
+          await page.evaluate(async () => { await window.__EL_TEST__.openNewInstance(); });
+          await page.locator('[data-create-view="modrinth"]').click();
+          await page.locator('#ni-open-modrinth').click();
+          const modrinthOpened = await page.evaluate(() =>
+            window.__TAURI_CALL_LOG.some((entry) => entry.command === 'open_url' && entry.args?.url === 'https://modrinth.com/modpacks'));
+          if (!modrinthOpened) throw new Error('Modrinth provider button did not call the launcher open-url action.');
+          await page.locator('[data-create-view="curseforge"]').click();
+          await page.locator('#ni-open-curseforge').click();
+          const curseforgeOpened = await page.evaluate(() =>
+            window.__TAURI_CALL_LOG.some((entry) => entry.command === 'open_url' && entry.args?.url === 'https://www.curseforge.com/minecraft/search?class=modpacks'));
+          if (!curseforgeOpened) throw new Error('CurseForge provider button did not call the launcher open-url action.');
+          await page.evaluate(() => window.__EL_TEST__.closeNewInstance());
+          await page.evaluate(async () => {
+            await window.__EL_TEST__.exportInstanceWithDialog({ id: '1001', name: 'Prism Preview - Fabric' });
+          });
+          const exportDialogUsed = await page.evaluate(() => {
+            const picker = window.__TAURI_CALL_LOG.find((entry) => entry.command === 'pick_local_path' && entry.args?.kind === 'export');
+            const save = window.__TAURI_CALL_LOG.find((entry) => entry.command === 'export_instance_to_path');
+            return picker && save && save.args?.id === '1001' && save.args?.path === '/tmp/end-launcher-visual-export.zip';
+          });
+          if (!exportDialogUsed) throw new Error('Prism Export action did not use the native Save As path and export command.');
+
+
+          await page.locator('#nav-settings-button').click();
+          const settingsVisible = await page.evaluate(() => {
+            const dialog = document.getElementById('prism-settings-window');
+            const r = dialog?.getBoundingClientRect();
+            return {
+              pageActive: document.getElementById('page-settings')?.classList.contains('active'),
+              dialogVisible: !!dialog && getComputedStyle(dialog).display !== 'none' && !!r && r.width > 0 && r.height > 0,
+              dialogRole: dialog?.getAttribute('role'),
+              dialogWidth: r?.width ?? 0,
+              dialogHeight: r?.height ?? 0,
+              dialogCentered: !!r && Math.abs((r.left + r.width / 2) - innerWidth / 2) < 8
+                && Math.abs((r.top + r.height / 2) - innerHeight / 2) < 8,
+              tabsVisible: !document.getElementById('prism-settings-tabs')?.hidden,
+              tabCount: document.querySelectorAll('#prism-settings-tabs [data-prism-settings-tab]').length,
+              selectedTab: document.querySelector('[data-prism-settings-tab][aria-selected="true"]')?.dataset.prismSettingsTab,
+              generalVisible: !document.querySelector('[data-prism-settings-section="general"]')?.hidden,
+              javaHidden: !!document.querySelector('[data-prism-settings-section="java"]')?.hidden,
+              hasAccountsAction: !!document.getElementById('prism-settings-account-open'),
+              hasProxyInfo: !!document.querySelector('[data-prism-settings-fixed-section="proxy"]'),
+              generalSortOptions: document.querySelectorAll('input[name="prism-settings-instance-sort"]').length,
+              activeSort: document.querySelector('input[name="prism-settings-instance-sort"]:checked')?.value,
+              pathBrowseActions: ['prism-settings-open-root','prism-settings-open-instances','prism-settings-open-mods','prism-settings-open-icons','prism-settings-open-java','prism-settings-open-skins','prism-settings-open-logs'].filter((id) => !!document.getElementById(id)).length,
+              updateModeIsHonest: [...document.querySelectorAll('.prism-settings-general-card .prism-settings-preference-block')]
+                .some((block) => block.textContent.includes('Обновления') && block.textContent.includes('не поддерживается')),
+            };
+          });
+          console.log('PRISM SETTINGS ASSERTIONS:', JSON.stringify(settingsVisible));
+          if (!settingsVisible.pageActive || !settingsVisible.dialogVisible || settingsVisible.dialogRole !== 'dialog'
+              || !settingsVisible.dialogCentered || settingsVisible.tabCount !== 9
+              || !settingsVisible.tabsVisible || settingsVisible.selectedTab !== 'general'
+              || !settingsVisible.generalVisible || !settingsVisible.javaHidden
+              || !settingsVisible.hasAccountsAction || !settingsVisible.hasProxyInfo
+              || settingsVisible.generalSortOptions !== 2 || settingsVisible.activeSort !== 'name-asc'
+              || settingsVisible.pathBrowseActions !== 7 || !settingsVisible.updateModeIsHonest) {
+            throw new Error('Prism Parameters dialog did not match the reference categories or modal geometry.');
+          }
+          await page.waitForTimeout(500); // Wait for the application page transition animation before capturing.
+          // Clear the export confirmation from the earlier wizard test so it cannot cover the dialog footer.
+          await page.evaluate(() => {
+            const toast = document.querySelector('.toast');
+            toast?.classList.remove('show');
+            if (toast) toast.textContent = '';
+            document.querySelector('.content main')?.scrollTo({ top: 0, behavior: 'instant' });
+          });
+          await page.screenshot({ path: 'artifacts/ui/prism-settings-general.png', fullPage: true });
+          await page.locator('input[name="prism-settings-instance-sort"][value="last-played"]').check();
+          const lastPlayedSetting = await page.evaluate(() => ({
+            radio: document.querySelector('input[name="prism-settings-instance-sort"]:checked')?.value,
+            toolbarValue: document.getElementById('prism-library-sort')?.value,
+            stored: localStorage.getItem('el-prism-library-sort'),
+          }));
+          if (lastPlayedSetting.radio !== 'last-played' || lastPlayedSetting.toolbarValue !== 'last-played'
+              || lastPlayedSetting.stored !== 'last-played') {
+            throw new Error('Prism General setting did not persist and apply the last-played sorting preference.');
+          }
+          await page.locator('input[name="prism-settings-instance-sort"][value="name-asc"]').check();
+          await page.locator('#prism-settings-open-instances').click();
+          const openedInstancesFolder = await page.evaluate(() => window.__TAURI_CALL_LOG.some((entry) => entry.command === 'open_instances_folder'));
+          if (!openedInstancesFolder) throw new Error('Prism General folder shortcut did not call open_instances_folder.');
+          await page.locator('#prism-settings-open-java').click();
+          const openedJavaFolder = await page.evaluate(() => window.__TAURI_CALL_LOG.some((entry) =>
+            entry.command === 'open_launcher_resource_folder' && entry.args?.kind === 'java'));
+          if (!openedJavaFolder) throw new Error('Prism General Java shortcut did not call its native folder command.');
+          await page.locator('[data-prism-settings-tab="accounts"]').click();
+          if (await page.locator('[data-prism-settings-fixed-section="accounts"]').evaluate((el) => el.hidden)) {
+            throw new Error('Prism Accounts settings category did not show its real account-manager action.');
+          }
+          await page.screenshot({ path: 'artifacts/ui/prism-settings-accounts.png', fullPage: true });
+          await page.locator('[data-prism-settings-tab="proxy"]').click();
+          if (await page.locator('[data-prism-settings-fixed-section="proxy"]').evaluate((el) => el.hidden)) {
+            throw new Error('Prism Proxy settings category did not show its capability note.');
+          }
+          await page.screenshot({ path: 'artifacts/ui/prism-settings-proxy.png', fullPage: true });
+          await page.locator('[data-prism-settings-tab="general"]').click();
+          await page.locator('[data-prism-settings-tab="java"]').click();
+          const javaState = await page.evaluate(() => ({
+            selected: document.querySelector('[data-prism-settings-tab][aria-selected="true"]')?.dataset.prismSettingsTab,
+            javaVisible: !document.querySelector('[data-prism-settings-section="java"]')?.hidden,
+            generalHidden: !!document.querySelector('[data-prism-settings-section="general"]')?.hidden,
+          }));
+          if (javaState.selected !== 'java' || !javaState.javaVisible || !javaState.generalHidden) {
+            throw new Error('Prism Java settings tab did not filter the settings panel correctly.');
+          }
+          await page.screenshot({ path: 'artifacts/ui/prism-settings-java.png', fullPage: true });
+          await page.locator('[data-prism-settings-tab="appearance"]').click();
+          const appearanceVisible = await page.locator('#catpack-settings').evaluate((el) => !el.hidden);
+          if (!appearanceVisible) throw new Error('Prism appearance settings did not expose the cat/background controls.');
+          await page.screenshot({ path: 'artifacts/ui/prism-settings-appearance.png', fullPage: true });
+
+          // The Java page must wire automatic selection, file browsing, and a real version check.
+          await page.locator('[data-prism-settings-tab="java"]').click();
+          await page.locator('#adv-java-check').click();
+          const javaCheckCalled = await page.evaluate(() =>
+            window.__TAURI_CALL_LOG.some((entry) => entry.command === 'check_java' && entry.args?.id === '1.21.1'));
+          if (!javaCheckCalled) throw new Error('Prism Java check did not query the selected Minecraft version.');
+          await page.locator('#adv-java-browse').click();
+          const javaPickerCalled = await page.evaluate(() =>
+            window.__TAURI_CALL_LOG.some((entry) => entry.command === 'pick_local_path' && entry.args?.kind === 'java'));
+          if (!javaPickerCalled) throw new Error('Java browse button did not use the native path picker.');
+
+          // Verify the instance editor opens as a viewport modal and persists edits through Rust.
+          await page.evaluate(() => window.__EL_TEST__.openPrismInstanceEditor(
+            { id: '1001', name: 'Prism Preview - Fabric', version: '1.21.1', loader: 'fabric' }, null, null));
+          const editModalState = await page.evaluate(() => {
+            const overlay = document.getElementById('prism-instance-editor-modal');
+            const rect = overlay?.getBoundingClientRect();
+            return {
+              visible: !!overlay && getComputedStyle(overlay).display !== 'none',
+              ariaModal: overlay?.querySelector('[role="dialog"]')?.getAttribute('aria-modal'),
+              fields: overlay?.querySelectorAll('input,select').length || 0,
+              rect: rect ? { left: rect.left, top: rect.top, width: rect.width, height: rect.height } : null,
+            };
+          });
+          if (!editModalState.visible || editModalState.ariaModal !== 'true' || editModalState.fields !== 4
+              || Math.abs(editModalState.rect.left) > 1 || Math.abs(editModalState.rect.top) > 1
+              || Math.abs(editModalState.rect.width - 1440) > 2
+              || Math.abs(editModalState.rect.height - 900) > 2) {
+            throw new Error('Prism instance editor modal did not initialize at the full viewport.');
+          }
+          await page.screenshot({ path: 'artifacts/ui/prism-edit-instance.png', fullPage: true });
+          await page.locator('#prism-instance-editor-modal [aria-label="Имя экземпляра"]').fill('Renamed by visual test');
+          await page.locator('#prism-instance-editor-modal [aria-label="Группа экземпляра"]').fill('Edited Group');
+          await page.locator('#prism-instance-editor-modal .prism-instance-save').click();
+          await page.waitForFunction(() => {
+            try { return JSON.parse(localStorage.getItem('end-launcher-prism-instance-groups-v1') || '{}')['1001'] === 'Edited Group'; }
+            catch { return false; }
+          }, null, { timeout: 3000 });
+          const updateCall = await page.evaluate(() => window.__TAURI_CALL_LOG.some((entry) =>
+            entry.command === 'update_instance'
+              && entry.args?.id === '1001'
+              && entry.args?.name === 'Renamed by visual test'
+              && entry.args?.version === '1.21.1'
+              && entry.args?.loader === 'fabric'));
+          if (!updateCall) throw new Error('Prism instance editor did not invoke update_instance.');
+          await page.waitForFunction(() => !document.getElementById('prism-instance-editor-modal'));
+
+          await page.evaluate(async () => { await window.__EL_TEST__.openNewInstance(); });
+          await page.locator('[data-create-view="import"]').click();
+          await page.locator('#ni-import-archive').click();
+          const archivePickerCalled = await page.evaluate(() =>
+            window.__TAURI_CALL_LOG.some((entry) => entry.command === 'pick_local_path' && entry.args?.kind === 'archive'));
+          const cancelledImportMessage = await page.locator('#ni-msg').textContent();
+          if (!archivePickerCalled || !cancelledImportMessage.includes('Выбор отменён')) {
+            throw new Error('Prism archive picker did not call the native command or handle cancellation.');
+          }
+          await page.locator('#ni-import-folder').click();
+          const folderPickerCalled = await page.evaluate(() =>
+            window.__TAURI_CALL_LOG.some((entry) => entry.command === 'pick_local_path' && entry.args?.kind === 'folder'));
+          if (!folderPickerCalled) throw new Error('Prism folder picker did not call the native command.');
+          await page.evaluate(() => window.__EL_TEST__.closeNewInstance());
+
+
+          await page.setViewportSize({ width: 1440, height: 900 });
+          await page.evaluate(async () => {
+            await window.__EL_TEST__.chooseUi('end');
+            window.__EL_TEST__.goPage('play');
+          });
+          await page.waitForTimeout(300);
+          const endState = await page.evaluate(() => ({
+            ui: document.documentElement.dataset.ui,
+            layout: document.getElementById('library')?.dataset.layout,
+            playUiParent: document.getElementById('play-ui')?.parentElement?.id,
+          }));
+          console.log('END UI ASSERTIONS:', JSON.stringify(endState));
+          if (endState.ui !== 'end'
+              || endState.layout !== 'end'
+              || endState.playUiParent !== 'slot-page') {
+            throw new Error('End Launcher classic UI did not switch back correctly.');
+          }
+          if (pageErrors.length) {
+            throw new Error(`UI emitted ${pageErrors.length} JavaScript error(s).`);
+          }
+          await page.mouse.move(1200, 450);
+          await page.screenshot({
+            path: 'artifacts/ui/end-classic-desktop.png',
+            fullPage: true,
+          });
+
+          // Capture Modrinth as an independent workspace at the same desktop proportions as the supplied reference.
+          await page.setViewportSize({ width: 1647, height: 905 });
+          await page.evaluate(async () => { await window.__EL_TEST__.chooseUi('modrinth'); });
+          await page.waitForFunction(() =>
+            document.querySelectorAll('#home-modpacks .modrinth-pack-card').length === 2
+              && document.querySelectorAll('#modrinth-jump-in-list .modrinth-jump-card').length === 5,
+            null,
+            { timeout: 5000 },
+          );
+          // Earlier Prism interaction checks intentionally generated a confirmation toast.
+          // Clear only that completed test notification so this screenshot shows the stable Modrinth home.
+          await page.evaluate(() => document.getElementById('toast')?.classList.remove('show'));
+          const modrinthState = await page.evaluate(() => {
+            const accountPanel = document.getElementById('modrinth-account-panel');
+            const topbar = document.getElementById('modrinth-app-header');
+            const filters = document.getElementById('modrinth-library-filters');
+            const layout = document.querySelector('.layout');
+            const jumpList = document.getElementById('modrinth-jump-in-list');
+            return {
+              ui: document.documentElement.dataset.ui,
+              layout: document.getElementById('library')?.dataset.layout,
+              playUiParent: document.getElementById('play-ui')?.parentElement?.id,
+              bannerHidden: !document.getElementById('launcher-banner')
+                || getComputedStyle(document.getElementById('launcher-banner')).display === 'none'
+                || document.getElementById('launcher-banner').hidden,
+              accountPanelVisible: !!accountPanel && getComputedStyle(accountPanel).display !== 'none',
+              topbarVisible: !!topbar && topbar.getBoundingClientRect().height > 0,
+              navButtons: document.querySelectorAll('#modrinth-nav .modrinth-nav-btn').length,
+              jumpInCards: document.querySelectorAll('#modrinth-jump-in-list .modrinth-jump-card').length,
+              jumpInColumns: jumpList ? getComputedStyle(jumpList).gridTemplateColumns.split(' ').length : 0,
+              packCards: document.querySelectorAll('#home-modpacks .modrinth-pack-card').length,
+              packCardVisible: !!document.querySelector('#home-modpacks .modrinth-pack-card')?.getClientRects().length,
+              instanceRows: document.querySelectorAll('#library .inst-card:not(.add)').length,
+              searchVisible: !!document.getElementById('library-filter')
+                && getComputedStyle(document.getElementById('library-filter')).display !== 'none',
+              filtersVisible: !!filters && getComputedStyle(filters).display !== 'none',
+              filterCount: filters?.querySelectorAll('select').length || 0,
+              launchVisible: !!document.getElementById('play-btn')
+                && getComputedStyle(document.getElementById('play-btn')).display !== 'none',
+              noToast: !document.querySelector('.toast.show'),
+              noHorizontalOverflow: document.documentElement.scrollWidth <= innerWidth + 2,
+              gridColumns: layout ? getComputedStyle(layout).gridTemplateColumns.split(' ').length : 0,
+              selectedAccountName: document.getElementById('modrinth-account-name')?.textContent,
+              selectedInstanceName: document.getElementById('modrinth-selected-name')?.textContent,
+            };
+          });
+          console.log('MODRINTH UI ASSERTIONS:', JSON.stringify(modrinthState));
+          if (modrinthState.ui !== 'modrinth'
+              || modrinthState.layout !== 'modrinth'
+              || modrinthState.playUiParent !== 'slot-bar'
+              || !modrinthState.bannerHidden
+              || !modrinthState.accountPanelVisible
+              || !modrinthState.topbarVisible
+              || modrinthState.navButtons !== 4
+              || modrinthState.jumpInCards !== 5
+              || modrinthState.jumpInColumns !== 1
+              || modrinthState.packCards !== 2
+              || !modrinthState.packCardVisible
+              || modrinthState.instanceRows < 8
+              || !modrinthState.searchVisible
+              || !modrinthState.filtersVisible
+              || modrinthState.filterCount !== 3
+              || !modrinthState.launchVisible
+              || !modrinthState.noToast
+              || !modrinthState.noHorizontalOverflow
+              || modrinthState.gridColumns !== 3
+              || !String(modrinthState.selectedInstanceName || '').trim()) {
+            throw new Error('Modrinth desktop workspace did not match its reference layout or lost a functional control.');
+          }
+          // Capture the stable Modrinth home before running interaction assertions.
+          // A previous Prism edit intentionally leaves a transient success toast; it is not part of the Modrinth reference.
+          await page.evaluate(() => {
+            const toast = document.getElementById('toast');
+            if (toast) {
+              toast.classList.remove('show');
+              toast.style.display = 'none';
+              toast.textContent = '';
+            }
+            document.querySelector('.content main')?.scrollTo({ top: 0, behavior: 'instant' });
+          });
+          await page.waitForTimeout(250);
+          // Home and Discover captures were saved before the interactive checks above.
+
+          // Exercise the actual client-side library controls, not just their presence.
+          await page.evaluate(() => {
+            const control = document.getElementById('modrinth-loader-filter');
+            control.value = 'forge';
+            control.dispatchEvent(new Event('change', { bubbles: true }));
+          });
+          await page.waitForTimeout(120);
+          const forgeFilterState = await page.evaluate(() => ({
+            value: document.getElementById('modrinth-loader-filter')?.value,
+            mode: document.documentElement.dataset.ui,
+            cards: [...document.querySelectorAll('#library .inst-card:not(.add)')].map((card) => ({
+              id: card.dataset.instanceId,
+              loader: card.dataset.loader,
+              text: card.textContent.trim().slice(0, 80),
+            })),
+          }));
+          console.log('MODRINTH FORGE FILTER:', JSON.stringify(forgeFilterState));
+          const forgeFilterWorks = forgeFilterState.value === 'forge'
+            && forgeFilterState.cards.length === 2
+            && forgeFilterState.cards.every((card) => card.loader === 'forge');
+          if (!forgeFilterWorks) throw new Error('Modrinth loader filter did not restrict the library to Forge instances.');
+
+          await page.evaluate(() => {
+            const control = document.getElementById('modrinth-loader-filter');
+            control.value = 'all';
+            control.dispatchEvent(new Event('change', { bubbles: true }));
+            const group = document.getElementById('modrinth-group-filter');
+            group.value = 'grouped';
+            group.dispatchEvent(new Event('change', { bubbles: true }));
+          });
+          await page.waitForTimeout(120);
+          const groupedFilterState = await page.evaluate(() => ({
+            value: document.getElementById('modrinth-group-filter')?.value,
+            cards: [...document.querySelectorAll('#library .inst-card:not(.add)')].map((card) => card.dataset.instanceId),
+          }));
+          console.log('MODRINTH GROUP FILTER:', JSON.stringify(groupedFilterState));
+          const groupedFilterWorks = groupedFilterState.value === 'grouped'
+            && groupedFilterState.cards.length === 7
+            && groupedFilterState.cards.every((id) => ['1001', '1002', '1006', '1007', '1008', '1009', '1010'].includes(id));
+          if (!groupedFilterWorks) throw new Error('Modrinth group filter did not return the seven profiles, including the edited Prism test instance.');
+
+          await page.evaluate(() => {
+            const group = document.getElementById('modrinth-group-filter');
+            group.value = 'all';
+            group.dispatchEvent(new Event('change', { bubbles: true }));
+            const sort = document.getElementById('modrinth-sort');
+            sort.value = 'last-played';
+            sort.dispatchEvent(new Event('change', { bubbles: true }));
+          });
+          await page.waitForTimeout(120);
+          const lastPlayedSortWorks = await page.evaluate(() =>
+            document.querySelector('#library .inst-card:not(.add)')?.dataset.instanceId === '1001'
+              && document.getElementById('modrinth-sort')?.value === 'last-played');
+          if (!lastPlayedSortWorks) throw new Error('Modrinth last-played sort did not place the most recently played instance first.');
+
+          await page.evaluate(() => {
+            const sort = document.getElementById('modrinth-sort');
+            sort.value = 'name-asc';
+            sort.dispatchEvent(new Event('change', { bubbles: true }));
+            document.getElementById('modrinth-nav-discover')?.click();
+          });
+          await page.waitForFunction(() => document.getElementById('modrinth-nav-discover')?.classList.contains('active'));
+          await page.evaluate(() => document.getElementById('modrinth-nav-mods')?.click());
+          await page.waitForFunction(() => document.getElementById('page-mods')?.classList.contains('active'));
+          const modsNavigationWorks = await page.evaluate(() =>
+            document.getElementById('modrinth-nav-mods')?.classList.contains('active'));
+          if (!modsNavigationWorks) throw new Error('Modrinth navigation did not switch into the selected instance Mods page.');
+          await page.evaluate(() => document.getElementById('modrinth-nav-home')?.click());
+          await page.waitForFunction(() => document.getElementById('page-play')?.classList.contains('active'));
+
+          await page.locator('#modrinth-jump-in-list .modrinth-jump-more').first().click();
+          await page.waitForFunction(() => document.querySelector('#modrinth-jump-in-list .inst-menu'));
+          const jumpInMenuWorks = await page.locator('#modrinth-jump-in-list .inst-menu').count() === 1;
+          if (!jumpInMenuWorks) throw new Error('Modrinth Jump In overflow menu did not open.');
+          await page.locator('#modrinth-app-header').click();
+          await page.evaluate(() => document.querySelector('.content main')?.scrollTo({ top: 0, behavior: 'instant' }));
+          await page.waitForTimeout(150);
+
+          if (pageErrors.length) {
+            throw new Error(`Modrinth page emitted ${pageErrors.length} JavaScript error(s).`);
+          }
+          await page.mouse.move(1120, 460);
+          await page.screenshot({
+            path: 'artifacts/ui/modrinth-home.png',
+            fullPage: true,
+          });
+          await page.locator('#modrinth-discover').scrollIntoViewIfNeeded();
+          await page.evaluate(() => {
+            const main = document.querySelector('.content main');
+            const section = document.getElementById('modrinth-discover');
+            if (main && section) {
+              const mainRect = main.getBoundingClientRect();
+              const sectionRect = section.getBoundingClientRect();
+              main.scrollTop += sectionRect.top - mainRect.top - 84;
+            }
+          });
+          await page.locator('#modrinth-discover').screenshot({
+            path: 'artifacts/ui/modrinth-discover.png',
+          });
+
+          await page.setViewportSize({ width: 390, height: 844 });
+          await page.evaluate(() => document.querySelector('.content main')?.scrollTo({ top: 0, behavior: 'instant' }));
+          await page.waitForTimeout(200);
+          const modrinthMobileState = await page.evaluate(() => ({
+            accountRailHidden: getComputedStyle(document.getElementById('modrinth-account-panel')).display === 'none',
+            sidebarVisible: getComputedStyle(document.querySelector('.sidebar')).display !== 'none',
+            playbarVisible: getComputedStyle(document.getElementById('slot-bar')).display !== 'none',
+            jumpInCards: document.querySelectorAll('#modrinth-jump-in-list .modrinth-jump-card').length,
+            noHorizontalOverflow: document.documentElement.scrollWidth <= innerWidth + 2,
+          }));
+          console.log('MODRINTH MOBILE ASSERTIONS:', JSON.stringify(modrinthMobileState));
+          if (!modrinthMobileState.accountRailHidden
+              || !modrinthMobileState.sidebarVisible
+              || !modrinthMobileState.playbarVisible
+              || modrinthMobileState.jumpInCards !== 5
+              || !modrinthMobileState.noHorizontalOverflow) {
+            throw new Error('Modrinth mobile layout overflowed or lost its navigation/launch controls.');
+          }
+          await page.screenshot({ path: 'artifacts/ui/modrinth-mobile.png', fullPage: true });
+          await page.setViewportSize({ width: 1647, height: 905 });
+          await page.locator('#home-modpacks .modrinth-pack-card').first().click();
+          const modpackOpenCalled = await page.evaluate(() => window.__TAURI_CALL_LOG.some((entry) =>
+            entry.command === 'open_url' && entry.args?.url === 'https://modrinth.com/modpack/prominence-ii-rpg'));
+          if (!modpackOpenCalled) throw new Error('Modrinth discovery card did not open its project page.');
+
+          await browser.close();
+          NODE
+      - name: Upload UI screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: end-launcher-ui-screenshots
+          path: artifacts/ui/
+          if-no-files-found: warn
+          retention-days: 14

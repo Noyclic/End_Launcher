@@ -55,7 +55,7 @@ pub struct AppConfig {
     pub game_dir: Option<String>,
     pub username: Option<String>,
     pub max_ram_mb: Option<u32>,
-    /// Раскладка интерфейса: "end" (классическая) | "modrinth" | "prism" | "tl"
+    /// Раскладка интерфейса (все восемь встроенных стилей End Launcher).
     pub ui_style: Option<String>,
     /// Выбранная сборка (id папки в <game>/instances)
     pub active_instance: Option<String>,
@@ -284,19 +284,53 @@ pub fn set_ai_enabled(enabled: bool) -> Result<(), String> {
     save(&cfg)
 }
 
+const VALID_UI_STYLES: [&str; 8] = [
+    "end", "prism", "tl", "modrinth", "gd", "at", "lunar", "official",
+];
+
+fn is_valid_ui_style(style: &str) -> bool {
+    VALID_UI_STYLES.contains(&style)
+}
+
 #[tauri::command]
 pub fn get_ui_style() -> String {
-    load().ui_style.unwrap_or_else(|| "end".to_string())
+    load()
+        .ui_style
+        .filter(|style| is_valid_ui_style(style))
+        .unwrap_or_else(|| "end".to_string())
 }
 
 #[tauri::command]
 pub fn set_ui_style(style: String) -> Result<(), String> {
-    if !["end", "modrinth", "prism", "tl"].contains(&style.as_str()) {
+    if !is_valid_ui_style(&style) {
         return Err(format!("неизвестный интерфейс: {style}"));
     }
     let mut cfg = load();
     cfg.ui_style = Some(style);
     save(&cfg)
+}
+
+#[cfg(test)]
+mod ui_style_tests {
+    use super::{is_valid_ui_style, VALID_UI_STYLES};
+
+    #[test]
+    fn accepts_all_eight_frontend_layouts() {
+        let expected = [
+            "end", "prism", "tl", "modrinth", "gd", "at", "lunar", "official",
+        ];
+        assert_eq!(VALID_UI_STYLES, expected);
+        for style in expected {
+            assert!(is_valid_ui_style(style), "expected supported style: {style}");
+        }
+    }
+
+    #[test]
+    fn rejects_unknown_layouts() {
+        for style in ["", "classic", "gdlauncher", "official-minecraft", "../end"] {
+            assert!(!is_valid_ui_style(style), "unexpected accepted style: {style}");
+        }
+    }
 }
 
 #[derive(Serialize, Clone)]

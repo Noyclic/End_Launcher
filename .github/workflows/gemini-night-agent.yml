@@ -13,6 +13,8 @@ on:
 permissions:
   contents: write
 
+# Serialize all Gemini runs. A SHA lease below also protects against commits
+# made by another collaborator outside this workflow.
 concurrency:
   group: end-launcher-shared-branch-night-agent
   cancel-in-progress: false
@@ -105,8 +107,9 @@ jobs:
           cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
           cargo test --manifest-path src-tauri/Cargo.toml --no-default-features
 
+          # Agent instructions/workflows are immutable to the agent itself.
           CHANGED_PATHS="$( { git diff --name-only; git ls-files --others --exclude-standard; } | sort -u )"
-          if printf '%s\\n' "$CHANGED_PATHS" | grep -E '^(\\.github/workflows/|GEMINI\\.md$|.*(\\.pem$|\\.p12$|\\.keystore$|credentials|secrets))'; then
+          if printf '%s\n' "$CHANGED_PATHS" | grep -E '^(\.github/workflows/|GEMINI\.md$|.*(\.pem$|\.p12$|\.keystore$|credentials|secrets))'; then
             echo "::error::Gemini attempted to modify protected agent configuration or credentials."
             exit 1
           fi
@@ -125,6 +128,7 @@ jobs:
           git add -A
           git commit -m "Night Agent: focused launcher improvement"
 
+          # Do not overwrite work made by ChatGPT, the user, or another writer.
           CURRENT_REMOTE="$(git ls-remote origin refs/heads/ui-fidelity-pass | cut -f1)"
           if [[ "$CURRENT_REMOTE" != "$BASE_SHA" ]]; then
             echo "::error::Shared branch moved from $BASE_SHA to $CURRENT_REMOTE. Changes were not pushed."

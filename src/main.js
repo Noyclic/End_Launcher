@@ -3207,6 +3207,20 @@ function syncPrismToolbar(mode) {
   }
 
   const addButton = $('library-add');
+  const folderButton = $('prism-open-folder');
+  if (mode === 'prism' && element && addButton && folderButton) {
+    // Keep the agreed Prism command order without cloning handlers or controls:
+    // Add Instance…, Folders, then the remaining library tools.
+    element.insertBefore(addButton, element.firstChild);
+    element.insertBefore(folderButton, addButton.nextSibling);
+  } else if (mode !== 'prism' && element && addButton && folderButton) {
+    // Restore the original non-Prism toolbar order when leaving Prism.
+    const originalOrder = [
+      $('library-search-control'), $('library-view'), folderButton,
+      $('library-import'), $('layout-extras-toggle'), addButton,
+    ].filter(Boolean);
+    for (const child of originalOrder) element.appendChild(child);
+  }
   if (addButton) {
     const isPrism = mode === 'prism';
     addButton.textContent = isPrism ? 'Добавить экземпляр…' : '＋ Добавить';

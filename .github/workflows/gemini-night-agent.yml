@@ -1,19 +1,14 @@
 name: Gemini Night Agent
 
 on:
+  # Nightly/sentinel triggers paused temporarily during the main-branch migration.
+  # Manual dispatch remains available for an explicitly approved run.
   workflow_dispatch:
     inputs:
       task:
         description: "Optional focus for this run (leave empty for the next safe backlog task)"
         required: false
         type: string
-  schedule:
-    - cron: "0 4 * * *"
-  # Manual trigger: changing this harmless sentinel starts one Gemini run.
-  # Gemini itself is forbidden from editing workflow files, so its own commit will not retrigger this.
-  push:
-    paths:
-      - "GEMINI_TRIGGER.txt"
 
 permissions:
   contents: write

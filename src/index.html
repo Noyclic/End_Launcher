@@ -129,7 +129,7 @@
               <label><span>Сортировка</span><select id="modrinth-sort" aria-label="Сортировка сборок"><option value="name-asc">Имя</option><option value="name-desc">Имя: Я–А</option><option value="last-played">Последний запуск</option><option value="version">Версия</option><option value="loader">Загрузчик</option></select></label>
               <label><span>Группа</span><select id="modrinth-group-filter" aria-label="Фильтр по группам"><option value="all">Все группы</option><option value="grouped">Мои группы</option><option value="ungrouped">Без группы</option></select></label>
               <label><span>Загрузчик</span><select id="modrinth-loader-filter" aria-label="Фильтр по загрузчику"><option value="all">Все</option><option value="vanilla">Vanilla</option><option value="fabric">Fabric</option><option value="forge">Forge</option><option value="neoforge">NeoForge</option><option value="quilt">Quilt</option></select></label>
-              <span class="modrinth-filter-count" id="modrinth-filter-count">Все сборки</span>
+              <span class="modrinth-filter-count" id="modrinth-filter-count" role="status" aria-live="polite">Все сборки</span>
             </div>
             <div id="prism-library-tools" class="layout-feature-tools" role="group" aria-label="Настройки списка Prism">
               <label>Сортировка
@@ -791,9 +791,9 @@
     </div>
 
     <!-- значок «Играть вместе (P2P)» справа сверху и всплывающая панель -->
-    <button id="p2p-fab" class="fab" title="Играть вместе (P2P)"><span>🌐</span><i id="p2p-dot"></i></button>
-    <div id="p2p-pop" class="popover" style="display:none">
-      <h2 class="mono dim" style="margin-top:0">ИГРАТЬ ВМЕСТЕ</h2>
+    <button id="p2p-fab" class="fab" title="Играть вместе (P2P)" aria-label="Играть вместе (P2P)" aria-haspopup="dialog" aria-controls="p2p-pop" aria-expanded="false"><span>🌐</span><i id="p2p-dot"></i></button>
+    <div id="p2p-pop" class="popover" role="dialog" aria-labelledby="p2p-title" tabindex="-1" style="display:none">
+      <h2 id="p2p-title" class="mono dim" style="margin-top:0">ИГРАТЬ ВМЕСТЕ</h2>
       <p class="mono dim small" style="margin-top:0">
         Друг заходит в ваш мир напрямую, без проброса портов, Hamachi и Radmin.
         Это туннель только для Minecraft; версия игры у обоих одинаковая.

@@ -1722,6 +1722,24 @@ function renderModrinthJumpIn() {
   }
 }
 
+function clearModrinthLibraryFilters() {
+  libraryQuery = '';
+  const search = $('library-filter');
+  const group = $('modrinth-group-filter');
+  const loader = $('modrinth-loader-filter');
+  if (search) search.value = '';
+  modrinthGroupFilter = 'all';
+  modrinthLoaderFilter = 'all';
+  if (group) group.value = 'all';
+  if (loader) loader.value = 'all';
+  try {
+    localStorage.setItem('el-modrinth-group-filter', 'all');
+    localStorage.setItem('el-modrinth-loader-filter', 'all');
+  } catch {}
+  renderLibrary();
+  search?.focus({ preventScroll: true });
+}
+
 function renderLibrary() {
   const box = $('library');
   box.replaceChildren();
@@ -1970,10 +1988,28 @@ function renderLibrary() {
     box.appendChild(card);
   }
   if (!shownCount && instances.length) {
-    box.appendChild(mk('p', 'library-filter-empty dim small',
-      currentUi === 'lunar' && lunarFavoritesOnly
-        ? 'В избранное пока ничего не добавлено. Открой меню «⋯» у сборки и выбери «В избранное».'
-        : 'По выбранным фильтрам сборок не найдено.'));
+    if (currentUi === 'modrinth') {
+      const empty = mk('div', 'modrinth-library-empty');
+      empty.setAttribute('role', 'status');
+      empty.setAttribute('aria-live', 'polite');
+      const title = query
+        ? `По запросу «${libraryQuery.trim()}» ничего не найдено`
+        : 'По этим фильтрам сборок не найдено';
+      const copy = query
+        ? 'Проверь написание или сбрось поиск и фильтры.'
+        : 'Попробуй другой загрузчик или группу, либо верни все сборки.';
+      empty.append(mk('strong', '', title), mk('span', 'dim small', copy));
+      const reset = mk('button', 'modrinth-library-reset', 'Сбросить поиск и фильтры');
+      reset.type = 'button';
+      reset.addEventListener('click', clearModrinthLibraryFilters);
+      empty.appendChild(reset);
+      box.appendChild(empty);
+    } else {
+      box.appendChild(mk('p', 'library-filter-empty dim small',
+        currentUi === 'lunar' && lunarFavoritesOnly
+          ? 'В избранное пока ничего не добавлено. Открой меню «⋯» у сборки и выбери «В избранное».'
+          : 'По выбранным фильтрам сборок не найдено.'));
+    }
   }
   const add = mk('div', 'inst-card add');
   add.style.setProperty('--i', Math.min(ci, 10));
@@ -3036,6 +3072,21 @@ for (const id of prismOverflowIds) {
     prismOverflowHome[id] = marker;
   }
 }
+const p2pHomeMarker = prismOverflowHome['p2p-fab'];
+function syncModrinthP2pDock(mode) {
+  const fab = $('p2p-fab');
+  if (!fab) return;
+  if (mode === 'modrinth') {
+    const header = $('modrinth-app-header');
+    if (header && fab.parentElement !== header) header.appendChild(fab);
+    return;
+  }
+  // Prism owns the control inside its overflow menu; all other shells restore
+  // the exact original DOM position and keep the original event handlers.
+  if (mode !== 'prism' && p2pHomeMarker?.parentNode) {
+    p2pHomeMarker.parentNode.insertBefore(fab, p2pHomeMarker.nextSibling);
+  }
+}
 let prismOverflowPanel = null;
 let prismOverflowToggle = null;
 function ensurePrismOverflow(sidebar) {
@@ -3626,6 +3677,7 @@ function applyUi(mode) {
   syncPrismSettingsPage(mode);
   syncPrismLogoNavigation(mode);
   syncPrismOverflow(mode);
+  syncModrinthP2pDock(mode);
   syncPrismToolbar(mode);
   syncPrismFoldersMenu(mode);
   const target = ['end', 'tl'].includes(mode) ? $('slot-page') : $('slot-bar');
@@ -4595,6 +4647,7 @@ aiInstall.addEventListener('click', async () => {
 
 // ─────────────── ИГРАТЬ ВМЕСТЕ (P2P): значок справа сверху ───────────────
 const p2pPop = $('p2p-pop');
+const p2pFab = $('p2p-fab');
 let p2pTimer = null;
 
 async function p2pRefresh() {
@@ -4608,6 +4661,8 @@ async function p2pRefresh() {
 }
 async function openP2p() {
   p2pPop.style.display = '';
+  p2pFab.setAttribute('aria-expanded', 'true');
+  p2pPop.focus({ preventScroll: true });
   // -> Rust: p2p.rs :: p2p_available() — собрана ли эта версия с флагом p2p
   const ok = await invoke('p2p_available').catch(() => false);
   $('p2p-warn').style.display = ok ? 'none' : '';
@@ -4618,18 +4673,23 @@ async function openP2p() {
   clearInterval(p2pTimer);
   p2pTimer = setInterval(p2pRefresh, 5000); // реже опрашиваем статус, пока панель открыта
 }
-function closeP2p() {
+function closeP2p({ restoreFocus = false } = {}) {
+  const wasOpen = p2pPop.style.display !== 'none';
   p2pPop.style.display = 'none';
+  p2pFab.setAttribute('aria-expanded', 'false');
   clearInterval(p2pTimer);
   p2pTimer = null;
+  if (restoreFocus && wasOpen) p2pFab.focus({ preventScroll: true });
 }
-$('p2p-fab').addEventListener('click', (e) => {
+p2pFab.addEventListener('click', (e) => {
   e.stopPropagation();
   if (p2pPop.style.display === 'none') openP2p(); else closeP2p();
 });
 p2pPop.addEventListener('click', (e) => e.stopPropagation());
 document.addEventListener('click', () => { if (p2pPop.style.display !== 'none') closeP2p(); });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeP2p(); });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && p2pPop.style.display !== 'none') closeP2p({ restoreFocus: true });
+});
 
 $('p2p-find-port').addEventListener('click', async () => {
   // -> Rust: p2p.rs :: p2p_detect_port() — ищет порт открытого мира в логе игры

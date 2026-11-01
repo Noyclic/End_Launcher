@@ -381,6 +381,27 @@ check(repairCss.includes("grid-template-columns:72px minmax(0,1fr) 304px")
   'Modrinth must use a dedicated three-column desktop workspace and responsive layout');
 
 
+
+check(html.includes('aria-controls="p2p-pop"')
+    && html.includes('aria-haspopup="dialog"')
+    && html.includes('role="dialog" aria-labelledby="p2p-title" tabindex="-1"'),
+  'P2P must expose an accessible dialog relationship and a focusable non-modal panel');
+check(html.includes('id="modrinth-filter-count" role="status" aria-live="polite"'),
+  'Modrinth filter counts must be announced to assistive technology');
+check(js.includes("const p2pHomeMarker = prismOverflowHome['p2p-fab'];")
+    && js.includes('function syncModrinthP2pDock(mode)')
+    && js.includes('syncModrinthP2pDock(mode);')
+    && js.includes("closeP2p({ restoreFocus: true })"),
+  'The existing P2P control must move into the Modrinth header and restore focus on Escape');
+check(repairCss.includes(":root[data-ui='modrinth'] .modrinth-app-header #p2p-fab")
+    && repairCss.includes(":root[data-ui='modrinth'] #p2p-pop")
+    && repairCss.includes('.modrinth-library-empty'),
+  'Modrinth P2P dock, popover and library empty state need scoped layout rules');
+check(js.includes('function clearModrinthLibraryFilters()')
+    && js.includes("mk('div', 'modrinth-library-empty')")
+    && js.includes('reset.addEventListener(\'click\', clearModrinthLibraryFilters)'),
+  'An empty Modrinth filter result must offer a working search-and-filter reset');
+
 check(js.includes('function homeModsSelectionKey()')
     && js.includes('let homeModsRequestId = 0;')
     && js.includes('if (requestId !== homeModsRequestId || homeModsSelectionKey() !== key) return;')

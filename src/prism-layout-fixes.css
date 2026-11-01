@@ -3133,3 +3133,121 @@
 :root:not([data-ui='modrinth']) .modrinth-library-filters {
   display:none !important;
 }
+
+
+/* Modrinth pass 45 — dock P2P in the workspace header instead of floating over cards. */
+:root[data-ui='modrinth'] .modrinth-app-header #p2p-fab {
+  position:relative !important;
+  inset:auto !important;
+  top:auto !important;
+  right:auto !important;
+  bottom:auto !important;
+  left:auto !important;
+  z-index:13 !important;
+  display:inline-flex !important;
+  flex:0 0 auto;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  width:auto !important;
+  min-width:58px;
+  height:32px !important;
+  margin-left:0;
+  padding:0 10px !important;
+  border:1px solid #355642;
+  border-radius:9px;
+  background:#17231a;
+  color:#b8ecc7;
+  box-shadow:none;
+  font:600 10px/1 Inter,sans-serif;
+}
+:root[data-ui='modrinth'] .modrinth-app-header #p2p-fab::after {
+  content:'P2P';
+  letter-spacing:.4px;
+}
+:root[data-ui='modrinth'] .modrinth-app-header #p2p-fab > span {
+  font-size:14px;
+  line-height:1;
+}
+:root[data-ui='modrinth'] .modrinth-app-header #p2p-fab i {
+  top:2px;
+  right:3px;
+}
+:root[data-ui='modrinth'] .modrinth-app-header #p2p-fab:hover,
+:root[data-ui='modrinth'] .modrinth-app-header #p2p-fab:focus-visible {
+  border-color:#67b57b;
+  background:#203327;
+  color:#e3f8e8;
+  box-shadow:0 0 0 2px #5bc47c33;
+  filter:none;
+}
+:root[data-ui='modrinth'] #p2p-pop {
+  top:64px !important;
+  right:18px !important;
+  bottom:auto !important;
+  left:auto !important;
+  width:min(400px, calc(100vw - 92px)) !important;
+  max-height:calc(100dvh - 82px) !important;
+  border:1px solid #35483a;
+  border-radius:12px;
+  background:#111713;
+}
+:root[data-ui='modrinth'] .modrinth-library-empty {
+  grid-column:1 / -1;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:8px;
+  min-width:0;
+  min-height:136px;
+  padding:20px;
+  border:1px dashed #3a4a3e;
+  border-radius:12px;
+  background:#121815;
+  color:#e7efe9;
+}
+:root[data-ui='modrinth'] .modrinth-library-empty strong {
+  color:#eaf2ec;
+  font-size:14px;
+  font-weight:650;
+}
+:root[data-ui='modrinth'] .modrinth-library-empty > span {
+  color:#8e9c92;
+  font-size:11px;
+  line-height:1.5;
+}
+:root[data-ui='modrinth'] .modrinth-library-empty .modrinth-library-reset {
+  min-height:34px;
+  margin-top:4px;
+  padding:0 12px;
+  border:1px solid #4b8a60;
+  border-radius:8px;
+  background:#23442e;
+  color:#d9f5e1;
+  font-size:11px;
+  box-shadow:none;
+}
+:root[data-ui='modrinth'] .modrinth-library-empty .modrinth-library-reset:hover {
+  background:#2b5839;
+  border-color:#72c187;
+  filter:none;
+}
+@media (max-width:760px) {
+  :root[data-ui='modrinth'] .modrinth-app-header #p2p-fab {
+    min-width:54px;
+    height:30px !important;
+    padding:0 8px !important;
+  }
+  :root[data-ui='modrinth'] #p2p-pop {
+    top:56px !important;
+    right:10px !important;
+    width:min(400px, calc(100vw - 78px)) !important;
+    max-height:calc(100dvh - 68px) !important;
+  }
+}
+@media (max-width:560px) {
+  :root[data-ui='modrinth'] .modrinth-app-identity { gap:7px; }
+  :root[data-ui='modrinth'] .modrinth-app-identity .modrinth-header-separator,
+  :root[data-ui='modrinth'] .modrinth-app-identity > span:last-child { display:none; }
+  :root[data-ui='modrinth'] .modrinth-app-header { gap:9px; }
+}

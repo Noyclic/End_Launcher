@@ -1,3 +1,10 @@
+## UI fidelity pass 45 — Modrinth P2P dock and filter recovery
+
+- Moved the existing P2P control into the Modrinth workspace header, preserving its event listeners and restoring its original position in other launcher styles.
+- Added a responsive P2P popover position, dialog semantics, expanded-state announcements, and Escape-to-close focus restoration.
+- Added a clear empty state for filtered Modrinth libraries with one action to reset search, group, and loader filters without changing the saved sort order.
+- Added static regression checks for the P2P dock, keyboard behavior, live filter count, and filter-reset flow.
+
 ## UI fidelity pass 44 — Modrinth compact navigation focus
 
 - Added a scoped focus ring for Modrinth navigation, quick-action buttons, the main navigation and account entry so keyboard movement remains visible in the icon rail.

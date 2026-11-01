@@ -1,3 +1,10 @@
+## Game modes — Horizon permission gate and End Voxel placeholder
+
+- Added a home-page card for Minecraft Rust (Horizon), visibly marked with a yellow/black cross and disabled until integration permission is obtained.
+- Added an End Voxel card with the planned “Download and launch” button; for now the button only explains that installation and launch are not connected.
+- Kept the existing Java/Bedrock controls and launch flow unchanged.
+- Added UI regression checks for the permission gate, warning marker, and honest End Voxel placeholder behavior.
+
 ## UI fidelity pass 45 — Modrinth P2P dock and filter recovery
 
 - Moved the existing P2P control into the Modrinth workspace header, preserving its event listeners and restoring its original position in other launcher styles.

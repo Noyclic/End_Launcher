@@ -31,7 +31,7 @@ for (const id of [
   'play-ui', 'slot-page', 'slot-bar', 'launcher-banner', 'stop-btn',
   'account-modal', 'account-modal-close', 'customizer-modal',
   'customizer-close', 'customizer-import', 'customizer-export',
-  'welcome-layout', 'ui-styles'
+  'welcome-layout', 'ui-styles', 'game-modes', 'horizon-rust-btn', 'end-voxel-launch-btn'
 ]) {
   check(seen.has(id), 'Required UI element is missing: #' + id);
 }
@@ -41,6 +41,18 @@ check(js.includes("$('account-box').addEventListener('keydown'") && js.includes(
   'Account picker must open from the keyboard');
 check(js.includes("if (document.body.classList.contains('customizer-active')) return;"),
   'Keyboard account activation must not bypass customizer edit mode');
+
+// Future game-mode controls must be honest and must not start an unimplemented installer.
+check(/id="horizon-rust-btn"[^>]*disabled/.test(html)
+    && html.includes('Разрешение на интеграцию ещё не получено.'),
+  'Horizon must remain visibly unavailable until integration permission is obtained');
+check(html.includes('game-mode-warning-mark')
+    && css.includes('.game-mode-warning-mark')
+    && css.includes('repeating-linear-gradient(135deg, #facc15'),
+  'Horizon permission marker must use the yellow/black warning cross');
+check(js.includes("$('end-voxel-launch-btn')?.addEventListener('click'")
+    && js.includes('скачивание и запуск ещё не подключены.'),
+  'End Voxel placeholder must explain that download/launch is not implemented yet');
 
 // The style IDs and the first-run selector must remain in sync.
 const styleBlock = js.match(/const UI_STYLES\s*=\s*\{([\s\S]*?)\n\};/);

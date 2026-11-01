@@ -99,6 +99,43 @@
             </div>
             <button id="launcher-banner-play" class="launcher-banner-play">▶ Играть</button>
           </div>
+          <section id="game-modes" class="game-modes-section" aria-labelledby="game-modes-title">
+            <div class="game-modes-heading">
+              <div>
+                <p class="game-modes-overline">ВЫБОР ИГРЫ</p>
+                <h2 id="game-modes-title">НОВЫЕ ИГРОВЫЕ РЕЖИМЫ</h2>
+              </div>
+              <span class="game-modes-kicker">END LAUNCHER</span>
+            </div>
+            <div class="game-modes-grid">
+              <article class="game-mode-card game-mode-card-horizon" aria-labelledby="horizon-rust-title">
+                <div class="game-mode-card-heading">
+                  <div>
+                    <span class="game-mode-eyebrow">MINECRAFT JAVA · RUST CLIENT</span>
+                    <h3 id="horizon-rust-title">Horizon</h3>
+                  </div>
+                  <span class="game-mode-warning-mark" role="img" aria-label="Интеграция временно заблокирована" title="Пока не получено разрешение на интеграцию"><span aria-hidden="true">×</span></span>
+                </div>
+                <p class="game-mode-description">Minecraft Rust от независимого проекта Horizon.</p>
+                <p class="game-mode-status" id="horizon-rust-status">Разрешение на интеграцию ещё не получено.</p>
+                <button id="horizon-rust-btn" class="game-mode-action" type="button" disabled aria-describedby="horizon-rust-status">Пока недоступно</button>
+              </article>
+              <article class="game-mode-card game-mode-card-voxel" aria-labelledby="end-voxel-title">
+                <div class="game-mode-card-heading">
+                  <div>
+                    <span class="game-mode-eyebrow">СОБСТВЕННЫЙ ПРОЕКТ END LAUNCHER</span>
+                    <h3 id="end-voxel-title">End Voxel</h3>
+                  </div>
+                  <span class="game-mode-development-tag">В РАЗРАБОТКЕ</span>
+                </div>
+                <p class="game-mode-description">Наша отдельная быстрая voxel-игра на Rust с собственными ресурсами.</p>
+                <p class="game-mode-status">Для End Voxel не потребуется лицензия Minecraft.</p>
+                <button id="end-voxel-launch-btn" class="game-mode-action" type="button" aria-describedby="end-voxel-note">↓ Скачать и запустить</button>
+                <p id="end-voxel-note" class="game-mode-note">Пока это макет кнопки: загрузка и запуск ещё не подключены.</p>
+                <p id="end-voxel-status" class="game-mode-feedback" role="status" aria-live="polite" hidden></p>
+              </article>
+            </div>
+          </section>
           <section id="modrinth-jump-in" class="modrinth-home-section" aria-labelledby="modrinth-jump-title">
             <div class="modrinth-section-heading">
               <div>

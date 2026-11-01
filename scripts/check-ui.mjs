@@ -47,7 +47,7 @@ check(!/horizon-rust|\bHorizon\b/i.test(html) && !/horizon-rust|\bHorizon\b/i.te
   'Horizon must not appear in the launcher UI before integration is approved');
 check(html.includes('Собственная реализация Minecraft engine на Rust')
     && html.includes('игровые ассеты из установленной пользователем копии Minecraft'),
-  'End Voxel must be described as a Rust Minecraft engine using the user's installed Minecraft assets');
+  "End Voxel must be described as a Rust Minecraft engine using the installed Minecraft assets");
 check(!html.includes('собственными ресурсами')
     && !html.includes('не потребуется лицензия Minecraft')
     && !html.includes('end-voxel-launch-btn')

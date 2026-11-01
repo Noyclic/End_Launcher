@@ -40,6 +40,8 @@ pub struct ManifestEntry {
     #[serde(rename = "type")]
     pub kind: String,
     pub url: String,
+    #[serde(rename = "releaseTime", default)]
+    pub release_time: String,
 }
 
 #[derive(Deserialize, Clone, Default)]

@@ -41,3 +41,5 @@ jobs:
           node --check src/cselect.js
           node --check src/island.js
           node --check src/pet.js
+      - name: Check UI regression invariants
+        run: node scripts/check-ui.mjs

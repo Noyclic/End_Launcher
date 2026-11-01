@@ -7,6 +7,9 @@
 use serde::{Deserialize, Serialize};
 use std::path::{Component, Path, PathBuf};
 use std::io::Read;
+use std::process::Command;
+#[cfg(target_os = "windows")]
+use base64::Engine as _;
 use futures_util::StreamExt;
 use sha1::{Digest, Sha1};
 use tokio::io::AsyncWriteExt;
@@ -17,8 +20,11 @@ pub struct Instance {
     pub name: String,
     /// Версия игры Mojang, например "1.20.1"
     pub version: String,
-    /// "vanilla" | "fabric" | "forge" | "neoforge"
+    /// "vanilla" | "fabric" | "quilt" | "forge" | "neoforge"
     pub loader: String,
+    /// Конкретная версия Fabric / Quilt / Forge / NeoForge, выбранная в мастере.
+    #[serde(default)]
+    pub loader_version: Option<String>,
 }
 
 fn err<E: std::fmt::Display>(e: E) -> String {
@@ -88,13 +94,13 @@ pub fn list_instances() -> Vec<Instance> {
 }
 
 #[tauri::command]
-pub fn create_instance(name: String, version: String, loader: String) -> Result<Instance, String> {
+pub fn create_instance(name: String, version: String, loader: String, loader_version: Option<String>) -> Result<Instance, String> {
     let name = name.trim().to_string();
     if name.is_empty() || name.chars().count() > 40 {
         return Err("название сборки: от 1 до 40 символов".into());
     }
     crate::mc::check_id(&version)?;
-    if !["vanilla", "fabric", "forge", "neoforge"].contains(&loader.as_str()) {
+    if !["vanilla", "fabric", "quilt", "forge", "neoforge"].contains(&loader.as_str()) {
         return Err(format!("неизвестный загрузчик: {loader}"));
     }
 
@@ -105,7 +111,18 @@ pub fn create_instance(name: String, version: String, loader: String) -> Result<
         id = format!("{base}-{n}");
         n += 1;
     }
-    let inst = Instance { id, name, version, loader };
+    if let Some(value) = loader_version.as_deref() {
+        if value.is_empty() || value.len() > 80 || !value.chars().all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '.' | '+' | '-' | '_')) {
+            return Err("некорректная версия загрузчика".into());
+        }
+    }
+    if loader == "vanilla" && loader_version.is_some() {
+        return Err("Vanilla не использует версию загрузчика модов".into());
+    }
+    if loader != "vanilla" && loader_version.is_none() {
+        return Err("не выбрана версия загрузчика модов".into());
+    }
+    let inst = Instance { id, name, version, loader, loader_version };
     write(&inst)?;
     for d in ["mods", "resourcepacks", "shaderpacks", "saves"] {
         let _ = std::fs::create_dir_all(instance_dir(&inst.id).join(d));
@@ -127,6 +144,27 @@ pub fn rename_instance(id: String, name: String) -> Result<(), String> {
     let mut inst = get(&id).ok_or("сборка не найдена")?;
     inst.name = name;
     write(&inst)
+}
+
+/// Обновляет метаданные экземпляра, не перемещая папку и не затрагивая сохранения.
+#[tauri::command]
+pub fn update_instance(id: String, name: String, version: String, loader: String) -> Result<Instance, String> {
+    let name = name.trim().to_string();
+    let version = version.trim().to_string();
+    if name.is_empty() || name.chars().count() > 40 {
+        return Err("название сборки: от 1 до 40 символов".into());
+    }
+    crate::mc::check_id(&version)?;
+    if !["vanilla", "fabric", "quilt", "forge", "neoforge"].contains(&loader.as_str()) {
+        return Err(format!("неизвестный загрузчик: {loader}"));
+    }
+    let mut inst = get(&id).ok_or("сборка не найдена")?;
+    inst.name = name;
+    if inst.version != version || inst.loader != loader { inst.loader_version = None; }
+    inst.version = version;
+    inst.loader = loader;
+    write(&inst)?;
+    Ok(inst)
 }
 
 /// Удаляет сборку вместе с её модами и сохранениями (общие библиотеки и ассеты не трогает).
@@ -156,7 +194,149 @@ pub fn set_active_instance(id: String) -> Result<(), String> {
     crate::config::save(&cfg)
 }
 
+fn safe_shortcut_stem(name: &str) -> String {
+    let mut result = String::new();
+    for ch in name.chars() {
+        if ch.is_ascii_alphanumeric() || matches!(ch, ' ' | '-' | '_' | '(' | ')' | '.') {
+            result.push(ch);
+        } else {
+            result.push('_');
+        }
+    }
+    let trimmed = result.trim().trim_matches('.');
+    let base = if trimmed.is_empty() { "Minecraft".to_string() } else { trimmed.to_string() };
+    let base = base.chars().take(72).collect::<String>();
+    format!("{base} - End Launcher")
+}
 
+fn unique_shortcut_path(inst: &Instance, extension: &str) -> Result<PathBuf, String> {
+    let desktop = dirs::desktop_dir()
+        .or_else(|| dirs::home_dir().map(|home| home.join("Desktop")))
+        .ok_or_else(|| "не удалось определить папку рабочего стола".to_string())?;
+    std::fs::create_dir_all(&desktop).map_err(err)?;
+    let stem = safe_shortcut_stem(&inst.name);
+    let mut path = desktop.join(format!("{stem}{extension}"));
+    let mut counter = 2u32;
+    while path.exists() {
+        path = desktop.join(format!("{stem} ({counter}){extension}"));
+        counter += 1;
+        if counter > 1000 {
+            return Err("слишком много одноимённых ярлыков на рабочем столе".to_string());
+        }
+    }
+    Ok(path)
+}
+
+#[tauri::command]
+pub fn create_instance_shortcut(id: String) -> Result<String, String> {
+    let inst = get(&id).ok_or("сборка не найдена")?;
+    let executable = std::env::current_exe().map_err(err)?;
+    let extension = if cfg!(target_os = "windows") {
+        ".lnk"
+    } else if cfg!(target_os = "macos") {
+        ".command"
+    } else {
+        ".desktop"
+    };
+    let path_text = unique_shortcut_path(&inst, extension)?;
+    let executable_text = executable.to_string_lossy().to_string();
+
+    #[cfg(target_os = "windows")]
+    {
+        let to_b64 = |value: &str| base64::engine::general_purpose::STANDARD.encode(value.as_bytes());
+        let exe_b64 = to_b64(&executable_text);
+        let path_b64 = to_b64(&path_text.to_string_lossy());
+        let name_b64 = to_b64(&inst.name);
+        let id_b64 = to_b64(&inst.id);
+        let script = format!(
+            "$exe=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('{exe_b64}'));\n\
+             $path=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('{path_b64}'));\n\
+             $name=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('{name_b64}'));\n\
+             $id=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('{id_b64}'));\n\
+             $ws=New-Object -ComObject WScript.Shell; $s=$ws.CreateShortcut($path);\n\
+             $s.TargetPath=$exe; $s.Arguments='--launch-instance ' + [char]34 + $id + [char]34;\n\
+             $s.WorkingDirectory=Split-Path -Parent $exe; $s.Description='Launch Minecraft instance: ' + $name;\n\
+             $s.IconLocation=$exe + ',0'; $s.Save();"
+        );
+        let encoded_command = base64::engine::general_purpose::STANDARD.encode(
+            script.encode_utf16().flat_map(u16::to_le_bytes).collect::<Vec<u8>>()
+        );
+        let output = Command::new("powershell.exe")
+            .args(["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", &encoded_command])
+            .output()
+            .map_err(|e| format!("не удалось создать ярлык Windows: {e}"))?;
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            let detail = if stderr.trim().is_empty() { stdout.trim() } else { stderr.trim() };
+            return Err(format!("PowerShell не смог создать ярлык: {detail}"));
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        fn desktop_value(value: &str) -> String {
+            value.replace('\\', "\\\\")
+                .replace('\n', "\\n")
+                .replace('\r', "")
+                .replace('\t', "\\t")
+        }
+        fn desktop_arg(value: &str) -> String {
+            format!("\"{}\"",
+                value.replace('\\', "\\\\")
+                    .replace('"', "\\\"")
+                    .replace('%', "%%"))
+        }
+        let entry = format!(
+            "[Desktop Entry]\nType=Application\nName={}\nComment=Launch Minecraft instance in End Launcher\nExec={} --launch-instance {}\nIcon=applications-games\nTerminal=false\nCategories=Game;\nStartupNotify=true\n",
+            desktop_value(&inst.name),
+            desktop_arg(&executable_text),
+            desktop_arg(&inst.id)
+        );
+        std::fs::write(&path_text, entry).map_err(err)?;
+        use std::os::unix::fs::PermissionsExt;
+        let mut permissions = std::fs::metadata(&path_text).map_err(err)?.permissions();
+        permissions.set_mode(0o755);
+        std::fs::set_permissions(&path_text, permissions).map_err(err)?;
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        fn shell_arg(value: &str) -> String {
+            format!("'{}'", value.replace('\'', "'\\''"))
+        }
+        let script = format!(
+            "#!/bin/sh\nexec {} --launch-instance {}\n",
+            shell_arg(&executable_text),
+            shell_arg(&inst.id)
+        );
+        std::fs::write(&path_text, script).map_err(err)?;
+        use std::os::unix::fs::PermissionsExt;
+        let mut permissions = std::fs::metadata(&path_text).map_err(err)?.permissions();
+        permissions.set_mode(0o755);
+        std::fs::set_permissions(&path_text, permissions).map_err(err)?;
+    }
+
+    #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
+    {
+        let _ = (&executable_text, &path_text);
+        return Err("создание ярлыков на этой платформе пока не поддерживается".to_string());
+    }
+
+    Ok(path_text.to_string_lossy().to_string())
+}
+
+#[tauri::command]
+pub fn get_startup_instance() -> Option<String> {
+    let mut args = std::env::args().skip(1);
+    while let Some(arg) = args.next() {
+        if arg == "--launch-instance" {
+            let id = args.next()?;
+            return if valid_id(&id) && get(&id).is_some() { Some(id) } else { None };
+        }
+    }
+    None
+}
 
 const MAX_DUPLICATE_FILE_BYTES: u64 = 512 * 1024 * 1024;
 const MAX_DUPLICATE_TOTAL_BYTES: u64 = 4 * 1024 * 1024 * 1024;
@@ -227,16 +407,11 @@ pub fn duplicate_instance(id: String) -> Result<Instance, String> {
     Ok(copy)
 }
 
-/// Экспортирует сборку в ZIP в config/exports и возвращает полный путь к архиву.
-#[tauri::command]
-pub fn export_instance(id: String) -> Result<String, String> {
-    let inst = get(&id).ok_or("сборка не найдена")?;
-    let source = instance_dir(&id);
-    let export_dir = crate::config::config_dir().join("exports");
-    std::fs::create_dir_all(&export_dir).map_err(err)?;
-    let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_err(err)?.as_millis();
-    let archive_path = export_dir.join(format!("{}-{stamp}.zip", slug(&inst.name)));
-    let file = std::fs::File::create(&archive_path).map_err(err)?;
+/// Builds an instance ZIP directly at the requested path to avoid a second full-size copy.
+fn write_instance_export(id: &str, archive_path: &Path) -> Result<String, String> {
+    get(id).ok_or("сборка не найдена")?;
+    let source = instance_dir(id);
+    let file = std::fs::File::create(archive_path).map_err(err)?;
     let mut zip = zip::ZipWriter::new(file);
     let options = zip::write::FileOptions::default().compression_method(zip::CompressionMethod::Deflated);
     fn add_dir(zip: &mut zip::ZipWriter<std::fs::File>, root: &Path, dir: &Path, options: zip::write::FileOptions) -> Result<(), String> {
@@ -261,6 +436,39 @@ pub fn export_instance(id: String) -> Result<String, String> {
     Ok(archive_path.to_string_lossy().to_string())
 }
 
+/// Экспортирует сборку в ZIP в config/exports и возвращает полный путь к архиву.
+#[tauri::command]
+pub fn export_instance(id: String) -> Result<String, String> {
+    let inst = get(&id).ok_or("сборка не найдена")?;
+    let export_dir = crate::config::config_dir().join("exports");
+    std::fs::create_dir_all(&export_dir).map_err(err)?;
+    let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_err(err)?.as_millis();
+    let archive_path = export_dir.join(format!("{}-{stamp}.zip", slug(&inst.name)));
+    write_instance_export(&id, &archive_path)
+}
+
+/// Exports an instance directly to the path returned by the native Save As dialog.
+#[tauri::command]
+pub fn export_instance_to_path(id: String, path: String) -> Result<String, String> {
+    let raw_path = path.trim();
+    if raw_path.is_empty() {
+        return Err("Путь экспорта не указан".into());
+    }
+    let mut destination = PathBuf::from(raw_path);
+    if !destination.is_absolute() {
+        return Err("Путь экспорта должен быть абсолютным (его должен вернуть системный диалог)".into());
+    }
+    match destination.extension().and_then(|value| value.to_str()) {
+        Some(extension) if extension.eq_ignore_ascii_case("zip") => {}
+        None => { destination.set_extension("zip"); }
+        _ => return Err("Экспорт экземпляра поддерживает ZIP-архивы (*.zip)".into()),
+    }
+    let parent = destination.parent().ok_or("Не удалось определить папку экспорта")?;
+    if !parent.is_dir() {
+        return Err("Папка назначения не существует".into());
+    }
+    write_instance_export(&id, &destination)
+}
 
 #[derive(Serialize)]
 pub struct ImportResult {
@@ -303,10 +511,8 @@ fn version_prefix(raw: &str) -> Option<String> {
 
 fn loader_from_text(value: &str) -> Result<Option<String>, String> {
     let value = value.to_lowercase();
-    if value.contains("quilt") {
-        return Err("Эта сборка использует Quilt. Импорт этого формата уже распознан, но запуск Quilt пока не поддерживается End Launcher; чтобы не создать нерабочую сборку, импорт отменён.".into());
-    }
     if value.contains("neoforge") { Ok(Some("neoforge".into())) }
+    else if value.contains("quilt") { Ok(Some("quilt".into())) }
     else if value.contains("fabric") { Ok(Some("fabric".into())) }
     else if value.contains("forge") { Ok(Some("forge".into())) }
     else if value.contains("vanilla") { Ok(Some("vanilla".into())) }
@@ -364,7 +570,7 @@ fn spec_from_json(value: &serde_json::Value, fallback_name: &str) -> Result<Opti
             } else if uid.contains("neoforge") { loader = Some("neoforge".into()); }
             else if uid.contains("fabric-loader") { loader = Some("fabric".into()); }
             else if uid.contains("forge") { loader = Some("forge".into()); }
-            else if uid.contains("quilt") { return Err("Сборки Quilt пока нельзя запускать в End Launcher; импорт отменён, чтобы избежать некорректной настройки.".into()); }
+            else if uid.contains("quilt") { loader = Some("quilt".into()); }
         }
     }
     let version = version.or_else(|| {
@@ -455,7 +661,7 @@ fn create_import_spec(name: &str, version: &str, loader: &str) -> Result<Instanc
     if name.chars().count() > 40 { name = name.chars().take(40).collect(); }
     let version = version_prefix(version).ok_or_else(|| format!("Не удалось определить версию Minecraft по значению «{version}». Укажите версию в исходном лаунчере и экспортируйте сборку повторно."))?;
     crate::mc::check_id(&version)?;
-    if !["vanilla", "fabric", "forge", "neoforge"].contains(&loader) {
+    if !["vanilla", "fabric", "quilt", "forge", "neoforge"].contains(&loader) {
         return Err(format!("Не поддерживаемый загрузчик: {loader}"));
     }
     let original_name = name.clone();
@@ -471,7 +677,7 @@ fn create_import_spec(name: &str, version: &str, loader: &str) -> Result<Instanc
     let mut id = base.clone();
     let mut n = 2;
     while instance_dir(&id).exists() { id = format!("{base}-{n}"); n += 1; }
-    Ok(Instance { id, name, version, loader: loader.into() })
+    Ok(Instance { id, name, version, loader: loader.into(), loader_version: None })
 }
 
 fn instance_spec_from_dir(root: &Path) -> Result<(String, String, String), String> {
@@ -767,6 +973,135 @@ async fn download_modrinth_files(index: &serde_json::Value, target: &Path) -> Re
     Ok((downloaded, skipped_optional))
 }
 
+/// Opens a native file/folder picker. The requested kind is allow-listed before calling the OS UI.
+#[tauri::command]
+pub fn pick_local_path(kind: String) -> Result<Option<String>, String> {
+    let kind = kind.trim().to_ascii_lowercase();
+    if !["archive", "folder", "java", "export"].contains(&kind.as_str()) {
+        return Err("Неизвестный тип выбора пути".into());
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        let script = match kind.as_str() {
+            "folder" => r#"
+                [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+                Add-Type -AssemblyName System.Windows.Forms
+                $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
+                $dialog.Description = 'Выбери папку экспортированной сборки Minecraft'
+                $dialog.ShowNewFolderButton = $false
+                if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { [Console]::Write($dialog.SelectedPath) }
+            "#,
+            "java" => r#"
+                [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+                Add-Type -AssemblyName System.Windows.Forms
+                $dialog = New-Object System.Windows.Forms.OpenFileDialog
+                $dialog.Title = 'Выбери исполняемый файл Java'
+                $dialog.Filter = 'Java (java.exe;javaw.exe)|java.exe;javaw.exe|Все файлы (*.*)|*.*'
+                $dialog.CheckFileExists = $true
+                if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { [Console]::Write($dialog.FileName) }
+            "#,
+            "export" => r#"
+                [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+                Add-Type -AssemblyName System.Windows.Forms
+                $dialog = New-Object System.Windows.Forms.SaveFileDialog
+                $dialog.Title = 'Сохрани экспорт сборки Minecraft'
+                $dialog.Filter = 'ZIP архив (*.zip)|*.zip'
+                $dialog.DefaultExt = 'zip'
+                $dialog.AddExtension = $true
+                $dialog.OverwritePrompt = $true
+                $dialog.FileName = 'Minecraft-instance.zip'
+                if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { [Console]::Write($dialog.FileName) }
+            "#,
+            _ => r#"
+                [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+                Add-Type -AssemblyName System.Windows.Forms
+                $dialog = New-Object System.Windows.Forms.OpenFileDialog
+                $dialog.Title = 'Выбери архив сборки Minecraft'
+                $dialog.Filter = 'Сборки Minecraft (*.mrpack;*.zip)|*.mrpack;*.zip|Все файлы (*.*)|*.*'
+                $dialog.CheckFileExists = $true
+                if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { [Console]::Write($dialog.FileName) }
+            "#,
+        };
+        let output = Command::new("powershell.exe")
+            .args(["-NoProfile", "-STA", "-ExecutionPolicy", "Bypass", "-Command", script])
+            .output()
+            .map_err(|e| format!("Не удалось открыть диалог Windows: {e}"))?;
+        if !output.status.success() {
+            return Err(format!("Системный диалог Windows завершился с ошибкой: {}", String::from_utf8_lossy(&output.stderr).trim()));
+        }
+        let selected = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        return Ok((!selected.is_empty()).then_some(selected));
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        let script = match kind.as_str() {
+            "folder" => r#"POSIX path of (choose folder with prompt "Выбери папку экспортированной сборки Minecraft")"#,
+            "java" => r#"POSIX path of (choose file with prompt "Выбери исполняемый файл Java")"#,
+            "export" => r#"POSIX path of (choose file name with prompt "Сохрани экспорт сборки Minecraft" default name "Minecraft-instance.zip")"#,
+            _ => r#"POSIX path of (choose file with prompt "Выбери архив сборки Minecraft")"#,
+        };
+        let output = Command::new("osascript")
+            .args(["-e", script])
+            .output()
+            .map_err(|e| format!("Не удалось открыть системный диалог macOS: {e}"))?;
+        if !output.status.success() { return Ok(None); }
+        let selected = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        return Ok((!selected.is_empty()).then_some(selected));
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        let title = match kind.as_str() {
+            "folder" => "Выбери папку экспортированной сборки Minecraft",
+            "java" => "Выбери исполняемый файл Java",
+            "export" => "Выбери, куда сохранить ZIP-архив сборки Minecraft",
+            _ => "Выбери архив сборки Minecraft",
+        };
+        let zenity_args: Vec<&str> = if kind == "folder" {
+            vec!["--file-selection", "--directory", "--title", title]
+        } else if kind == "java" {
+            vec!["--file-selection", "--title", title, "--file-filter=Java executables | java javaw java.exe javaw.exe *.bin", "--file-filter=All files | *"]
+        } else if kind == "export" {
+            vec!["--file-selection", "--save", "--confirm-overwrite", "--title", title, "--filename=Minecraft-instance.zip", "--file-filter=ZIP archive | *.zip"]
+        } else {
+            vec!["--file-selection", "--title", title, "--file-filter=Minecraft packs | *.mrpack *.zip", "--file-filter=ZIP archives | *.zip", "--file-filter=All files | *"]
+        };
+        match Command::new("zenity").args(&zenity_args).output() {
+            Ok(output) => {
+                if !output.status.success() { return Ok(None); }
+                let selected = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                return Ok((!selected.is_empty()).then_some(selected));
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => return Err(format!("Не удалось открыть диалог zenity: {error}")),
+        }
+        let kdialog = if kind == "folder" {
+            Command::new("kdialog").args(["--getexistingdirectory", ".", "--title", title]).output()
+        } else if kind == "export" {
+            Command::new("kdialog").args(["--getsavefilename", ".", "ZIP archive (*.zip)", "--title", title]).output()
+        } else {
+            let filter = match kind.as_str() {
+                "java" => "Java executables (java javaw java.exe javaw.exe *.bin)",
+                _ => "Minecraft packs (*.mrpack *.zip)",
+            };
+            Command::new("kdialog").args(["--getopenfilename", ".", filter, "--title", title]).output()
+        };
+        match kdialog {
+            Ok(output) => {
+                if !output.status.success() { return Ok(None); }
+                let selected = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                Ok((!selected.is_empty()).then_some(selected))
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Err(
+                "Не найден диалог выбора файла. Установи zenity или kdialog либо перетащи архив/папку прямо в окно лаунчера.".into()
+            ),
+            Err(error) => Err(format!("Не удалось открыть диалог kdialog: {error}")),
+        }
+    }
+}
+
 /// Импорт сборки по перетаскиванию файла .mrpack/.zip или папки стороннего лаунчера.
 /// Переносятся пользовательские данные, общие versions/libraries/assets устанавливаются заново через End Launcher.
 #[tauri::command]
@@ -890,10 +1225,43 @@ pub fn open_instance_folder(id: String) -> Result<(), String> {
     open_dir(&instance_dir(&id))
 }
 
+/// Открывает каталог, в котором хранятся все экземпляры Minecraft.
+#[tauri::command]
+pub fn open_instances_folder() -> Result<(), String> {
+    let dir = instances_dir();
+    std::fs::create_dir_all(&dir).map_err(err)?;
+    open_dir(&dir)
+}
+
 /// Папка настроек лаунчера (config.json, crash.log, скачанная Java и т.д.).
 #[tauri::command]
 pub fn open_launcher_folder() -> Result<(), String> {
     open_dir(&crate::config::config_dir())
+}
+
+/// Корневой игровой каталог: assets, libraries, versions и instances.
+#[tauri::command]
+pub fn open_game_folder() -> Result<(), String> {
+    let dir = crate::config::game_dir();
+    std::fs::create_dir_all(&dir).map_err(err)?;
+    open_dir(&dir)
+}
+
+/// Открывает одну из пользовательских папок ресурсов интерфейса End Launcher.
+#[tauri::command]
+pub fn open_launcher_resource_folder(kind: String) -> Result<(), String> {
+    let root = crate::config::config_dir();
+    let dir = match kind.as_str() {
+        "skins" => root.join("skins"),
+        "java" => root.join("runtime"),
+        "icon-themes" => root.join("icon-themes"),
+        "widget-themes" => root.join("widget-themes"),
+        "cat-packs" => root.join("cat-packs"),
+        "instance-icons" => root.join("instance-icons"),
+        _ => return Err("неизвестный тип папки ресурсов".into()),
+    };
+    std::fs::create_dir_all(&dir).map_err(err)?;
+    open_dir(&dir)
 }
 
 #[cfg(test)]
@@ -969,4 +1337,3 @@ mod import_path_tests {
         }
     }
 }
-

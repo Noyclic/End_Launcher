@@ -125,6 +125,35 @@ pub struct ConnectInfo {
     pub method: String,
 }
 
+#[derive(Serialize)]
+pub struct P2pDiagnosticReport {
+    pub relay_online: bool,
+    pub relay_detail: String,
+    pub invite_ok: bool,
+    pub invite_detail: String,
+    pub roundtrip_ok: bool,
+    pub roundtrip_detail: String,
+    pub elapsed_ms: u64,
+}
+
+#[tauri::command]
+pub async fn p2p_diagnostics() -> P2pDiagnosticReport {
+    #[cfg(feature = "p2p")]
+    { return imp::diagnostics().await; }
+    #[cfg(not(feature = "p2p"))]
+    {
+        P2pDiagnosticReport {
+            relay_online: false,
+            relay_detail: "Эта сборка создана без поддержки P2P.".into(),
+            invite_ok: false,
+            invite_detail: "Диагностика недоступна без функции P2P.".into(),
+            roundtrip_ok: false,
+            roundtrip_detail: "Диагностика недоступна без функции P2P.".into(),
+            elapsed_ms: 0,
+        }
+    }
+}
+
 #[tauri::command]
 pub fn p2p_status() -> P2pStatus {
     match STATE.lock().unwrap().as_ref() {
@@ -214,7 +243,7 @@ mod imp {
     use std::net::{IpAddr, Ipv4Addr};
     use std::str::FromStr;
     use std::sync::Mutex;
-    use std::time::Duration;
+    use std::time::{Duration, Instant};
     use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
     use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
     use tokio::net::{TcpListener, TcpStream};
@@ -640,6 +669,168 @@ mod imp {
         } else {
             Err("не удалось распознать код: это не тикет и не Node ID".into())
         }
+    }
+
+
+    const PROBE_REQUEST: &[u8] = b"END-LAUNCHER-P2P-PROBE-REQUEST-v1";
+    const PROBE_RESPONSE: &[u8] = b"END-LAUNCHER-P2P-PROBE-RESPONSE-v1";
+
+    /// Checks public relay availability, EL2 invite parsing and a two-way data exchange
+    /// between two temporary endpoints. Does not stop or replace the active game room.
+    pub async fn diagnostics() -> super::P2pDiagnosticReport {
+        let started = Instant::now();
+        let mut report = super::P2pDiagnosticReport {
+            relay_online: false,
+            relay_detail: "Проверка ещё не выполнена.".into(),
+            invite_ok: false,
+            invite_detail: "Проверка ещё не выполнена.".into(),
+            roundtrip_ok: false,
+            roundtrip_detail: "Проверка ещё не выполнена.".into(),
+            elapsed_ms: 0,
+        };
+
+        let host = match Endpoint::builder(presets::N0)
+            .alpns(vec![ALPN.to_vec()])
+            .proxy_from_env()
+            .bind()
+            .await
+        {
+            Ok(endpoint) => endpoint,
+            Err(e) => {
+                report.relay_detail = format!("Не удалось создать сетевой endpoint: {}", e);
+                report.invite_detail = "Проверьте интернет и настройки сети.".into();
+                report.roundtrip_detail = "Тест передачи не запускался.".into();
+                report.elapsed_ms = started.elapsed().as_millis() as u64;
+                return report;
+            }
+        };
+
+        report.relay_online = timeout(Duration::from_secs(12), host.online()).await.is_ok();
+        report.relay_detail = if report.relay_online {
+            "Соединение с публичным Iroh relay подтверждено.".into()
+        } else {
+            "За 12 секунд не удалось подтвердить публичный relay. Прямой маршрут ещё может работать.".into()
+        };
+
+        let mut token = [0u8; 16];
+        if let Err(e) = getrandom::getrandom(&mut token) {
+            report.invite_detail = format!("Не удалось создать случайный ключ: {}", e);
+            report.roundtrip_detail = "Тест передачи не запускался.".into();
+            report.elapsed_ms = started.elapsed().as_millis() as u64;
+            return report;
+        }
+
+        let endpoint_id = host.id();
+        let ticket = EndpointTicket::new(host.addr());
+        let invite = format!("EL2|{}||{}|{}", to_hex(&token), ticket, endpoint_id);
+        let (parsed_token, methods) = match parse(&invite) {
+            Ok(parsed) => parsed,
+            Err(e) => {
+                report.invite_detail = format!("Сформированный код не прошёл проверку: {}", e);
+                report.roundtrip_detail = "Тест передачи не запускался.".into();
+                report.elapsed_ms = started.elapsed().as_millis() as u64;
+                return report;
+            }
+        };
+        let ticket_addr = methods.into_iter().find_map(|method| match method {
+            Method::Ticket(addr) => Some(addr),
+            _ => None,
+        });
+        let Some(ticket_addr) = ticket_addr else {
+            report.invite_detail = "В коде не найден маршрут Iroh Ticket.".into();
+            report.roundtrip_detail = "Тест передачи не запускался.".into();
+            report.elapsed_ms = started.elapsed().as_millis() as u64;
+            return report;
+        };
+        report.invite_ok = parsed_token == token;
+        report.invite_detail = "EL2-код создан, тикет и ключ успешно разобраны обратно.".into();
+
+        let guest = match Endpoint::builder(presets::N0).proxy_from_env().bind().await {
+            Ok(endpoint) => endpoint,
+            Err(e) => {
+                report.roundtrip_detail = format!("Не удалось создать второй endpoint: {}", e);
+                report.elapsed_ms = started.elapsed().as_millis() as u64;
+                return report;
+            }
+        };
+
+        let accept_ep = host.clone();
+        let expected_token = token;
+        let host_task = tauri::async_runtime::spawn(async move {
+            let incoming = timeout(Duration::from_secs(18), accept_ep.accept())
+                .await
+                .map_err(|_| "хост не получил входящее соединение за 18 секунд".to_string())?
+                .ok_or("endpoint хоста уже закрыт")?;
+            let connection = timeout(Duration::from_secs(8), incoming)
+                .await
+                .map_err(|_| "не завершилось рукопожатие хоста".to_string())?
+                .map_err(err)?;
+            let (mut send, mut recv) = timeout(Duration::from_secs(8), connection.accept_bi())
+                .await
+                .map_err(|_| "гость не открыл двусторонний поток".to_string())?
+                .map_err(err)?;
+            let mut received_token = [0u8; 16];
+            recv.read_exact(&mut received_token).await.map_err(err)?;
+            if received_token != expected_token {
+                return Err("ключ тестового приглашения не совпал".into());
+            }
+            let mut received = vec![0u8; PROBE_REQUEST.len()];
+            recv.read_exact(&mut received).await.map_err(err)?;
+            if received.as_slice() != PROBE_REQUEST {
+                return Err("хост получил неверные тестовые данные".into());
+            }
+            send.write_all(PROBE_RESPONSE).await.map_err(err)?;
+            Ok::<(), String>(())
+        });
+
+        let connection = match timeout(Duration::from_secs(18), guest.connect(ticket_addr, ALPN)).await {
+            Ok(Ok(connection)) => connection,
+            Ok(Err(e)) => {
+                host_task.abort();
+                report.roundtrip_detail = format!("Второй endpoint не подключился к хосту: {}", e);
+                report.elapsed_ms = started.elapsed().as_millis() as u64;
+                return report;
+            }
+            Err(_) => {
+                host_task.abort();
+                report.roundtrip_detail = "Истекло ожидание соединения между временными endpoint'ами.".into();
+                report.elapsed_ms = started.elapsed().as_millis() as u64;
+                return report;
+            }
+        };
+
+        let transfer = async {
+            let (mut send, mut recv) = connection.open_bi().await.map_err(err)?;
+            send.write_all(&parsed_token).await.map_err(err)?;
+            send.write_all(PROBE_REQUEST).await.map_err(err)?;
+            let mut received = vec![0u8; PROBE_RESPONSE.len()];
+            recv.read_exact(&mut received).await.map_err(err)?;
+            if received.as_slice() != PROBE_RESPONSE {
+                return Err("получен неверный ответ на тестовые данные".to_string());
+            }
+            Ok::<(), String>(())
+        };
+        match timeout(Duration::from_secs(12), transfer).await {
+            Ok(Ok(())) => match timeout(Duration::from_secs(5), host_task).await {
+                Ok(Ok(Ok(()))) => {
+                    report.roundtrip_ok = true;
+                    report.roundtrip_detail = "Два временных узла обменялись контрольными данными в обе стороны.".into();
+                }
+                Ok(Ok(Err(e))) => report.roundtrip_detail = format!("Ошибка на стороне хоста: {}", e),
+                Ok(Err(e)) => report.roundtrip_detail = format!("Задача хоста завершилась с ошибкой: {}", e),
+                Err(_) => report.roundtrip_detail = "Хост не подтвердил получение тестовых данных вовремя.".into(),
+            },
+            Ok(Err(e)) => {
+                host_task.abort();
+                report.roundtrip_detail = format!("Не удалось передать тестовые данные: {}", e);
+            }
+            Err(_) => {
+                host_task.abort();
+                report.roundtrip_detail = "Истекло ожидание ответа на тестовые данные.".into();
+            }
+        }
+        report.elapsed_ms = started.elapsed().as_millis() as u64;
+        report
     }
 
     pub async fn connect(input: String, method: Option<String>) -> Result<ConnectInfo, String> {

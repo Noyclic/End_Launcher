@@ -3251,3 +3251,15 @@
   :root[data-ui='modrinth'] .modrinth-app-identity > span:last-child { display:none; }
   :root[data-ui='modrinth'] .modrinth-app-header { gap:9px; }
 }
+
+
+/* P2P self-diagnostics */
+.p2p-diagnostics { display:flex; flex-direction:column; align-items:flex-start; gap:5px; margin:12px 0; padding:10px; border:1px solid var(--el-border,#39443c); border-radius:9px; background:color-mix(in srgb,var(--el-panel,#172019) 76%,transparent); }
+.p2p-diagnostics > button { min-height:34px; padding:0 12px; }
+.p2p-diagnostics > p { margin:0; line-height:1.45; }
+.p2p-diagnostics-results { display:flex; flex-direction:column; gap:8px; width:100%; margin-top:5px; }
+.p2p-diagnostic-row { display:flex; flex-direction:column; gap:2px; min-width:0; font:11px/1.45 ui-monospace,monospace; }
+.p2p-diagnostic-row strong[data-state="success"] { color:#79d494; }
+.p2p-diagnostic-row strong[data-state="error"] { color:#f08c8c; }
+.p2p-diagnostic-row span { color:var(--el-muted,#9ba69d); overflow-wrap:anywhere; }
+.p2p-diagnostics-results[hidden] { display:none; }

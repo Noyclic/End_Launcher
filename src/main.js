@@ -4666,7 +4666,7 @@ async function openP2p() {
   // -> Rust: p2p.rs :: p2p_available() — собрана ли эта версия с флагом p2p
   const ok = await invoke('p2p_available').catch(() => false);
   $('p2p-warn').style.display = ok ? 'none' : '';
-  ['p2p-host-btn', 'p2p-join-btn', 'p2p-find-port'].forEach((id) => { $(id).disabled = !ok && id !== 'p2p-find-port'; });
+  ['p2p-host-btn', 'p2p-join-btn', 'p2p-find-port', 'p2p-diagnostics-btn'].forEach((id) => { $(id).disabled = !ok && id !== 'p2p-find-port'; });
   // порт открытого мира подставляем сами, если он уже есть в логе игры
   invoke('p2p_detect_port').then((p) => { if (p) $('p2p-port').value = p; }).catch(() => {});
   p2pRefresh();
@@ -4788,6 +4788,53 @@ $('p2p-stop').addEventListener('click', async () => {
   $('p2p-codes-note').textContent = '';
   $('p2p-join-info').textContent = '';
   p2pRefresh();
+});
+
+const p2pDiagnosticsButton = $('p2p-diagnostics-btn');
+const p2pDiagnosticsResults = $('p2p-diagnostics-results');
+p2pDiagnosticsButton.addEventListener('click', async () => {
+  p2pDiagnosticsButton.disabled = true;
+  p2pDiagnosticsButton.textContent = 'Проверяю P2P…';
+  p2pDiagnosticsResults.hidden = false;
+  p2pDiagnosticsResults.replaceChildren();
+  const progress = document.createElement('p');
+  progress.className = 'mono small dim';
+  progress.textContent = 'Подключаюсь к relay и запускаю локальную проверку передачи данных…';
+  p2pDiagnosticsResults.append(progress);
+  try {
+    // Временные endpoints: активная игровая комната и её подключения не затрагиваются.
+    const report = await invoke('p2p_diagnostics');
+    const rows = [
+      ['Публичный relay', report.relay_online, report.relay_detail],
+      ['Код приглашения', report.invite_ok, report.invite_detail],
+      ['Передача данных', report.roundtrip_ok, report.roundtrip_detail],
+    ];
+    p2pDiagnosticsResults.replaceChildren();
+    for (const [label, ok, detail] of rows) {
+      const row = document.createElement('div');
+      row.className = 'p2p-diagnostic-row';
+      const title = document.createElement('strong');
+      title.textContent = `${ok ? '✓' : '✕'} ${label}`;
+      title.dataset.state = ok ? 'success' : 'error';
+      const description = document.createElement('span');
+      description.textContent = detail || (ok ? 'Проверка пройдена.' : 'Проверка не пройдена.');
+      row.append(title, description);
+      p2pDiagnosticsResults.append(row);
+    }
+    const duration = document.createElement('p');
+    duration.className = 'mono small dim';
+    duration.textContent = `Время проверки: ${report.elapsed_ms} мс. Передача проверяется между двумя временными узлами на этом компьютере; это не доказывает доступность из другой страны.`;
+    p2pDiagnosticsResults.append(duration);
+  } catch (error) {
+    p2pDiagnosticsResults.replaceChildren();
+    const failure = document.createElement('p');
+    failure.className = 'mono small';
+    failure.textContent = `Диагностика не запустилась: ${String(error)}`;
+    p2pDiagnosticsResults.append(failure);
+  } finally {
+    p2pDiagnosticsButton.disabled = false;
+    p2pDiagnosticsButton.textContent = '🧪 Проверить P2P ещё раз';
+  }
 });
 p2pRefresh();
 

@@ -152,6 +152,7 @@ fn main() {
             p2p::p2p_available,
             p2p::p2p_detect_port,
             p2p::p2p_status,
+            p2p::p2p_diagnostics,
             // ии
             ai::analyze_crash,
             ai_browser::open_ai_browser,

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const [html, js, css, repairCss, rustConfig, rustInstances, rustMain, rustJava, rustMc, rustMods] = await Promise.all([
+const [html, js, css, repairCss, rustConfig, rustInstances, rustMain, rustJava, rustMc, rustMods, rustP2p] = await Promise.all([
   readFile(new URL('../src/index.html', import.meta.url), 'utf8'),
   readFile(new URL('../src/main.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/styles.css', import.meta.url), 'utf8'),
@@ -12,6 +12,7 @@ const [html, js, css, repairCss, rustConfig, rustInstances, rustMain, rustJava, 
   readFile(new URL('../src-tauri/src/java.rs', import.meta.url), 'utf8'),
   readFile(new URL('../src-tauri/src/mc.rs', import.meta.url), 'utf8'),
   readFile(new URL('../src-tauri/src/mods.rs', import.meta.url), 'utf8'),
+  readFile(new URL('../src-tauri/src/p2p.rs', import.meta.url), 'utf8'),
 ]);
 
 const check = (condition, message) => assert.ok(condition, message);
@@ -1206,3 +1207,17 @@ check(css.includes(":root[data-ui='modrinth'] #modrinth-nav .modrinth-nav-btn:fo
     && css.includes("@media (max-width:560px)")
     && css.includes("text-overflow:ellipsis"),
   'Modrinth icon-rail navigation must retain visible keyboard focus and bounded labels at narrow widths');
+
+
+check(html.includes('id="p2p-diagnostics-btn"')
+    && html.includes('id="p2p-diagnostics-results"')
+    && html.includes('aria-live="polite"')
+    && js.includes("invoke('p2p_diagnostics')")
+    && js.includes("['p2p-host-btn', 'p2p-join-btn', 'p2p-find-port', 'p2p-diagnostics-btn']")
+    && rustP2p.includes('pub async fn p2p_diagnostics()')
+    && rustP2p.includes('EndpointTicket::new(host.addr())')
+    && rustP2p.includes('accept_ep.accept()')
+    && rustP2p.includes('send.write_all(PROBE_RESPONSE)')
+    && rustMain.includes('p2p::p2p_diagnostics,')
+    && repairCss.includes('.p2p-diagnostics'),
+  'P2P diagnostics must expose a working button, report relay/invite/round-trip checks, and keep the current room untouched');

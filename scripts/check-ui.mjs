@@ -97,6 +97,13 @@ check(js.includes('function closeNewInstance()')
     && js.includes("trapModalFocus(event, wrapper.querySelector('[role=\"dialog\"]'))")
     && js.includes("if (event.key === 'Escape') {\n    closeNewInstance();"),
   'Prism new-instance dialog must restore focus, trap Tab, and close on Escape');
+check(js.includes('let createInstanceOpenRequest = 0;')
+    && js.includes('const openRequest = ++createInstanceOpenRequest;')
+    && js.includes('createInstanceOpenRequest += 1;')
+    && js.includes('openRequest !== createInstanceOpenRequest')
+    && js.includes("wrapper.getAttribute('aria-hidden') === 'true'")
+    && js.includes("$('ni-name').focus();"),
+  'Create-instance dialog must ignore stale async loads after close or mode changes');
 check(/class="account-dialog"[^>]*role="dialog"[^>]*aria-modal="true"[^>]*aria-labelledby="account-modal-title"/.test(html),
   'Account picker must expose labelled modal-dialog semantics');
 check(/class="customizer-window"[^>]*role="dialog"[^>]*aria-modal="true"[^>]*aria-labelledby="customizer-title"/.test(html),

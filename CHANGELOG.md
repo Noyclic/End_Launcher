@@ -1,3 +1,10 @@
+## UI stability pass — cancel stale create-instance focus
+
+- Guarded the asynchronous version/loader loading path in the in-window “Добавить экземпляр…” dialog with an open-request token.
+- Closing the dialog during a slow refresh now invalidates the pending request, so it cannot refocus hidden controls or overwrite state after the dialog is gone.
+- Added a static regression check for the stale-focus protection.
+
+
 ## UI fidelity pass 46 — Modrinth P2P/header separation
 
 - Kept the fixed P2P trigger outside the Modrinth app header so it no longer participates in the header flex layout or overlaps the status/navigation controls.

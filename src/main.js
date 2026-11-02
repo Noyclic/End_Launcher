@@ -3087,11 +3087,9 @@ const p2pHomeMarker = prismOverflowHome['p2p-fab'];
 function syncModrinthP2pDock(mode) {
   const fab = $('p2p-fab');
   if (!fab) return;
-  if (mode === 'modrinth') {
-    const header = $('modrinth-app-header');
-    if (header && fab.parentElement !== header) header.appendChild(fab);
-    return;
-  }
+  // Keep the P2P trigger outside the Modrinth header. It is fixed-positioned by
+  // CSS, but placing it inside the header still makes it participate in the
+  // header's flex/grid sizing and overlap the status/navigation controls.
   // Prism owns the control inside its overflow menu; all other shells restore
   // the exact original DOM position and keep the original event handlers.
   if (mode !== 'prism' && p2pHomeMarker?.parentNode) {

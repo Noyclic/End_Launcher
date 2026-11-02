@@ -7554,3 +7554,42 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   .game-mode-description { min-height: 0; }
   .game-modes-kicker { display: none; }
 }
+
+
+/* Modrinth geometry guard: the fixed P2P dock must not participate in header layout,
+   and the header/filter rows must be allowed to shrink without clipping. */
+:root[data-ui='modrinth'] #modrinth-app-header {
+  min-width: 0;
+  gap: 12px;
+}
+:root[data-ui='modrinth'] #modrinth-app-header .modrinth-app-identity,
+:root[data-ui='modrinth'] #modrinth-app-header .modrinth-app-status {
+  min-width: 0;
+}
+:root[data-ui='modrinth'] #modrinth-app-header .modrinth-app-identity {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:root[data-ui='modrinth'] #modrinth-app-header .modrinth-app-status {
+  flex: 0 1 auto;
+  white-space: nowrap;
+}
+:root[data-ui='modrinth'] #modrinth-library-filters {
+  min-width: 0;
+}
+:root[data-ui='modrinth'] #modrinth-library-filters > label,
+:root[data-ui='modrinth'] #modrinth-library-filters > label > select {
+  min-width: 0;
+  max-width: 100%;
+}
+@media (max-width: 700px) {
+  :root[data-ui='modrinth'] #modrinth-app-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  :root[data-ui='modrinth'] #modrinth-app-header .modrinth-app-status {
+    flex-basis: 100%;
+    justify-content: flex-start;
+  }
+}

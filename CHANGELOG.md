@@ -1,3 +1,10 @@
+## UI fidelity pass 46 — Modrinth P2P/header separation
+
+- Kept the fixed P2P trigger outside the Modrinth app header so it no longer participates in the header flex layout or overlaps the status/navigation controls.
+- Added Modrinth-specific min-width, ellipsis, and narrow-window wrapping guards for the header identity/status row and library filter controls.
+- Added static UI regression checks for the P2P DOM placement contract.
+- No launch, authentication, import, filter, or sorting handlers were replaced.
+
 ## Prism toolbar order preservation
 
 - Kept the existing Prism controls and handlers, but now places “Добавить экземпляр…” before “Папки” in the shared toolbar block.

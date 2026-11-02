@@ -2387,6 +2387,7 @@ $('ni-version-refresh')?.addEventListener('click', async () => {
 
 // ── создание сборки ──
 let createInstanceReturnFocus = null;
+let createInstanceOpenRequest = 0;
 const createInstanceWrapper = $('new-instance');
 const createInstanceHomeMarker = document.createComment('new-instance-original-position');
 if (createInstanceWrapper?.parentNode) createInstanceWrapper.parentNode.insertBefore(createInstanceHomeMarker, createInstanceWrapper);
@@ -2396,6 +2397,7 @@ function restoreNewInstanceLocation() {
   }
 }
 function closeNewInstance() {
+  createInstanceOpenRequest += 1;
   const wrapper = $('new-instance');
   wrapper.style.display = 'none';
   wrapper.setAttribute('aria-hidden', 'true');
@@ -2524,6 +2526,7 @@ $('ni-help')?.addEventListener('click', async () => {
 });
 async function openNewInstance() {
   const wrapper = $('new-instance');
+  const openRequest = ++createInstanceOpenRequest;
   createInstanceReturnFocus = document.activeElement;
   // A fixed dialog nested in the scrolling library can become fixed to that ancestor.
   // Move it to body in Prism mode so the overlay spans the full app window and action rail.
@@ -2553,8 +2556,10 @@ async function openNewInstance() {
     } catch {}
   }
   const ids = await loadReleases();
+  if (openRequest !== createInstanceOpenRequest || wrapper.style.display === 'none' || wrapper.getAttribute('aria-hidden') === 'true') return;
   renderPrismCreateVersionBrowser();
   await loadPrismLoaderVersions();
+  if (openRequest !== createInstanceOpenRequest || wrapper.style.display === 'none' || wrapper.getAttribute('aria-hidden') === 'true') return;
   if (!ids.length) $('ni-msg').textContent = 'Не удалось получить список версий (нет интернета?)';
   $('ni-name').focus();
 }

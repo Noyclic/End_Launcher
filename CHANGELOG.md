@@ -1,3 +1,9 @@
+## QA pass — refresh loader versions from native version selection
+
+- Changing the Minecraft version through the native `#ni-version` selector now refreshes the visible Prism version table and the compatible Fabric, Quilt, Forge, or NeoForge version catalog.
+- This keeps keyboard and assistive/native selection paths consistent with clicking a row in the version browser, without changing instance data or dialog placement.
+- Added a regression assertion for the selector-to-loader refresh path.
+
 ## Functional pass — prepare selected loader during instance creation
 
 - Creating a Minecraft instance now immediately prepares the selected Fabric, Quilt, Forge, or NeoForge profile instead of deferring all loader work until the first launch.

@@ -1236,6 +1236,10 @@ check(js.includes("const PRISM_CREATE_LOADER_STORE = 'end-launcher-prism-create-
     && repairCss.includes('.prism-loader-version-table'),
   'Prism Add Instance must persist the active loader, show its available version catalog and highlight the exact selected version');
 
+check(js.includes("$('ni-version')?.addEventListener('change'")
+    && js.includes("renderPrismCreateVersionBrowser();\n  loadPrismLoaderVersions();"),
+  'Changing the native Minecraft version selector must refresh the visible version row and compatible loader catalog');
+
 
 check(css.includes(":root[data-ui='modrinth'] #modrinth-nav .modrinth-nav-btn:focus-visible")
     && css.includes(":root[data-ui='modrinth'] .modrinth-sidebar-tools button:focus-visible")

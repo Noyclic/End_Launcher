@@ -104,6 +104,12 @@ check(js.includes('let createInstanceOpenRequest = 0;')
     && js.includes("wrapper.getAttribute('aria-hidden') === 'true'")
     && js.includes("$('ni-name').focus();"),
   'Create-instance dialog must ignore stale async loads after close or mode changes');
+check(js.includes("await invoke('install_fabric', { gameVersion: version, loaderVersion });")
+    && js.includes("await invoke('install_quilt', { gameVersion: version, loaderVersion });")
+    && js.includes("await invoke('install_forge', {")
+    && js.includes("Сборка создана, но подготовка не завершилась:")
+    && js.includes('создан и подготовлен'),
+  'Creating a modded instance must prepare the selected loader and report partial failure honestly');
 check(/class="account-dialog"[^>]*role="dialog"[^>]*aria-modal="true"[^>]*aria-labelledby="account-modal-title"/.test(html),
   'Account picker must expose labelled modal-dialog semantics');
 check(/class="customizer-window"[^>]*role="dialog"[^>]*aria-modal="true"[^>]*aria-labelledby="customizer-title"/.test(html),

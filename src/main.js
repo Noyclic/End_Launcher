@@ -2599,21 +2599,48 @@ $('ni-create').addEventListener('click', async () => {
   $('ni-msg').textContent = 'Подготавливаем папку сборки…';
   try {
     // -> Rust: instances.rs :: create_instance(name, version, loader)
+    const version = $('ni-version').value;
+    const loader = $('ni-loader').value;
+    const loaderVersion = selectedLoaderVersion || null;
     const created = await invoke('create_instance', {
       name,
-      version: $('ni-version').value,
-      loader: $('ni-loader').value,
-      loaderVersion: selectedLoaderVersion || null,
+      version,
+      loader,
+      loaderVersion,
     });
     const groupName = currentUi === 'prism' ? String($('ni-group')?.value || '').trim() : '';
     if (created?.id && groupName) savePrismInstanceGroup(created, groupName);
+
+    // Prepare the selected loader immediately, so creation is a complete workflow
+    // instead of deferring the real work until the first launch.
+    if (loader !== 'vanilla') {
+      $('ni-msg').textContent = `Подготавливаем ${prismLoaderDescriptions[loader]?.[0] || loader} ${loaderVersion || ''}…`.trim();
+      if (loader === 'fabric') {
+        await invoke('install_fabric', { gameVersion: version, loaderVersion });
+      } else if (loader === 'quilt') {
+        await invoke('install_quilt', { gameVersion: version, loaderVersion });
+      } else {
+        await invoke('install_forge', {
+          gameVersion: version,
+          neo: loader === 'neoforge',
+          loaderVersion,
+        });
+      }
+    }
+
     closeNewInstance();
     $('ni-name').value = '';
     if ($('ni-group')) $('ni-group').value = '';
     await loadInstances();
-    showToast(currentUi === 'prism' ? `Экземпляр «${name}» создан` : `Сборка «${name}» создана`);
+    showToast(currentUi === 'prism'
+      ? `Экземпляр «${name}» создан и подготовлен`
+      : `Сборка «${name}» создана и подготовлена`);
   } catch (e) {
-    $('ni-msg').textContent = String(e);
+    // If preparation fails, keep the instance visible so the user can retry
+    // without losing the selected version/loader metadata.
+    const message = String(e);
+    $('ni-msg').textContent = `Сборка создана, но подготовка не завершилась: ${message}`;
+    showToast('Сборка создана, но загрузчик не подготовлен.', false);
   } finally {
     btn.disabled = false;
     btn.textContent = currentUi === 'prism' ? 'ОК' : '＋ Создать сборку';

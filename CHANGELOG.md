@@ -1,3 +1,9 @@
+## Functional pass — prepare selected loader during instance creation
+
+- Creating a Minecraft instance now immediately prepares the selected Fabric, Quilt, Forge, or NeoForge profile instead of deferring all loader work until the first launch.
+- The create dialog shows the preparation stage and reports a partial failure honestly: the instance metadata remains available for retry rather than being silently discarded.
+- Vanilla creation keeps the existing fast path and all existing instance data/layout behavior.
+
 ## UI stability pass — cancel stale create-instance focus
 
 - Guarded the asynchronous version/loader loading path in the in-window “Добавить экземпляр…” dialog with an open-request token.

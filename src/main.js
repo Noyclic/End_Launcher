@@ -2182,6 +2182,10 @@ async function loadReleases({ refresh = false } = {}) {
 for (const id of ['ni-version-search', 'ni-filter-releases', 'ni-filter-snapshots', 'ni-filter-betas', 'ni-filter-alphas', 'ni-filter-experimental']) {
   $(id)?.addEventListener(id === 'ni-version-search' ? 'input' : 'change', renderPrismCreateVersionBrowser);
 }
+$('ni-version')?.addEventListener('change', () => {
+  renderPrismCreateVersionBrowser();
+  loadPrismLoaderVersions();
+});
 
 // Prism-style vertical loader chooser plus a real, versioned loader catalog.
 const PRISM_CREATE_LOADER_STORE = 'end-launcher-prism-create-loader-v1';

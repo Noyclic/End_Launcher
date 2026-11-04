@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const [html, js, css, repairCss, rustConfig, rustInstances, rustMain, rustJava, rustMc, rustMods, rustP2p] = await Promise.all([
+const [html, js, css, repairCss, rustConfig, rustInstances, rustMain, rustAuth, rustJava, rustMc, rustMods, rustP2p] = await Promise.all([
   readFile(new URL('../src/index.html', import.meta.url), 'utf8'),
   readFile(new URL('../src/main.js', import.meta.url), 'utf8'),
   readFile(new URL('../src/styles.css', import.meta.url), 'utf8'),
@@ -9,6 +9,7 @@ const [html, js, css, repairCss, rustConfig, rustInstances, rustMain, rustJava, 
   readFile(new URL('../src-tauri/src/config.rs', import.meta.url), 'utf8'),
   readFile(new URL('../src-tauri/src/instances.rs', import.meta.url), 'utf8'),
   readFile(new URL('../src-tauri/src/main.rs', import.meta.url), 'utf8'),
+  readFile(new URL('../src-tauri/src/auth.rs', import.meta.url), 'utf8'),
   readFile(new URL('../src-tauri/src/java.rs', import.meta.url), 'utf8'),
   readFile(new URL('../src-tauri/src/mc.rs', import.meta.url), 'utf8'),
   readFile(new URL('../src-tauri/src/mods.rs', import.meta.url), 'utf8'),
@@ -41,6 +42,14 @@ check(js.includes("$('account-box').addEventListener('keydown'") && js.includes(
   'Account picker must open from the keyboard');
 check(js.includes("if (document.body.classList.contains('customizer-active')) return;"),
   'Keyboard account activation must not bypass customizer edit mode');
+
+check(rustAuth.includes('fn is_ely_two_factor_challenge(message: &str) -> bool')
+    && rustAuth.includes('if is_ely_two_factor_challenge(&msg)')
+    && rustAuth.includes('Account protected with two factor auth.')
+    && rustAuth.includes('Two-Factor auth.')
+    && js.includes('if (r.needs_2fa)')
+    && js.includes("$('ely-totp').style.display = ''"),
+  'Ely.by two-factor challenges must be normalized in Rust and surfaced by the existing TOTP prompt');
 
 // Future game-mode controls must be honest and must not start an unimplemented installer.
 check(/id="horizon-rust-btn"[^>]*disabled/.test(html)

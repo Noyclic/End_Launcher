@@ -261,6 +261,15 @@ pub async fn ms_login_finish(
 }
 
 // ───────────────────────── Ely.by ─────────────────────────
+fn is_ely_two_factor_challenge(message: &str) -> bool {
+    let compact: String = message
+        .chars()
+        .filter(|ch| ch.is_ascii_alphanumeric())
+        .map(|ch| ch.to_ascii_lowercase())
+        .collect();
+    compact.contains("twofactor") || compact.contains("2fa")
+}
+
 // Протокол Yggdrasil на https://authserver.ely.by (authenticate / validate / refresh).
 // Пароль уходит только на этот сервер и нигде не сохраняется — лаунчер хранит токен.
 // 2FA: Ely.by просит передать код как «пароль:код».
@@ -305,7 +314,7 @@ pub async fn ely_login(
 
     if !status.is_success() {
         let msg = s(&v, "errorMessage");
-        if msg.contains("two factor") {
+        if is_ely_two_factor_challenge(&msg) {
             return Ok(ElyLoginResult { needs_2fa: true, account: None });
         }
         return Err(if msg.contains("Invalid") {
@@ -587,4 +596,32 @@ pub fn open_url(url: String) -> Result<(), String> {
     #[cfg(all(unix, not(target_os = "macos")))]
     std::process::Command::new("xdg-open").arg(&url).spawn().map_err(err)?;
     Ok(())
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::is_ely_two_factor_challenge;
+
+    #[test]
+    fn recognizes_ely_by_documented_two_factor_message() {
+        assert!(is_ely_two_factor_challenge("Account protected with two factor auth."));
+    }
+
+    #[test]
+    fn tolerates_case_and_punctuation_variants() {
+        for message in [
+            "Account protected with Two-Factor auth.",
+            "TWO FACTOR authentication required",
+            "2FA required",
+        ] {
+            assert!(is_ely_two_factor_challenge(message), "message: {message}");
+        }
+    }
+
+    #[test]
+    fn does_not_misclassify_regular_login_errors() {
+        assert!(!is_ely_two_factor_challenge("Invalid email or password."));
+        assert!(!is_ely_two_factor_challenge("Token expired."));
+    }
 }

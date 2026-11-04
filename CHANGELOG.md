@@ -1,3 +1,9 @@
+## Auth reliability pass — resilient Ely.by 2FA challenge detection
+
+- Normalize the Ely.by authentication error message before detecting a two-factor challenge, so capitalization and punctuation variants still reveal the existing TOTP input instead of being shown as a generic login failure.
+- Keep the documented Ely.by response supported and add Rust unit coverage for the documented message, common variants, and unrelated credential/session errors.
+- Extend the UI invariant check to ensure the Rust challenge result remains connected to the existing TOTP prompt; no credentials or tokens are logged or changed.
+
 ## QA pass — refresh loader versions from native version selection
 
 - Changing the Minecraft version through the native `#ni-version` selector now refreshes the visible Prism version table and the compatible Fabric, Quilt, Forge, or NeoForge version catalog.

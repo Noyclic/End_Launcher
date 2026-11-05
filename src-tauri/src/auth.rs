@@ -464,6 +464,21 @@ pub async fn ensure_authlib_injector() -> Result<PathBuf, String> {
 
 // ───────────────────────── какой вход активен ─────────────────────────
 
+/// Resolve the provider for configs created before active_account was persisted.
+/// Keep the existing Microsoft-first fallback when both online accounts are saved.
+fn resolved_active_account(cfg: &config::AppConfig) -> String {
+    cfg.active_account.clone().unwrap_or_else(|| {
+        if cfg.account.is_some() {
+            "microsoft".to_string()
+        } else if cfg.ely_account.is_some() {
+            "ely".to_string()
+        } else {
+            "offline".to_string()
+        }
+    })
+}
+
+
 #[derive(Serialize)]
 pub struct AccountsState {
     pub active: String,
@@ -474,10 +489,7 @@ pub struct AccountsState {
 #[tauri::command]
 pub fn get_accounts() -> AccountsState {
     let cfg = config::load();
-    let active = cfg
-        .active_account
-        .clone()
-        .unwrap_or_else(|| (if cfg.account.is_some() { "microsoft" } else { "offline" }).to_string());
+    let active = resolved_active_account(&cfg);
     AccountsState {
         active,
         microsoft: cfg.account.map(|a| AccountInfo { username: a.username, uuid: a.uuid }),
@@ -558,10 +570,7 @@ async fn ms_session(acc: Account) -> Result<Session, String> {
 /// Сессия для запуска игры: Microsoft, Ely.by или офлайн-ник — по выбранному в настройках входу.
 pub async fn active_session() -> Result<Session, String> {
     let cfg = config::load();
-    let kind = cfg
-        .active_account
-        .clone()
-        .unwrap_or_else(|| (if cfg.account.is_some() { "microsoft" } else { "offline" }).to_string());
+    let kind = resolved_active_account(&cfg);
     match kind.as_str() {
         "microsoft" => {
             let acc = cfg.account.ok_or("Вход в Microsoft не выполнен (Настройки → Аккаунт)")?;
@@ -601,7 +610,8 @@ pub fn open_url(url: String) -> Result<(), String> {
 
 #[cfg(test)]
 mod tests {
-    use super::is_ely_two_factor_challenge;
+    use super::{is_ely_two_factor_challenge, resolved_active_account};
+    use crate::config::{Account, AppConfig, ElyAccount};
 
     #[test]
     fn recognizes_ely_by_documented_two_factor_message() {
@@ -624,4 +634,57 @@ mod tests {
         assert!(!is_ely_two_factor_challenge("Invalid email or password."));
         assert!(!is_ely_two_factor_challenge("Token expired."));
     }
+    fn saved_ely_account() -> ElyAccount {
+        ElyAccount {
+            username: "ely-player".into(),
+            uuid: "ely-uuid".into(),
+            token_enc: "test-placeholder".into(),
+            client_token: "test-client".into(),
+        }
+    }
+
+    fn saved_microsoft_account() -> Account {
+        Account {
+            username: "ms-player".into(),
+            uuid: "ms-uuid".into(),
+            mc_token_enc: "test-placeholder".into(),
+            mc_expires: 0,
+            ms_refresh_enc: "test-placeholder".into(),
+        }
+    }
+
+    #[test]
+    fn legacy_config_with_only_ely_account_keeps_ely_selected() {
+        let cfg = AppConfig {
+            ely_account: Some(saved_ely_account()),
+            ..AppConfig::default()
+        };
+        assert_eq!(resolved_active_account(&cfg), "ely");
+    }
+
+    #[test]
+    fn legacy_config_with_both_saved_accounts_keeps_microsoft_priority() {
+        let cfg = AppConfig {
+            account: Some(saved_microsoft_account()),
+            ely_account: Some(saved_ely_account()),
+            ..AppConfig::default()
+        };
+        assert_eq!(resolved_active_account(&cfg), "microsoft");
+    }
+
+    #[test]
+    fn explicit_offline_selection_is_not_overridden_by_saved_accounts() {
+        let cfg = AppConfig {
+            active_account: Some("offline".into()),
+            ely_account: Some(saved_ely_account()),
+            ..AppConfig::default()
+        };
+        assert_eq!(resolved_active_account(&cfg), "offline");
+    }
+
+    #[test]
+    fn empty_config_defaults_to_offline() {
+        assert_eq!(resolved_active_account(&AppConfig::default()), "offline");
+    }
+
 }

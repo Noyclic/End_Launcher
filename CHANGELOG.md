@@ -1,3 +1,9 @@
+## Auth reliability pass — restore saved Ely.by selection in legacy configs
+
+- Resolve a missing active-account choice from saved credentials: preserve the existing Microsoft-first fallback, then select Ely.by when it is the only saved online account, otherwise use Offline.
+- Share the same resolver between the account picker and game-session creation so the displayed provider and actual launch session stay consistent after upgrading older configs.
+- Add Rust regression tests for Ely-only legacy configs, Microsoft priority, explicit Offline selection and empty configs; no stored account data or secrets are rewritten.
+
 ## Auth reliability pass — resilient Ely.by 2FA challenge detection
 
 - Normalize the Ely.by authentication error message before detecting a two-factor challenge, so capitalization and punctuation variants still reveal the existing TOTP input instead of being shown as a generic login failure.

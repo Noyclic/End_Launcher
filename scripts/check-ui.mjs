@@ -51,6 +51,14 @@ check(rustAuth.includes('fn is_ely_two_factor_challenge(message: &str) -> bool')
     && js.includes("$('ely-totp').style.display = ''"),
   'Ely.by two-factor challenges must be normalized in Rust and surfaced by the existing TOTP prompt');
 
+check(rustAuth.includes('fn resolved_active_account(cfg: &config::AppConfig) -> String')
+    && rustAuth.includes('else if cfg.ely_account.is_some()')
+    && rustAuth.includes('let active = resolved_active_account(&cfg);')
+    && rustAuth.includes('let kind = resolved_active_account(&cfg);')
+    && rustAuth.includes('legacy_config_with_only_ely_account_keeps_ely_selected')
+    && rustAuth.includes('explicit_offline_selection_is_not_overridden_by_saved_accounts'),
+  'Legacy configs with a saved Ely.by account must resolve the same active provider for the account picker and game session');
+
 // Future game-mode controls must be honest and must not start an unimplemented installer.
 check(/id="horizon-rust-btn"[^>]*disabled/.test(html)
     && html.includes('Разрешение на интеграцию ещё не получено.'),

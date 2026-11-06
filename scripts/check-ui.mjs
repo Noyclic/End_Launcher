@@ -52,12 +52,18 @@ check(rustAuth.includes('fn is_ely_two_factor_challenge(message: &str) -> bool')
   'Ely.by two-factor challenges must be normalized in Rust and surfaced by the existing TOTP prompt');
 
 check(rustAuth.includes('fn resolved_active_account(cfg: &config::AppConfig) -> String')
-    && rustAuth.includes('else if cfg.ely_account.is_some()')
+    && rustAuth.includes('match cfg.active_account.as_deref()')
+    && rustAuth.includes('Some("microsoft") if cfg.account.is_some()')
+    && rustAuth.includes('Some("ely") if cfg.ely_account.is_some()')
+    && rustAuth.includes('Some(_) => return "offline".to_string()')
     && rustAuth.includes('let active = resolved_active_account(&cfg);')
     && rustAuth.includes('let kind = resolved_active_account(&cfg);')
     && rustAuth.includes('legacy_config_with_only_ely_account_keeps_ely_selected')
-    && rustAuth.includes('explicit_offline_selection_is_not_overridden_by_saved_accounts'),
-  'Legacy configs with a saved Ely.by account must resolve the same active provider for the account picker and game session');
+    && rustAuth.includes('explicit_offline_selection_is_not_overridden_by_saved_accounts')
+    && rustAuth.includes('stale_microsoft_selection_falls_back_to_offline_not_ely')
+    && rustAuth.includes('stale_ely_selection_falls_back_to_offline_not_microsoft')
+    && rustAuth.includes('unknown_saved_provider_falls_back_to_offline'),
+  'Account resolution must preserve valid selections, keep legacy fallback, and fail safe to Offline when a saved provider is stale or invalid');
 
 // Future game-mode controls must be honest and must not start an unimplemented installer.
 check(/id="horizon-rust-btn"[^>]*disabled/.test(html)

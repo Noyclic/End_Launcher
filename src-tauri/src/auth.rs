@@ -464,18 +464,25 @@ pub async fn ensure_authlib_injector() -> Result<PathBuf, String> {
 
 // ───────────────────────── какой вход активен ─────────────────────────
 
-/// Resolve the provider for configs created before active_account was persisted.
-/// Keep the existing Microsoft-first fallback when both online accounts are saved.
+/// Honor a valid saved provider. If a persisted online choice no longer has
+/// credentials, use Offline rather than silently switching to another identity.
+/// Only legacy configs without a saved choice use the Microsoft-first fallback.
 fn resolved_active_account(cfg: &config::AppConfig) -> String {
-    cfg.active_account.clone().unwrap_or_else(|| {
-        if cfg.account.is_some() {
-            "microsoft".to_string()
-        } else if cfg.ely_account.is_some() {
-            "ely".to_string()
-        } else {
-            "offline".to_string()
-        }
-    })
+    match cfg.active_account.as_deref() {
+        Some("offline") => return "offline".to_string(),
+        Some("microsoft") if cfg.account.is_some() => return "microsoft".to_string(),
+        Some("ely") if cfg.ely_account.is_some() => return "ely".to_string(),
+        Some(_) => return "offline".to_string(),
+        None => {}
+    }
+
+    if cfg.account.is_some() {
+        "microsoft".to_string()
+    } else if cfg.ely_account.is_some() {
+        "ely".to_string()
+    } else {
+        "offline".to_string()
+    }
 }
 
 
@@ -685,6 +692,37 @@ mod tests {
     #[test]
     fn empty_config_defaults_to_offline() {
         assert_eq!(resolved_active_account(&AppConfig::default()), "offline");
+    }
+
+    #[test]
+    fn stale_microsoft_selection_falls_back_to_offline_not_ely() {
+        let cfg = AppConfig {
+            active_account: Some("microsoft".into()),
+            ely_account: Some(saved_ely_account()),
+            ..AppConfig::default()
+        };
+        assert_eq!(resolved_active_account(&cfg), "offline");
+    }
+
+    #[test]
+    fn stale_ely_selection_falls_back_to_offline_not_microsoft() {
+        let cfg = AppConfig {
+            active_account: Some("ely".into()),
+            account: Some(saved_microsoft_account()),
+            ..AppConfig::default()
+        };
+        assert_eq!(resolved_active_account(&cfg), "offline");
+    }
+
+    #[test]
+    fn unknown_saved_provider_falls_back_to_offline() {
+        let cfg = AppConfig {
+            active_account: Some("unexpected-provider".into()),
+            account: Some(saved_microsoft_account()),
+            ely_account: Some(saved_ely_account()),
+            ..AppConfig::default()
+        };
+        assert_eq!(resolved_active_account(&cfg), "offline");
     }
 
 }

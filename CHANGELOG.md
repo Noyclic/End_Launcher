@@ -1,3 +1,10 @@
+## Auth reliability pass — fail safe on stale account selections
+
+- Validate persisted Microsoft/Ely.by selections against the credentials actually present before exposing the active provider or creating a game session.
+- If a saved online provider is missing or the stored provider value is unknown, resolve to Offline instead of silently launching with a different saved online identity.
+- Preserve explicit Offline selection and the existing Microsoft-first fallback only for legacy configs with no saved provider.
+- Add Rust regression tests for stale Microsoft, stale Ely.by and unknown provider values, plus a source-level UI invariant for the resolver contract.
+
 ## Auth reliability pass — restore saved Ely.by selection in legacy configs
 
 - Resolve a missing active-account choice from saved credentials: preserve the existing Microsoft-first fallback, then select Ely.by when it is the only saved online account, otherwise use Offline.

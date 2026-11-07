@@ -65,6 +65,21 @@ check(rustAuth.includes('fn resolved_active_account(cfg: &config::AppConfig) -> 
     && rustAuth.includes('unknown_saved_provider_falls_back_to_offline'),
   'Account resolution must preserve valid selections, keep legacy fallback, and fail safe to Offline when a saved provider is stale or invalid');
 
+const msRefreshPersistIndex = rustAuth.indexOf('saved.ms_refresh_enc = config::protect("ms_refresh", &new_refresh);');
+const msRefreshSaveIndex = rustAuth.indexOf('config::save(&cfg)?;', msRefreshPersistIndex);
+const msRefreshChainIndex = rustAuth.indexOf('let new_acc = login_chain(&c, &s(&v, "access_token"), &new_refresh).await?;');
+check(rustAuth.includes('fn ms_refresh_matches_account(')
+    && rustAuth.includes('if !ms_refresh_matches_account(&cfg, &acc.uuid, &refresh)')
+    && msRefreshPersistIndex >= 0
+    && msRefreshSaveIndex > msRefreshPersistIndex
+    && msRefreshChainIndex > msRefreshSaveIndex
+    && rustAuth.includes('if !ms_refresh_matches_account(&cfg, &acc.uuid, &new_refresh)')
+    && rustAuth.includes('ms_refresh_match_requires_same_selected_account_and_token')
+    && rustAuth.includes('ms_refresh_match_allows_legacy_microsoft_config_without_explicit_provider')
+    && rustAuth.includes('ms_refresh_match_rejects_account_switch_to_offline')
+    && rustAuth.includes('ms_refresh_match_rejects_missing_account'),
+  'Microsoft refresh-token rotation must be persisted before the Xbox/Minecraft exchange and must not overwrite a changed or deselected account');
+
 // Future game-mode controls must be honest and must not start an unimplemented installer.
 check(/id="horizon-rust-btn"[^>]*disabled/.test(html)
     && html.includes('Разрешение на интеграцию ещё не получено.'),

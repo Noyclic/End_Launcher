@@ -1,3 +1,9 @@
+## Auth reliability pass — persist Microsoft refresh-token rotation
+
+- Save a replacement Microsoft OAuth refresh token immediately after the token endpoint accepts the refresh, before the dependent Xbox/XSTS/Minecraft profile exchange can fail.
+- Verify the saved Microsoft account and selected provider still match before persisting the rotated token and again before replacing the account profile, so a late response cannot overwrite a different account or a manual Offline switch.
+- Add Rust regression coverage for matching account/token state, legacy Microsoft selection, missing accounts and provider changes; tests use dummy values and never print credentials.
+
 ## Auth reliability pass — fail safe on stale account selections
 
 - Validate persisted Microsoft/Ely.by selections against the credentials actually present before exposing the active provider or creating a game session.

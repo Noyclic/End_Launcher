@@ -522,6 +522,20 @@ pub fn set_active_account(kind: String) -> Result<(), String> {
     config::save(&cfg)
 }
 
+/// Ensure a refresh response still belongs to the selected Microsoft account.
+/// The UUID and the currently stored refresh token must both match the request snapshot.
+fn ms_refresh_matches_account(
+    cfg: &config::AppConfig,
+    expected_uuid: &str,
+    expected_refresh: &str,
+) -> bool {
+    resolved_active_account(cfg) == "microsoft"
+        && cfg.account.as_ref().map_or(false, |saved| {
+            saved.uuid == expected_uuid
+                && config::unprotect(&saved.ms_refresh_enc).as_deref() == Some(expected_refresh)
+        })
+}
+
 async fn ms_session(acc: Account) -> Result<Session, String> {
     // токен ещё жив — сеть не нужна
     if acc.mc_expires > now() + 120 {
@@ -558,6 +572,20 @@ async fn ms_session(acc: Account) -> Result<Session, String> {
         return Err("Сессия Microsoft истекла — войдите заново (Настройки → Аккаунт)".into());
     }
     let new_refresh = if s(&v, "refresh_token").is_empty() { refresh.clone() } else { s(&v, "refresh_token") };
+    let mut cfg = config::load();
+    if !ms_refresh_matches_account(&cfg, &acc.uuid, &refresh) {
+        return Err("Аккаунт Microsoft изменился во время обновления — повторите запуск".into());
+    }
+    if new_refresh != refresh {
+        let saved = cfg.account.as_mut().ok_or_else(|| {
+            "Аккаунт Microsoft изменился во время обновления — повторите запуск".to_string()
+        })?;
+        saved.ms_refresh_enc = config::protect("ms_refresh", &new_refresh);
+        config::save(&cfg)?;
+    }
+
+    // Persist OAuth token rotation before Xbox/XSTS/Minecraft requests: those
+    // downstream calls can fail after Microsoft has already replaced the token.
     let new_acc = login_chain(&c, &s(&v, "access_token"), &new_refresh).await?;
 
     let token = config::unprotect(&new_acc.mc_token_enc).unwrap_or_default();
@@ -568,7 +596,10 @@ async fn ms_session(acc: Account) -> Result<Session, String> {
         user_type: "msa",
         authlib: false,
     };
-    let mut cfg = config::load();
+    cfg = config::load();
+    if !ms_refresh_matches_account(&cfg, &acc.uuid, &new_refresh) {
+        return Err("Аккаунт Microsoft изменился во время обновления — повторите запуск".into());
+    }
     cfg.account = Some(new_acc);
     config::save(&cfg)?;
     Ok(session)
@@ -617,7 +648,7 @@ pub fn open_url(url: String) -> Result<(), String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{is_ely_two_factor_challenge, resolved_active_account};
+    use super::{is_ely_two_factor_challenge, ms_refresh_matches_account, resolved_active_account};
     use crate::config::{Account, AppConfig, ElyAccount};
 
     #[test]
@@ -658,6 +689,12 @@ mod tests {
             mc_expires: 0,
             ms_refresh_enc: "test-placeholder".into(),
         }
+    }
+
+    fn saved_microsoft_account_with_refresh(refresh: &str) -> Account {
+        let mut account = saved_microsoft_account();
+        account.ms_refresh_enc = crate::config::encrypt_str(refresh);
+        account
     }
 
     #[test]
@@ -723,6 +760,46 @@ mod tests {
             ..AppConfig::default()
         };
         assert_eq!(resolved_active_account(&cfg), "offline");
+    }
+
+    #[test]
+    fn ms_refresh_match_requires_same_selected_account_and_token() {
+        let cfg = AppConfig {
+            active_account: Some("microsoft".into()),
+            account: Some(saved_microsoft_account_with_refresh("refresh-before")),
+            ..AppConfig::default()
+        };
+        assert!(ms_refresh_matches_account(&cfg, "ms-uuid", "refresh-before"));
+        assert!(!ms_refresh_matches_account(&cfg, "other-uuid", "refresh-before"));
+        assert!(!ms_refresh_matches_account(&cfg, "ms-uuid", "refresh-after"));
+    }
+
+    #[test]
+    fn ms_refresh_match_allows_legacy_microsoft_config_without_explicit_provider() {
+        let cfg = AppConfig {
+            account: Some(saved_microsoft_account_with_refresh("refresh-before")),
+            ..AppConfig::default()
+        };
+        assert!(ms_refresh_matches_account(&cfg, "ms-uuid", "refresh-before"));
+    }
+
+    #[test]
+    fn ms_refresh_match_rejects_account_switch_to_offline() {
+        let cfg = AppConfig {
+            active_account: Some("offline".into()),
+            account: Some(saved_microsoft_account_with_refresh("refresh-before")),
+            ..AppConfig::default()
+        };
+        assert!(!ms_refresh_matches_account(&cfg, "ms-uuid", "refresh-before"));
+    }
+
+    #[test]
+    fn ms_refresh_match_rejects_missing_account() {
+        let cfg = AppConfig {
+            active_account: Some("microsoft".into()),
+            ..AppConfig::default()
+        };
+        assert!(!ms_refresh_matches_account(&cfg, "ms-uuid", "refresh-before"));
     }
 
 }

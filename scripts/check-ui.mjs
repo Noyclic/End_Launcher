@@ -92,8 +92,10 @@ check(rustAuth.includes('fn ely_refresh_matches_account(cfg: &config::AppConfig,
     && elyRefreshSaveIndex > elyRefreshGuardIndex
     && rustAuth.includes('ely_refresh_match_requires_same_selected_account_and_token')
     && rustAuth.includes('ely_refresh_match_allows_legacy_ely_selection')
-    && rustAuth.includes('ely_refresh_match_rejects_provider_switch_and_replaced_account'),
-  'Ely.by validation and refresh responses must remain bound to the selected account and must not overwrite a replacement session');
+    && rustAuth.includes('ely_refresh_match_rejects_provider_switch_and_replaced_account')
+    && rustAuth.includes('account.token_enc = crate::config::encrypt_str(token);')
+    && !rustAuth.includes('account.token_enc = crate::config::protect("ely_token", token);'),
+  'Ely.by validation and refresh responses must remain bound to the selected account and must not overwrite a replacement session; Rust fixtures must avoid the OS credential store');
 
 // Future game-mode controls must be honest and must not start an unimplemented installer.
 check(/id="horizon-rust-btn"[^>]*disabled/.test(html)

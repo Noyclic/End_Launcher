@@ -80,6 +80,21 @@ check(rustAuth.includes('fn ms_refresh_matches_account(')
     && rustAuth.includes('ms_refresh_match_rejects_missing_account'),
   'Microsoft refresh-token rotation must be persisted before the Xbox/Minecraft exchange and must not overwrite a changed or deselected account');
 
+const elySessionStart = rustAuth.indexOf('async fn ely_session(');
+const elyRefreshPostIndex = rustAuth.indexOf('.post(format!("{ELY_AUTH}/auth/refresh"))', elySessionStart);
+const elyRefreshGuardIndex = rustAuth.indexOf('if !ely_refresh_matches_account(&cfg, &acc, &token)', elyRefreshPostIndex);
+const elyRefreshSaveIndex = rustAuth.indexOf('saved.token_enc = config::protect("ely_token", &new_token);', elyRefreshGuardIndex);
+check(rustAuth.includes('fn ely_refresh_matches_account(cfg: &config::AppConfig, expected: &ElyAccount, expected_token: &str) -> bool')
+    && rustAuth.includes('if !ely_refresh_matches_account(&config::load(), &acc, &token)')
+    && elySessionStart >= 0
+    && elyRefreshPostIndex > elySessionStart
+    && elyRefreshGuardIndex > elyRefreshPostIndex
+    && elyRefreshSaveIndex > elyRefreshGuardIndex
+    && rustAuth.includes('ely_refresh_match_requires_same_selected_account_and_token')
+    && rustAuth.includes('ely_refresh_match_allows_legacy_ely_selection')
+    && rustAuth.includes('ely_refresh_match_rejects_provider_switch_and_replaced_account'),
+  'Ely.by validation and refresh responses must remain bound to the selected account and must not overwrite a replacement session');
+
 // Future game-mode controls must be honest and must not start an unimplemented installer.
 check(/id="horizon-rust-btn"[^>]*disabled/.test(html)
     && html.includes('Разрешение на интеграцию ещё не получено.'),

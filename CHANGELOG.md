@@ -2,7 +2,7 @@
 
 - Bind Ely.by validation and refresh responses to the selected provider, account UUID, username, client token and original access token before returning or persisting a session.
 - Keep the existing saved-token fallback when validation is unavailable only while the same Ely.by account remains selected; a late response can no longer replace a newly signed-in Ely.by account or override an Offline switch.
-- Persist a rotated Ely.by client token when the refresh response supplies one, and add Rust regression coverage for explicit and legacy selections, provider switches and replaced sessions.
+- Persist a rotated Ely.by client token when the refresh response supplies one; regression fixtures use deterministic local encryption rather than writing test credentials to the operating-system keyring.
 
 ## Auth reliability pass — persist Microsoft refresh-token rotation
 

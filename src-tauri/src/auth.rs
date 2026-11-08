@@ -732,7 +732,7 @@ mod tests {
 
     fn saved_ely_account_with_token(token: &str) -> ElyAccount {
         let mut account = saved_ely_account();
-        account.token_enc = crate::config::protect("ely_token", token);
+        account.token_enc = crate::config::encrypt_str(token);
         account
     }
 

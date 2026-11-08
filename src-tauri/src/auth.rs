@@ -359,6 +359,17 @@ pub fn ely_logout() -> Result<(), String> {
     config::save(&cfg)
 }
 
+/// Ensure an async Ely.by response still belongs to the selected saved session.
+fn ely_refresh_matches_account(cfg: &config::AppConfig, expected: &ElyAccount, expected_token: &str) -> bool {
+    resolved_active_account(cfg) == "ely"
+        && cfg.ely_account.as_ref().map_or(false, |saved| {
+            saved.uuid == expected.uuid
+                && saved.username == expected.username
+                && saved.client_token == expected.client_token
+                && config::unprotect(&saved.token_enc).as_deref() == Some(expected_token)
+        })
+}
+
 /// Токен жив — берём; нет — обновляем; нет сети — пробуем с сохранённым токеном.
 async fn ely_session(acc: ElyAccount) -> Result<Session, String> {
     let token = config::unprotect(&acc.token_enc)
@@ -378,9 +389,23 @@ async fn ely_session(acc: ElyAccount) -> Result<Session, String> {
         .send()
         .await
     {
-        Ok(r) if r.status().is_success() => return Ok(mk(token)),
+        Ok(r) if r.status().is_success() => {
+            if !ely_refresh_matches_account(&config::load(), &acc, &token) {
+                return Err("Аккаунт Ely.by изменился во время обновления — повторите запуск".into());
+            }
+            return Ok(mk(token));
+        }
         Ok(_) => {}
-        Err(_) => return Ok(mk(token)),
+        Err(_) => {
+            if !ely_refresh_matches_account(&config::load(), &acc, &token) {
+                return Err("Аккаунт Ely.by изменился во время обновления — повторите запуск".into());
+            }
+            return Ok(mk(token));
+        }
+    }
+
+    if !ely_refresh_matches_account(&config::load(), &acc, &token) {
+        return Err("Аккаунт Ely.by изменился во время обновления — повторите запуск".into());
     }
 
     let r = c
@@ -389,15 +414,23 @@ async fn ely_session(acc: ElyAccount) -> Result<Session, String> {
         .send()
         .await
         .map_err(err)?;
+    let mut cfg = config::load();
+    if !ely_refresh_matches_account(&cfg, &acc, &token) {
+        return Err("Аккаунт Ely.by изменился во время обновления — повторите запуск".into());
+    }
     let ok = r.status().is_success();
     let v: Value = r.json().await.unwrap_or(Value::Null);
     let new_token = s(&v, "accessToken");
     if !ok || new_token.is_empty() {
         return Err("Сессия Ely.by истекла — войдите заново (Настройки → Аккаунт)".into());
     }
-    let mut cfg = config::load();
-    if let Some(a) = cfg.ely_account.as_mut() {
-        a.token_enc = config::protect("ely_token", &new_token);
+    let saved = cfg.ely_account.as_mut().ok_or_else(|| {
+        "Аккаунт Ely.by изменился во время обновления — повторите запуск".to_string()
+    })?;
+    saved.token_enc = config::protect("ely_token", &new_token);
+    let returned_client_token = s(&v, "clientToken");
+    if !returned_client_token.is_empty() {
+        saved.client_token = returned_client_token;
     }
     config::save(&cfg)?;
     Ok(mk(new_token))
@@ -648,7 +681,7 @@ pub fn open_url(url: String) -> Result<(), String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{is_ely_two_factor_challenge, ms_refresh_matches_account, resolved_active_account};
+    use super::{ely_refresh_matches_account, is_ely_two_factor_challenge, ms_refresh_matches_account, resolved_active_account};
     use crate::config::{Account, AppConfig, ElyAccount};
 
     #[test]
@@ -694,6 +727,12 @@ mod tests {
     fn saved_microsoft_account_with_refresh(refresh: &str) -> Account {
         let mut account = saved_microsoft_account();
         account.ms_refresh_enc = crate::config::encrypt_str(refresh);
+        account
+    }
+
+    fn saved_ely_account_with_token(token: &str) -> ElyAccount {
+        let mut account = saved_ely_account();
+        account.token_enc = crate::config::protect("ely_token", token);
         account
     }
 
@@ -800,6 +839,45 @@ mod tests {
             ..AppConfig::default()
         };
         assert!(!ms_refresh_matches_account(&cfg, "ms-uuid", "refresh-before"));
+    }
+
+    #[test]
+    fn ely_refresh_match_requires_same_selected_account_and_token() {
+        let expected = saved_ely_account_with_token("ely-before");
+        let cfg = AppConfig {
+            active_account: Some("ely".into()),
+            ely_account: Some(saved_ely_account_with_token("ely-before")),
+            ..AppConfig::default()
+        };
+        assert!(ely_refresh_matches_account(&cfg, &expected, "ely-before"));
+        assert!(!ely_refresh_matches_account(&cfg, &expected, "ely-after"));
+    }
+
+    #[test]
+    fn ely_refresh_match_allows_legacy_ely_selection() {
+        let expected = saved_ely_account_with_token("ely-before");
+        let cfg = AppConfig {
+            ely_account: Some(saved_ely_account_with_token("ely-before")),
+            ..AppConfig::default()
+        };
+        assert!(ely_refresh_matches_account(&cfg, &expected, "ely-before"));
+    }
+
+    #[test]
+    fn ely_refresh_match_rejects_provider_switch_and_replaced_account() {
+        let expected = saved_ely_account_with_token("ely-before");
+        let offline = AppConfig {
+            active_account: Some("offline".into()),
+            ely_account: Some(saved_ely_account_with_token("ely-before")),
+            ..AppConfig::default()
+        };
+        let replaced = AppConfig {
+            active_account: Some("ely".into()),
+            ely_account: Some(saved_ely_account_with_token("ely-after")),
+            ..AppConfig::default()
+        };
+        assert!(!ely_refresh_matches_account(&offline, &expected, "ely-before"));
+        assert!(!ely_refresh_matches_account(&replaced, &expected, "ely-before"));
     }
 
 }

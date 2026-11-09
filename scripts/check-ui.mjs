@@ -432,6 +432,12 @@ check(js.includes('function renderModrinthJumpIn()')
     && js.includes("projectType: 'modpack'")
     && js.includes('https://modrinth.com/modpack/'),
   'Modrinth home shortcuts must use recent launch history and real modpack pages');
+
+const modrinthStartSession = js.match(/function startPrismPlaySession\\(inst\\) \\{([\\s\\S]*?)\\n\\}/)?.[1] || '';
+check(modrinthStartSession.includes('checkpointPrismPlaySession();')
+    && modrinthStartSession.includes("if (currentUi === 'modrinth') renderModrinthJumpIn();")
+    && modrinthStartSession.indexOf('renderModrinthJumpIn();') > modrinthStartSession.indexOf('checkpointPrismPlaySession();'),
+  'A successful launch must refresh Modrinth Jump In after the recent-play timestamp is persisted');
 check(css.includes(":root[data-ui='modrinth'] .modrinth-jump-card")
     && css.includes(":root[data-ui='modrinth'] .modrinth-pack-card")
     && css.includes(":root[data-ui='modrinth'] #library .inst-card .inst-play"),

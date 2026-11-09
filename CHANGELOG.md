@@ -112,6 +112,12 @@
 - Bounded Modrinth navigation labels and quick actions at the 560 px breakpoint so they cannot overflow or collapse the narrow sidebar.
 - Kept the existing navigation handlers, layout order, dialogs and user data unchanged.
 
+## UI fidelity pass 51 — Refresh Modrinth Jump In after launch
+
+- After a Minecraft launch succeeds, persist its recent-play timestamp and immediately refresh the Modrinth Jump In list so the launched instance moves to the top.
+- Failed launches do not update recent-play ordering; periodic time checkpoints do not repeatedly rebuild the list.
+- Add a regression assertion for the launch-to-recent-list update path.
+
 # Changelog
 
 ## Modrinth — sticky-header-safe section navigation

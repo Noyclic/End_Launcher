@@ -1490,6 +1490,7 @@ function startPrismPlaySession(inst) {
     baseTotalMs: previous.totalMs,
   };
   checkpointPrismPlaySession();
+  if (currentUi === 'modrinth') renderModrinthJumpIn();
   renderPrismFooterStats(inst);
 }
 

@@ -1,3 +1,10 @@
+## UI fidelity pass 47 — Modrinth P2P header geometry
+
+- Docked the existing P2P trigger in the Modrinth workspace header using absolute positioning, so it no longer floats over library content or the right-side action rail and does not consume header flex space.
+- Reserved a responsive header gutter for the trigger and bounded the running-status label so it cannot collide with the P2P control.
+- Kept the original P2P element and handlers; Prism overflow placement and the original position in other layouts remain intact.
+- Added regression assertions for the Modrinth-only dock, responsive reserved space, and status truncation.
+
 ## Auth reliability pass — guard Ely.by session refresh against account switches
 
 - Bind Ely.by validation and refresh responses to the selected provider, account UUID, username, client token and original access token before returning or persisting a session.

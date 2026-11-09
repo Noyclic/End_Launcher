@@ -472,15 +472,23 @@ check(html.includes('aria-controls="p2p-pop"')
   'P2P must expose an accessible dialog relationship and a focusable non-modal panel');
 check(html.includes('id="modrinth-filter-count" role="status" aria-live="polite"'),
   'Modrinth filter counts must be announced to assistive technology');
+const modrinthP2pDock = js.match(/function syncModrinthP2pDock\\(mode\\) \\{([\\s\\S]*?)\\n\\}/)?.[1] || '';
 check(js.includes("const p2pHomeMarker = prismOverflowHome['p2p-fab'];")
-    && js.includes('function syncModrinthP2pDock(mode)')
     && js.includes('syncModrinthP2pDock(mode);')
+    && modrinthP2pDock.includes("mode === 'modrinth'")
+    && modrinthP2pDock.includes("header.appendChild(fab)")
+    && modrinthP2pDock.includes("mode !== 'prism'")
     && js.includes("closeP2p({ restoreFocus: true })"),
-  'The existing P2P control must move into the Modrinth header and restore focus on Escape');
+  'The existing P2P control must dock in the Modrinth header, restore its original position in other shells, and restore focus on Escape');
 check(repairCss.includes(":root[data-ui='modrinth'] .modrinth-app-header #p2p-fab")
+    && repairCss.includes("position:absolute !important;")
+    && repairCss.includes("padding:0 calc(28px + 60px) 0 28px;")
+    && repairCss.includes("padding-right:calc(22px + 60px);")
+    && repairCss.includes("padding:0 calc(12px + 62px) 0 12px;")
+    && repairCss.includes("max-width:min(32vw, 260px);")
     && repairCss.includes(":root[data-ui='modrinth'] #p2p-pop")
     && repairCss.includes('.modrinth-library-empty'),
-  'Modrinth P2P dock, popover and library empty state need scoped layout rules');
+  'Modrinth P2P must be absolutely anchored with reserved header space at desktop and mobile widths');
 check(js.includes('function clearModrinthLibraryFilters()')
     && js.includes("mk('div', 'modrinth-library-empty')")
     && js.includes('reset.addEventListener(\'click\', clearModrinthLibraryFilters)'),

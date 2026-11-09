@@ -470,8 +470,10 @@ check(html.includes('aria-controls="p2p-pop"')
     && html.includes('aria-haspopup="dialog"')
     && html.includes('role="dialog" aria-labelledby="p2p-title" tabindex="-1"'),
   'P2P must expose an accessible dialog relationship and a focusable non-modal panel');
-check(html.includes('id="modrinth-filter-count" role="status" aria-live="polite"'),
-  'Modrinth filter counts must be announced to assistive technology');
+check(html.includes('id="modrinth-filter-count" role="status" aria-live="polite"')
+    && html.includes('id="modrinth-header-page-title"')
+    && html.includes('id="modrinth-new-group"'),
+  'Modrinth header navigation and group action need semantic targets');
 const modrinthP2pDockStart = js.indexOf('function syncModrinthP2pDock(mode) {');
 const modrinthP2pDockEnd = js.indexOf('\n}', modrinthP2pDockStart);
 const modrinthP2pDock = modrinthP2pDockStart >= 0 && modrinthP2pDockEnd > modrinthP2pDockStart
@@ -493,6 +495,20 @@ check(repairCss.includes(":root[data-ui='modrinth'] .modrinth-app-header #p2p-fa
     && repairCss.includes(":root[data-ui='modrinth'] #p2p-pop")
     && repairCss.includes('.modrinth-library-empty'),
   'Modrinth P2P must be absolutely anchored with reserved header space at desktop and mobile widths');
+check(js.includes('function syncModrinthNavFromScroll()')
+    && js.includes("document.querySelector('.content main')?.addEventListener('scroll', syncModrinthNavFromScroll, { passive: true })")
+    && js.includes("button.setAttribute('aria-current', 'page')")
+    && js.includes("button.removeAttribute('aria-current')")
+    && js.includes("target.getBoundingClientRect().top <= threshold")
+    && js.includes("setModrinthNavActive('settings')"),
+  'Modrinth navigation must follow scroll position and expose the current section accessibly');
+check(js.includes("$('modrinth-new-group')?.addEventListener('click'")
+    && js.includes('openPrismGroupEditor(inst, button, actions)')
+    && js.includes("groupButton.disabled = !inst")
+    && js.includes("button?.setAttribute('aria-expanded', 'true')")
+    && repairCss.includes("#page-play .library-toolbar-actions > #modrinth-new-group")
+    && repairCss.includes("#page-play .library-toolbar-actions > #library-import"),
+  'Modrinth group creation and import actions must remain visible and use existing workflows');
 check(js.includes('function clearModrinthLibraryFilters()')
     && js.includes("mk('div', 'modrinth-library-empty')")
     && js.includes('reset.addEventListener(\'click\', clearModrinthLibraryFilters)'),

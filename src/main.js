@@ -494,6 +494,11 @@ function goPage(name) {
   document.querySelectorAll('.page').forEach((p) => p.classList.toggle('active', p.id === 'page-' + name));
   const navName = name === 'mods' ? 'play' : name;
   document.querySelectorAll('.nav-btn').forEach((b) => b.classList.toggle('active', b.dataset.page === navName));
+  if (currentUi === 'modrinth') {
+    if (name === 'play') syncModrinthNavFromScroll();
+    else if (name === 'mods') setModrinthNavActive('modrinth-nav-mods');
+    else if (name === 'settings') setModrinthNavActive('settings');
+  }
   if (name === 'mods') {
     loadReleases(); // список версий нужен только на странице модов/создания сборки
     ensureModsLoaded(); // моды видны сразу, без нажатия «Найти»
@@ -1196,10 +1201,16 @@ function openPrismGroupEditor(inst, button, actions) {
   const existing = actions.querySelector('.prism-group-editor');
   if (existing) {
     existing.remove();
+    button?.setAttribute('aria-expanded', 'false');
     return;
   }
   const editor = document.createElement('div');
   editor.className = 'prism-group-editor';
+  editor.id = `prism-group-editor-${String(inst.id).replace(/[^a-zA-Z0-9_-]/g, '')}`;
+  editor.setAttribute('role', 'group');
+  editor.setAttribute('aria-label', `Группа для ${inst.name || 'сборки'}`);
+  button?.setAttribute('aria-controls', editor.id);
+  button?.setAttribute('aria-expanded', 'true');
   const select = document.createElement('select');
   select.setAttribute('aria-label', 'Группа экземпляра');
   const noGroup = document.createElement('option');
@@ -1242,12 +1253,16 @@ function openPrismGroupEditor(inst, button, actions) {
     }
     if (!savePrismInstanceGroup(inst, group)) return;
     editor.remove();
+    button?.setAttribute('aria-expanded', 'false');
     renderLibrary();
   });
   const cancel = document.createElement('button');
   cancel.type = 'button';
   cancel.textContent = 'Отмена';
-  cancel.addEventListener('click', () => editor.remove());
+  cancel.addEventListener('click', () => {
+    editor.remove();
+    button?.setAttribute('aria-expanded', 'false');
+  });
   buttons.append(save, cancel);
   editor.append(select, input, buttons);
   button.insertAdjacentElement('afterend', editor);
@@ -1651,6 +1666,7 @@ function syncModrinthAccountPanel() {
   const selectedIcon = $('modrinth-selected-icon');
   const status = $('modrinth-running-status');
   const sidePlay = $('modrinth-side-play');
+  const groupButton = $('modrinth-new-group');
   if (name) name.textContent = accountName;
   if (mode) mode.textContent = accountMode;
   if (avatar) avatar.textContent = accountAvatar.slice(0, 2);
@@ -1666,6 +1682,12 @@ function syncModrinthAccountPanel() {
     ? `Игра запущена · ${inst?.name || 'Minecraft'}`
     : 'Нет запущенной игры';
   if (sidePlay) sidePlay.disabled = !inst || gameRunning;
+  if (groupButton) {
+    groupButton.disabled = !inst;
+    groupButton.title = inst
+      ? `Создать или назначить группу для «${inst.name || 'сборки'}»`
+      : 'Сначала выбери сборку, чтобы создать для неё группу';
+  }
 }
 
 function renderModrinthJumpIn() {
@@ -3760,7 +3782,10 @@ function applyUi(mode) {
   syncTlNick();
   renderLibrary();
   updatePlayBtn();
-  if (mode === 'modrinth') void loadHomeModpacks();
+  if (mode === 'modrinth') {
+    setModrinthNavActive('modrinth-nav-home');
+    void loadHomeModpacks();
+  }
 }
 let uiChoiceRevision = 0;
 async function chooseUi(mode) {
@@ -3838,6 +3863,16 @@ if (modrinthLoaderSelect) {
   });
 }
 $('library-add')?.addEventListener('click', openNewInstance);
+$('modrinth-new-group')?.addEventListener('click', () => {
+  const inst = currentInstance();
+  const button = $('modrinth-new-group');
+  const actions = $('library-toolbar-actions');
+  if (!inst || !button || !actions) {
+    showToast('Сначала выбери сборку, чтобы создать для неё группу.', false);
+    return;
+  }
+  openPrismGroupEditor(inst, button, actions);
+});
 
 function scrollModrinthWorkspaceTo(target, { behavior = 'smooth' } = {}) {
   const main = document.querySelector('.content main');
@@ -3853,15 +3888,45 @@ function scrollModrinthWorkspaceTo(target, { behavior = 'smooth' } = {}) {
 }
 
 function setModrinthNavActive(id) {
+  const labels = {
+    'modrinth-nav-home': 'Главная',
+    'modrinth-nav-discover': 'Обзор',
+    'modrinth-nav-mods': 'Моды',
+    'modrinth-nav-library': 'Сборки',
+    settings: 'Настройки',
+  };
   document.querySelectorAll('#modrinth-nav .modrinth-nav-btn').forEach((button) => {
-    button.classList.toggle('active', button.id === id);
+    const active = button.id === id;
+    button.classList.toggle('active', active);
+    if (active) button.setAttribute('aria-current', 'page');
+    else button.removeAttribute('aria-current');
   });
+  const title = $('modrinth-header-page-title');
+  if (title) title.textContent = labels[id] || 'Главная';
 }
+
+function syncModrinthNavFromScroll() {
+  if (currentUi !== 'modrinth' || !$('page-play')?.classList.contains('active')) return;
+  const main = document.querySelector('.content main');
+  if (!main) return;
+  const headerOffset = ($('modrinth-app-header')?.getBoundingClientRect().height || 0) + 24;
+  const threshold = main.getBoundingClientRect().top + headerOffset;
+  const sections = [
+    { id: 'modrinth-jump-in', nav: 'modrinth-nav-home' },
+    { id: 'library-toolbar', nav: 'modrinth-nav-library' },
+    { id: 'modrinth-discover', nav: 'modrinth-nav-discover' },
+  ];
+  let active = 'modrinth-nav-home';
+  for (const section of sections) {
+    const target = $(section.id);
+    if (target && target.getBoundingClientRect().top <= threshold) active = section.nav;
+  }
+  setModrinthNavActive(active);
+}
+
+document.querySelector('.content main')?.addEventListener('scroll', syncModrinthNavFromScroll, { passive: true });
 $('modrinth-account-open')?.addEventListener('click', () => $('account-box')?.click());
-$('modrinth-side-play')?.addEventListener('click', () => {
-  setModrinthNavActive('modrinth-nav-home');
-  playBtn.click();
-});
+$('modrinth-side-play')?.addEventListener('click', () => playBtn.click());
 $('modrinth-side-mods')?.addEventListener('click', () => {
   if (!currentInstance()) { showToast('Сначала выбери сборку.', false); return; }
   setModrinthNavActive('modrinth-nav-mods');
@@ -3869,7 +3934,7 @@ $('modrinth-side-mods')?.addEventListener('click', () => {
   goPage('mods');
 });
 $('modrinth-side-settings')?.addEventListener('click', () => {
-  document.querySelectorAll('#modrinth-nav .modrinth-nav-btn').forEach((button) => button.classList.remove('active'));
+  setModrinthNavActive('settings');
   goPage('settings');
 });
 $('modrinth-nav-home')?.addEventListener('click', () => {
@@ -3895,7 +3960,7 @@ $('modrinth-nav-library')?.addEventListener('click', () => {
 });
 $('modrinth-nav-add')?.addEventListener('click', () => $('library-add')?.click());
 $('modrinth-nav-settings')?.addEventListener('click', () => {
-  document.querySelectorAll('#modrinth-nav .modrinth-nav-btn').forEach((button) => button.classList.remove('active'));
+  setModrinthNavActive('settings');
   goPage('settings');
 });
 

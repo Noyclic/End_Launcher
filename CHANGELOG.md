@@ -1,3 +1,11 @@
+## UI fidelity pass 48 — Modrinth navigation and library actions
+
+- Added a scroll-aware active state for Home, Discover and Instances, including an accessible `aria-current` state and a matching header section title.
+- Kept Mods and Settings navigation state synchronized when changing pages; the side-panel Play action no longer falsely changes the current navigation section.
+- Added a working “Новая группа” toolbar action that reuses the existing per-instance group editor and persistence, and exposed the existing import-guide action in Modrinth.
+- Kept Prism-only folder/list controls hidden in Modrinth rather than exposing inactive controls.
+- Added regression checks for scroll navigation, semantic state, group creation and import visibility.
+
 ## UI fidelity pass 47 — Modrinth P2P header geometry
 
 - Docked the existing P2P trigger in the Modrinth workspace header using absolute positioning, so it no longer floats over library content or the right-side action rail and does not consume header flex space.

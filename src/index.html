@@ -31,7 +31,7 @@
           <button id="nav-settings-button" class="nav-btn" data-page="settings" title="Настройки"><span class="ico">⚙</span><span class="lbl">Настройки</span></button>
         </nav>
         <nav id="modrinth-nav" aria-label="Навигация Modrinth">
-          <button class="modrinth-nav-btn active" id="modrinth-nav-home" type="button" title="Главная"><span aria-hidden="true">▶</span><span>Главная</span></button>
+          <button class="modrinth-nav-btn active" id="modrinth-nav-home" type="button" title="Главная" aria-current="page"><span aria-hidden="true">▶</span><span>Главная</span></button>
           <button class="modrinth-nav-btn" id="modrinth-nav-discover" type="button" title="Обзор"><span aria-hidden="true">⌕</span><span>Обзор</span></button>
           <button class="modrinth-nav-btn" id="modrinth-nav-mods" type="button" title="Моды"><span aria-hidden="true">◇</span><span>Моды</span></button>
           <button class="modrinth-nav-btn" id="modrinth-nav-library" type="button" title="Экземпляры"><span aria-hidden="true">▦</span><span>Сборки</span></button>
@@ -64,7 +64,7 @@
               <span class="modrinth-app-mark" aria-hidden="true">E</span>
               <strong>END LAUNCHER</strong>
               <span class="modrinth-header-separator">/</span>
-              <span>Главная</span>
+              <span id="modrinth-header-page-title">Главная</span>
             </div>
             <div class="modrinth-app-status"><span class="modrinth-status-dot"></span><span id="modrinth-running-status">Нет запущенной игры</span></div>
           </header>
@@ -155,6 +155,7 @@
               </div>
               <div id="library-toolbar-actions" class="library-toolbar-actions">
                 <label id="library-search-control" class="library-search"><span aria-hidden="true">⌕</span><input id="library-filter" type="search" placeholder="Поиск сборок…" autocomplete="off" aria-label="Поиск сборок" /></label>
+                <button id="modrinth-new-group" class="ghost" type="button" title="Создать или назначить группу выбранной сборке" aria-expanded="false" disabled>＋ Новая группа</button>
                 <button id="library-view" class="ghost" title="Переключить вид списка">☷ Список</button>
                 <button id="prism-open-folder" class="ghost" type="button" title="Открыть меню папок" aria-label="Папки" aria-haspopup="menu" aria-expanded="false" aria-controls="prism-folders-menu"><span class="prism-folder-icon" aria-hidden="true"></span> Папки ▾</button>
                 <button id="library-import" class="ghost" title="Перетащите ZIP, MRPACK или папку стороннего лаунчера для импорта">⇩ Импорт</button>

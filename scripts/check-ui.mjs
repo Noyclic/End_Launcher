@@ -472,7 +472,11 @@ check(html.includes('aria-controls="p2p-pop"')
   'P2P must expose an accessible dialog relationship and a focusable non-modal panel');
 check(html.includes('id="modrinth-filter-count" role="status" aria-live="polite"'),
   'Modrinth filter counts must be announced to assistive technology');
-const modrinthP2pDock = js.match(/function syncModrinthP2pDock\\(mode\\) \\{([\\s\\S]*?)\\n\\}/)?.[1] || '';
+const modrinthP2pDockStart = js.indexOf('function syncModrinthP2pDock(mode) {');
+const modrinthP2pDockEnd = js.indexOf('\n}', modrinthP2pDockStart);
+const modrinthP2pDock = modrinthP2pDockStart >= 0 && modrinthP2pDockEnd > modrinthP2pDockStart
+  ? js.slice(modrinthP2pDockStart, modrinthP2pDockEnd + 2)
+  : '';
 check(js.includes("const p2pHomeMarker = prismOverflowHome['p2p-fab'];")
     && js.includes('syncModrinthP2pDock(mode);')
     && modrinthP2pDock.includes("mode === 'modrinth'")

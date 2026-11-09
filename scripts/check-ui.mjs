@@ -433,7 +433,7 @@ check(js.includes('function renderModrinthJumpIn()')
     && js.includes('https://modrinth.com/modpack/'),
   'Modrinth home shortcuts must use recent launch history and real modpack pages');
 
-const modrinthStartSession = js.match(/function startPrismPlaySession\\(inst\\) \\{([\\s\\S]*?)\\n\\}/)?.[1] || '';
+const modrinthStartSession = js.split('function startPrismPlaySession(inst) {')[1]?.split('\n}')[0] || '';
 check(modrinthStartSession.includes('checkpointPrismPlaySession();')
     && modrinthStartSession.includes("if (currentUi === 'modrinth') renderModrinthJumpIn();")
     && modrinthStartSession.indexOf('renderModrinthJumpIn();') > modrinthStartSession.indexOf('checkpointPrismPlaySession();'),

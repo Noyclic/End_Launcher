@@ -1,3 +1,8 @@
+## UI fidelity pass 49 — Fix Modrinth scrollspy at page end
+
+- Kept Discover active when its final, shorter section reaches the bottom of the scroll container and cannot align with the sticky-header threshold.
+- Added a regression assertion for the bottom-of-page anchor so the existing navigation click flow no longer times out.
+
 ## UI fidelity pass 48 — Modrinth navigation and library actions
 
 - Added a scroll-aware active state for Home, Discover and Instances, including an accessible `aria-current` state and a matching header section title.

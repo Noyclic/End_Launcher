@@ -3921,6 +3921,11 @@ function syncModrinthNavFromScroll() {
     const target = $(section.id);
     if (target && target.getBoundingClientRect().top <= threshold) active = section.nav;
   }
+  // The final Discover section can be shorter than the viewport, so its top
+  // may never reach the sticky-header threshold. Treat the scroll end as its
+  // active anchor instead of leaving the Library item selected forever.
+  const maxScroll = Math.max(0, main.scrollHeight - main.clientHeight);
+  if (maxScroll > 0 && main.scrollTop >= maxScroll - 24) active = 'modrinth-nav-discover';
   setModrinthNavActive(active);
 }
 

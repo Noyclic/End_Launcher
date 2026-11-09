@@ -500,6 +500,7 @@ check(js.includes('function syncModrinthNavFromScroll()')
     && js.includes("button.setAttribute('aria-current', 'page')")
     && js.includes("button.removeAttribute('aria-current')")
     && js.includes("target.getBoundingClientRect().top <= threshold")
+    && js.includes("main.scrollTop >= maxScroll - 24")
     && js.includes("setModrinthNavActive('settings')"),
   'Modrinth navigation must follow scroll position and expose the current section accessibly');
 check(js.includes("$('modrinth-new-group')?.addEventListener('click'")

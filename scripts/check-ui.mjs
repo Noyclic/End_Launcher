@@ -463,6 +463,10 @@ check(repairCss.includes("grid-template-columns:72px minmax(0,1fr) 304px")
     && repairCss.includes(":root[data-ui='modrinth'] .modrinth-jump-list")
     && repairCss.includes(":root[data-ui='modrinth'] .modrinth-library-filters"),
   'Modrinth must use a dedicated three-column desktop workspace and responsive layout');
+check(html.includes('id="game-modes"')
+    && repairCss.includes(":root[data-ui='modrinth'] #game-modes { display:none !important; }")
+    && !repairCss.includes("\n#game-modes {"),
+  'End Launcher game-mode choices must stay available in the native layout but not displace Modrinth Jump In and Library');
 
 
 

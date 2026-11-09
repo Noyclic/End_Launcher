@@ -3076,6 +3076,9 @@
 :root[data-ui='modrinth'] .modrinth-panel-footer strong { font-size:10px; letter-spacing:1px; }
 :root[data-ui='modrinth'] .modrinth-panel-footer small { color:#78867d; font-size:9px; }
 :root[data-ui='modrinth'] #prism-status-bar { display:none !important; }
+
+/* Keep End Launcher-only game-mode choices out of the Modrinth reference home hierarchy. */
+:root[data-ui='modrinth'] #game-modes { display:none !important; }
 :root[data-ui='modrinth'] .pet { z-index:8; }
 @media (max-width:1180px) {
   :root[data-ui='modrinth'] .layout { grid-template-columns:68px minmax(0,1fr); }

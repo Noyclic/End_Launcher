@@ -1,3 +1,9 @@
+## UI fidelity pass 50 — Restore Modrinth home hierarchy
+
+- Hide the End Launcher-only game-mode chooser in Modrinth mode so the Home screen starts with Jump In and the instance library, matching the supplied Modrinth reference.
+- Keep Horizon and End Voxel choices available in the native End Launcher layout and other styles.
+- Add a regression assertion that the visibility rule is scoped to Modrinth only.
+
 ## UI fidelity pass 49 — Fix Modrinth scrollspy at page end
 
 - Kept Discover active when its final, shorter section reaches the bottom of the scroll container and cannot align with the sticky-header threshold.

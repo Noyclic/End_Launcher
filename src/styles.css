@@ -7424,6 +7424,11 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
   }
 }
 
+/* Keep End Launcher-only project cards out of replica layouts. */
+:root:not([data-ui='end']) .game-modes-section {
+  display: none !important;
+}
+
 /* Upcoming standalone game modes */
 .game-modes-section {
   margin: 24px 0 28px;

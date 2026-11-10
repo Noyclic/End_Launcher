@@ -1,3 +1,8 @@
+## UI fidelity pass — keep project-mode cards out of replica layouts
+
+- Hide the End Launcher-only Horizon/End Voxel section in Prism and other replica styles while retaining it in the native End layout.
+- Add a regression assertion for the non-End selector so future layout changes cannot reintroduce the extra block above the instance library.
+
 ## Modrinth .mrpack import — live file progress
 
 - Added a Tauri progress stream for manifest validation, archive extraction, per-file downloads, SHA-1 completion/skips, finalization, and failures.

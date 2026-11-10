@@ -1,3 +1,10 @@
+## Modpack import — preserve pinned loader versions
+
+- Modrinth `.mrpack` imports now retain the exact Fabric, Quilt, Forge or NeoForge version from the manifest instead of silently falling back to the newest loader on first launch.
+- Prism/MultiMC component manifests and CurseForge loader IDs also preserve an explicit loader version when one is present.
+- The import overlay now stays visible while unpacking/downloading and reports the selected loader pin in the completion message.
+- Added Rust regression tests for all four Modrinth loader keys, Prism component metadata, CurseForge loader IDs and unsafe loader-version rejection.
+
 ## UI fidelity pass 50 — Restore Modrinth home hierarchy
 
 - Hide the End Launcher-only game-mode chooser in Modrinth mode so the Home screen starts with Jump In and the instance library, matching the supplied Modrinth reference.

@@ -484,6 +484,7 @@ struct ImportSpec {
     name: String,
     version: String,
     loader: String,
+    loader_version: Option<String>,
 }
 
 fn version_prefix(raw: &str) -> Option<String> {
@@ -538,46 +539,73 @@ fn spec_from_json(value: &serde_json::Value, fallback_name: &str) -> Result<Opti
         Some(s) => loader_from_text(s)?,
         None => None,
     };
-    // XMCL stores individual loader versions under runtime.
-    if loader.is_none() {
-        if let Some(rt) = runtime {
-            for key in ["neoforge", "fabricLoader", "fabric-loader", "forge", "quiltLoader"] {
-                if let Some(text) = rt.get(key).and_then(|v| v.as_str()).filter(|s| !s.is_empty()) {
-                    let normalized = loader_from_text(key)?;
-                    if normalized.is_some() { loader = normalized; break; }
-                    let normalized = loader_from_text(text)?;
-                    if normalized.is_some() { loader = normalized; break; }
+    let mut loader_version = json_str(value, &["loaderVersion", "loader_version", "modLoaderVersion", "mod_loader_version"])
+        .map(validate_import_loader_version).transpose()?;
+
+    if let Some(rt) = runtime {
+        for (key, kind) in [
+            ("neoforge", "neoforge"),
+            ("fabricLoader", "fabric"),
+            ("fabric-loader", "fabric"),
+            ("forge", "forge"),
+            ("quiltLoader", "quilt"),
+            ("quilt-loader", "quilt"),
+        ] {
+            if let Some(raw) = rt.get(key).and_then(|v| v.as_str()).filter(|s| !s.trim().is_empty()) {
+                if loader.is_none() { loader = Some(kind.into()); }
+                if loader_version.is_none() {
+                    let raw_version = loader_version_from_id(raw, kind, version.as_deref())?
+                        .unwrap_or_else(|| raw.trim().to_string());
+                    loader_version = Some(validate_import_loader_version(&raw_version)?);
                 }
+                break;
             }
         }
     }
-    if loader.is_none() {
-        if let Some(deps) = dependencies.and_then(|v| v.as_object()) {
-            for key in ["neoforge", "fabric-loader", "forge", "quilt-loader"] {
-                if deps.get(key).and_then(|v| v.as_str()).is_some() {
-                    loader = loader_from_text(key)?;
-                    break;
-                }
+
+    // Modrinth .mrpack dependencies contain the exact loader version as a plain string.
+    if let Some(deps) = dependencies.and_then(|v| v.as_object()) {
+        for (key, kind) in [
+            ("neoforge", "neoforge"),
+            ("fabric-loader", "fabric"),
+            ("forge", "forge"),
+            ("quilt-loader", "quilt"),
+        ] {
+            if let Some(raw) = deps.get(key).and_then(|v| v.as_str()).filter(|s| !s.trim().is_empty()) {
+                loader = Some(kind.into());
+                loader_version = Some(validate_import_loader_version(raw)?);
+                break;
             }
         }
     }
-    // Prism / MultiMC manifests.
+
+    // Prism / MultiMC component manifests include the loader version beside its UID.
     if let Some(components) = value.get("components").and_then(|v| v.as_array()) {
         for component in components {
             let uid = component.get("uid").and_then(|v| v.as_str()).unwrap_or("");
-            if uid == "net.minecraft" {
-                // The base component version is read by the fallback below.
-            } else if uid.contains("neoforge") { loader = Some("neoforge".into()); }
-            else if uid.contains("fabric-loader") { loader = Some("fabric".into()); }
-            else if uid.contains("forge") { loader = Some("forge".into()); }
-            else if uid.contains("quilt") { loader = Some("quilt".into()); }
+            let kind = if uid.contains("neoforge") { Some("neoforge") }
+                else if uid.contains("fabric-loader") { Some("fabric") }
+                else if uid.contains("forge") { Some("forge") }
+                else if uid.contains("quilt") { Some("quilt") }
+                else { None };
+            if let Some(kind) = kind {
+                loader = Some(kind.into());
+                if loader_version.is_none() {
+                    if let Some(raw) = component.get("version").and_then(|v| v.as_str()) {
+                        loader_version = Some(validate_import_loader_version(raw)?);
+                    }
+                }
+            }
         }
     }
+
+    let loader = loader.unwrap_or_else(|| "vanilla".into());
+    if loader == "vanilla" { loader_version = None; }
     let version = version.or_else(|| {
         value.get("components").and_then(|v| v.as_array()).and_then(|a| a.iter().find(|c| c.get("uid").and_then(|x| x.as_str()) == Some("net.minecraft")))
             .and_then(|c| c.get("version")).and_then(|v| v.as_str()).and_then(version_prefix)
     });
-    Ok(version.map(|version| ImportSpec { name, version, loader: loader.unwrap_or_else(|| "vanilla".into()) }))
+    Ok(version.map(|version| ImportSpec { name, version, loader, loader_version }))
 }
 
 fn safe_relative(raw: &str) -> Option<PathBuf> {
@@ -655,7 +683,38 @@ fn normalized_archive_path(raw: &str, allow_wrapper: bool) -> Option<PathBuf> {
     None
 }
 
-fn create_import_spec(name: &str, version: &str, loader: &str) -> Result<Instance, String> {
+fn validate_import_loader_version(raw: &str) -> Result<String, String> {
+    let value = raw.trim();
+    if value.is_empty()
+        || value.len() > 80
+        || !value.chars().all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '.' | '+' | '-' | '_'))
+    {
+        return Err(format!("Некорректная версия загрузчика в манифесте: {value}"));
+    }
+    Ok(value.to_string())
+}
+
+fn loader_version_from_id(raw: &str, loader: &str, game_version: Option<&str>) -> Result<Option<String>, String> {
+    let value = raw.trim();
+    let lower = value.to_ascii_lowercase();
+    let prefix = match loader {
+        "fabric" => "fabric-loader-",
+        "quilt" => "quilt-loader-",
+        "forge" => "forge-",
+        "neoforge" => "neoforge-",
+        _ => return Ok(None),
+    };
+    if !lower.starts_with(prefix) { return Ok(None); }
+    let mut version = &value[prefix.len()..];
+    if let Some(game_version) = game_version {
+        let suffix = format!("-{game_version}");
+        if version.ends_with(&suffix) { version = &version[..version.len() - suffix.len()]; }
+    }
+    if version.is_empty() { return Ok(None); }
+    Ok(Some(validate_import_loader_version(version)?))
+}
+
+fn create_import_spec(name: &str, version: &str, loader: &str, loader_version: Option<String>) -> Result<Instance, String> {
     let mut name = name.trim().to_string();
     if name.is_empty() { name = "Импортированная сборка".into(); }
     if name.chars().count() > 40 { name = name.chars().take(40).collect(); }
@@ -664,6 +723,11 @@ fn create_import_spec(name: &str, version: &str, loader: &str) -> Result<Instanc
     if !["vanilla", "fabric", "quilt", "forge", "neoforge"].contains(&loader) {
         return Err(format!("Не поддерживаемый загрузчик: {loader}"));
     }
+    let loader_version = match loader_version {
+        Some(_) if loader == "vanilla" => return Err("Vanilla не использует версию загрузчика модов".into()),
+        Some(value) => Some(validate_import_loader_version(&value)?),
+        None => None,
+    };
     let original_name = name.clone();
     let existing_names: Vec<String> = list_instances().into_iter().map(|i| i.name.to_lowercase()).collect();
     let mut duplicate = 2usize;
@@ -677,10 +741,10 @@ fn create_import_spec(name: &str, version: &str, loader: &str) -> Result<Instanc
     let mut id = base.clone();
     let mut n = 2;
     while instance_dir(&id).exists() { id = format!("{base}-{n}"); n += 1; }
-    Ok(Instance { id, name, version, loader: loader.into(), loader_version: None })
+    Ok(Instance { id, name, version, loader: loader.into(), loader_version })
 }
 
-fn instance_spec_from_dir(root: &Path) -> Result<(String, String, String), String> {
+fn instance_spec_from_dir(root: &Path) -> Result<(String, String, String, Option<String>), String> {
     let fallback = import_root_name(root).unwrap_or_else(|| "Импортированная сборка".into());
     let mut candidates = vec![root.to_path_buf()];
     for child in [".minecraft", "minecraft", ".game"] {
@@ -690,26 +754,29 @@ fn instance_spec_from_dir(root: &Path) -> Result<(String, String, String), Strin
     let mut name: Option<String> = None;
     let mut version: Option<String> = None;
     let mut loader: Option<String> = None;
+    let mut loader_version: Option<String> = None;
     for dir in &candidates {
         for file in ["instance.json", "profile.json", "mmc-pack.json", "manifest.json"] {
             let path = dir.join(file);
             if let Ok(text) = std::fs::read_to_string(&path) {
                 if let Ok(value) = serde_json::from_str::<serde_json::Value>(&text) {
                     if let Some(spec) = spec_from_json(&value, &fallback)? {
-                        if name.is_none() { name = Some(spec.name); }
-                        if version.is_none() { version = Some(spec.version); }
-                        if loader.is_none() && spec.loader != "vanilla" { loader = Some(spec.loader); }
+                        if name.is_none() { name = Some(spec.name.clone()); }
+                        if version.is_none() { version = Some(spec.version.clone()); }
+                        if loader.is_none() && spec.loader != "vanilla" { loader = Some(spec.loader.clone()); }
+                        if loader_version.is_none() { loader_version = spec.loader_version.clone(); }
                     }
                     if file == "manifest.json" {
                         if let Some(minecraft) = value.get("minecraft") {
                             if version.is_none() { version = minecraft.get("version").and_then(|v| v.as_str()).and_then(version_prefix); }
-                            if loader.is_none() {
-                                if let Some(items) = minecraft.get("modLoaders").and_then(|v| v.as_array()) {
-                                    for item in items {
-                                        if item.get("primary").and_then(|v| v.as_bool()).unwrap_or(true) {
-                                            if let Some(id) = item.get("id").and_then(|v| v.as_str()) {
-                                                loader = loader_from_text(id)?;
-                                                if loader.is_some() { break; }
+                            if let Some(items) = minecraft.get("modLoaders").and_then(|v| v.as_array()) {
+                                for item in items {
+                                    if item.get("primary").and_then(|v| v.as_bool()).unwrap_or(true) {
+                                        if let Some(id) = item.get("id").and_then(|v| v.as_str()) {
+                                            if let Some(found) = loader_from_text(id)? {
+                                                if loader.is_none() { loader = Some(found.clone()); }
+                                                if loader_version.is_none() { loader_version = loader_version_from_id(id, &found, version.as_deref())?; }
+                                                break;
                                             }
                                         }
                                     }
@@ -762,7 +829,7 @@ fn instance_spec_from_dir(root: &Path) -> Result<(String, String, String), Strin
         }
     }
     let version = version.ok_or_else(|| "Не удалось определить версию Minecraft. Перетащи папку конкретной сборки Prism/XMCL/Modrinth или экспортируй её в .mrpack/.zip с манифестом.".to_string())?;
-    Ok((name.unwrap_or(fallback), version, loader.unwrap_or_else(|| "vanilla".into())))
+    Ok((name.unwrap_or(fallback), version, loader.unwrap_or_else(|| "vanilla".into()), loader_version))
 }
 
 fn copy_game_tree(src: &Path, dst: &Path, depth: usize, total_bytes: &mut u64) -> Result<usize, String> {
@@ -1112,10 +1179,10 @@ pub async fn import_instance(path: String) -> Result<ImportResult, String> {
         return Err(".jar — это отдельный мод. Перетащи его в выбранную сборку на странице «Моды»; ZIP/MRPACK импортируются как сборки.".into());
     }
     if source.is_dir() {
-        let (name, version, loader) = instance_spec_from_dir(&source)?;
+        let (name, version, loader, loader_version) = instance_spec_from_dir(&source)?;
         let content = if source.join(".minecraft").is_dir() { source.join(".minecraft") }
             else if source.join("minecraft").is_dir() { source.join("minecraft") } else { source.clone() };
-        let inst = create_import_spec(&name, &version, &loader)?;
+        let inst = create_import_spec(&name, &version, &loader, loader_version)?;
         let target = instance_dir(&inst.id);
         let mut copied_bytes = 0u64;
         if let Err(error) = copy_game_tree(&content, &target, 0, &mut copied_bytes) {
@@ -1151,17 +1218,22 @@ pub async fn import_instance(path: String) -> Result<ImportResult, String> {
         let minecraft = manifest.get("minecraft").ok_or("В CurseForge ZIP нет секции minecraft")?;
         let version = minecraft.get("version").and_then(|v| v.as_str()).and_then(version_prefix).ok_or("Не удалось определить Minecraft-версию в CurseForge-манифесте")?;
         let mut loader = "vanilla".to_string();
+        let mut loader_version = None;
         if let Some(items) = minecraft.get("modLoaders").and_then(|v| v.as_array()) {
             for item in items {
                 if item.get("primary").and_then(|v| v.as_bool()).unwrap_or(true) {
                     if let Some(id) = item.get("id").and_then(|v| v.as_str()) {
-                        if let Some(l) = loader_from_text(id)? { loader = l; break; }
+                        if let Some(found) = loader_from_text(id)? {
+                            loader = found.clone();
+                            loader_version = loader_version_from_id(id, &found, Some(version.as_str()))?;
+                            break;
+                        }
                     }
                 }
             }
         }
         let name = json_str(&manifest, &["name"]).unwrap_or(&root_name).to_string();
-        (ImportSpec { name, version, loader }, "curseforge".to_string(), None)
+        (ImportSpec { name, version, loader, loader_version }, "curseforge".to_string(), None)
     } else if let Some(own) = own {
         let spec = spec_from_json(&own, &root_name)?.ok_or("В архиве End Launcher нет версии Minecraft")?;
         (spec, "endlauncher".to_string(), None)
@@ -1172,7 +1244,7 @@ pub async fn import_instance(path: String) -> Result<ImportResult, String> {
         return Err("В ZIP нет узнаваемого манифеста. Для переноса из Modrinth используй .mrpack; для папки Prism/XMCL перетащи саму папку сборки.".into());
     };
 
-    let inst = create_import_spec(&spec.name, &spec.version, &spec.loader)?;
+    let inst = create_import_spec(&spec.name, &spec.version, &spec.loader, spec.loader_version.clone())?;
     let target = instance_dir(&inst.id);
     std::fs::create_dir_all(&target).map_err(err)?;
     let operation = async {
@@ -1266,8 +1338,56 @@ pub fn open_launcher_resource_folder(kind: String) -> Result<(), String> {
 
 #[cfg(test)]
 mod import_path_tests {
-    use super::{allowed_import_file, allowed_import_root, excluded_import_root, normalized_archive_path, safe_relative};
+    use super::{allowed_import_file, allowed_import_root, excluded_import_root, loader_version_from_id, normalized_archive_path, safe_relative, spec_from_json};
     use std::path::PathBuf;
+
+
+    #[test]
+    fn modrinth_manifest_pins_exact_loader_versions() {
+        let cases = [
+            ("fabric-loader", "fabric", "0.16.10"),
+            ("quilt-loader", "quilt", "0.28.1"),
+            ("forge", "forge", "47.2.0"),
+            ("neoforge", "neoforge", "21.1.200"),
+        ];
+        for (key, expected_loader, expected_version) in cases {
+            let mut dependencies = serde_json::Map::new();
+            dependencies.insert("minecraft".into(), serde_json::json!("1.20.1"));
+            dependencies.insert(key.into(), serde_json::json!(expected_version));
+            let manifest = serde_json::json!({"name": "Pinned Pack", "dependencies": dependencies});
+            let spec = spec_from_json(&manifest, "fallback").unwrap().unwrap();
+            assert_eq!(spec.loader, expected_loader, "loader key: {key}");
+            assert_eq!(spec.loader_version.as_deref(), Some(expected_version), "loader key: {key}");
+        }
+    }
+
+    #[test]
+    fn prism_component_manifest_preserves_loader_version() {
+        let manifest = serde_json::json!({
+            "components": [
+                {"uid": "net.minecraft", "version": "1.20.1"},
+                {"uid": "net.fabricmc.fabric-loader", "version": "0.15.11"}
+            ]
+        });
+        let spec = spec_from_json(&manifest, "Prism pack").unwrap().unwrap();
+        assert_eq!(spec.loader, "fabric");
+        assert_eq!(spec.loader_version.as_deref(), Some("0.15.11"));
+    }
+
+    #[test]
+    fn curseforge_loader_ids_preserve_their_version() {
+        assert_eq!(loader_version_from_id("forge-47.2.0", "forge", Some("1.20.1")).unwrap().as_deref(), Some("47.2.0"));
+        assert_eq!(loader_version_from_id("neoforge-20.4.237-1.20.4", "neoforge", Some("1.20.4")).unwrap().as_deref(), Some("20.4.237"));
+    }
+
+    #[test]
+    fn modrinth_manifest_rejects_unsafe_loader_version() {
+        let mut dependencies = serde_json::Map::new();
+        dependencies.insert("minecraft".into(), serde_json::json!("1.20.1"));
+        dependencies.insert("fabric-loader".into(), serde_json::json!("../outside"));
+        let manifest = serde_json::json!({"dependencies": dependencies});
+        assert!(spec_from_json(&manifest, "fallback").is_err());
+    }
 
     #[test]
     fn safe_relative_accepts_normal_nested_paths() {

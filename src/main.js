@@ -4381,15 +4381,32 @@ async function processDroppedPaths(paths) {
       refreshInstalled(); renderHomeStats();
     }
     for (const path of imports) {
+      setDropOverlay(true, 'Импортирую сборку…', 'Распаковываю overrides, загружаю обязательные файлы и проверяю SHA-1. Не закрывай лаунчер.');
       showToast('Импортирую сборку… Не закрывай лаунчер, пока скачиваются файлы модпака.');
       try {
         const result = await invoke('import_instance', { path });
-        await loadInstances();
         const name = result?.instance?.name || 'Сборка';
-        if (result?.warning) showToast(`Импортирована «${name}». ${result.warning}`, false);
-        else if (result?.format === 'modrinth') showToast(`«${name}» импортирована. Загружено файлов модпака: ${result.downloaded_files ?? 0}.`);
-        else showToast(`«${name}» импортирована и выбрана.`);
+        const loaderNames = { fabric: 'Fabric', quilt: 'Quilt', forge: 'Forge', neoforge: 'NeoForge' };
+        const loaderName = loaderNames[result?.instance?.loader] || 'Vanilla';
+        const loaderVersion = result?.instance?.loader_version || '';
+        const loaderNote = loaderVersion
+          ? `Закреплена версия ${loaderName} ${loaderVersion}; End Launcher установит именно её при первом запуске.`
+          : result?.instance?.loader && result.instance.loader !== 'vanilla'
+            ? `Версия ${loaderName} не указана в исходном манифесте; при запуске будет выбрана доступная версия.`
+            : 'Загрузчик не требуется.';
+        await loadInstances();
+        if (result?.warning) {
+          setDropOverlay(true, 'Импорт завершён с предупреждением', result.warning);
+          showToast(`Импортирована «${name}». ${result.warning}`, false);
+        } else if (result?.format === 'modrinth') {
+          setDropOverlay(true, 'Модпак импортирован', `Загружено файлов: ${result.downloaded_files ?? 0}. ${loaderNote}`);
+          showToast(`«${name}» импортирована. Загружено файлов: ${result.downloaded_files ?? 0}. ${loaderNote}`);
+        } else {
+          setDropOverlay(true, 'Сборка импортирована', loaderNote);
+          showToast(`«${name}» импортирована и выбрана. ${loaderNote}`);
+        }
       } catch (error) {
+        setDropOverlay(true, 'Импорт не выполнен', String(error).slice(0, 180));
         showToast(`Не удалось импортировать «${path.split(/[\\/]/).pop()}»: ${String(error)}`, false);
       }
     }

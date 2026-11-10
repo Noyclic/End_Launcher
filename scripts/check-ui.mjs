@@ -1342,6 +1342,17 @@ check(css.includes(":root[data-ui='modrinth'] #modrinth-nav .modrinth-nav-btn:fo
   'Modrinth icon-rail navigation must retain visible keyboard focus and bounded labels at narrow widths');
 
 
+check(rustInstances.includes('fn modrinth_manifest_pins_exact_loader_versions()')
+    && rustInstances.includes('fn prism_component_manifest_preserves_loader_version()')
+    && rustInstances.includes('fn curseforge_loader_ids_preserve_their_version()')
+    && rustInstances.includes('fn modrinth_manifest_rejects_unsafe_loader_version()')
+    && js.includes("setDropOverlay(true, 'Импортирую сборку…'")
+    && js.includes('result?.instance?.loader_version')
+    && js.includes('Закреплена версия')
+    && rustInstances.includes('spec.loader_version.clone())')
+    && rustJava.includes('install_fabric(inst.version.clone(), inst.loader_version.clone())'),
+  'Modpack import must preserve the exact manifest loader version, surface import progress, and pass the pin to first launch');
+
 check(html.includes('id="p2p-diagnostics-btn"')
     && html.includes('id="p2p-diagnostics-results"')
     && html.includes('aria-live="polite"')

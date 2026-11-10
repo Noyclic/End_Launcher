@@ -1,7 +1,8 @@
 ## Modrinth .mrpack import — live file progress
 
 - Added a Tauri progress stream for manifest validation, archive extraction, per-file downloads, SHA-1 completion/skips, finalization, and failures.
-- The import overlay now shows an accessible determinate file-count bar, per-file byte progress when the server provides a content length, and the current relative file path.
+- The import overlay now shows an accessible determinate file-count bar, per-file byte progress when the server provides a content length (or bytes received when it does not), and the current relative file path.
+- Completed imports reach 100% even when the manifest contains no client-downloadable files; indeterminate phases clear any stale determinate width.
 - Required-file failures still abort and clean up the incomplete instance; optional-file skips remain visible and are reflected in the final result.
 - Added frontend regression assertions and a Rust serialization test for the event payload contract.
 

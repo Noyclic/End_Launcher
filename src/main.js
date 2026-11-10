@@ -4427,7 +4427,9 @@ function updateDropImportProgress(payload) {
   const fileTotal = Math.max(0, Number(payload.fileBytesTotal) || 0);
   const bytes = Math.max(0, Number(payload.bytesReceived) || 0);
   let percent = null;
-  if (total > 0) {
+  if (stage === 'completed' || stage === 'downloading-complete') {
+    percent = 100;
+  } else if (total > 0) {
     const finished = stage === 'file-complete' || stage === 'file-skipped';
     const completedFiles = Math.max(0, Math.min(total, current - (finished ? 0 : 1)));
     const withinFile = finished ? 0 : (fileTotal > 0 ? Math.min(1, bytes / fileTotal) : 0);
@@ -4435,6 +4437,7 @@ function updateDropImportProgress(payload) {
   }
   track.classList.toggle('indeterminate', percent === null);
   if (percent === null) {
+    bar.style.width = '';
     track.removeAttribute('aria-valuenow');
   } else {
     bar.style.width = percent.toFixed(1) + '%';
@@ -4444,6 +4447,7 @@ function updateDropImportProgress(payload) {
   if (total > 0) details.push(Math.min(current, total) + ' / ' + total + ' файлов');
   if (payload.file) details.push(String(payload.file));
   if (fileTotal > 0) details.push(formatImportBytes(bytes) + ' / ' + formatImportBytes(fileTotal));
+  else if (bytes > 0) details.push('Скачано ' + formatImportBytes(bytes));
   $('instance-drop-progress-detail').textContent = details.join(' · ') || payload.message || 'Подготавливаем файлы…';
 }
 window.__TAURI__.event.listen('instance-import-progress', ({ payload }) => {

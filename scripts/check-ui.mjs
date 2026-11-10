@@ -162,9 +162,11 @@ check(js.includes('let createInstanceOpenRequest = 0;')
 check(js.includes("await invoke('install_fabric', { gameVersion: version, loaderVersion });")
     && js.includes("await invoke('install_quilt', { gameVersion: version, loaderVersion });")
     && js.includes("await invoke('install_forge', {")
-    && js.includes("Сборка создана, но подготовка не завершилась:")
+    && js.includes("Загрузчик не подготовлен; сборка не создана.")
+    && js.includes("Загрузчик подготовлен, но экземпляр не создан:")
+    && js.includes("Не удалось создать сборку:")
     && js.includes('создан и подготовлен'),
-  'Creating a modded instance must prepare the selected loader and report partial failure honestly');
+  'Creating a modded instance must prepare the selected loader before writing the instance and report each partial failure honestly');
 check(/class="account-dialog"[^>]*role="dialog"[^>]*aria-modal="true"[^>]*aria-labelledby="account-modal-title"/.test(html),
   'Account picker must expose labelled modal-dialog semantics');
 check(/class="customizer-window"[^>]*role="dialog"[^>]*aria-modal="true"[^>]*aria-labelledby="customizer-title"/.test(html),

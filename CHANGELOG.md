@@ -1,3 +1,5 @@
+- Updated the creation regression check to require the new retry-safe failure states and ensure loader setup happens before instance metadata is written.
+
 ## Instance creation — retry safely after loader preparation failures
 
 - Prepare the selected Fabric, Quilt, Forge or NeoForge profile before writing the new instance, so a failed loader download does not leave a duplicate-prone empty instance.

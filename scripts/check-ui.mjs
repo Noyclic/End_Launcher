@@ -111,8 +111,8 @@ check(domHelperIndex >= 0 && endVoxelHandlerIndex > domHelperIndex,
   'End Voxel handler must be registered after the DOM helper is initialized');
 check(endVoxelHandlerIndex >= 0 && js.includes('скачивание и запуск ещё не подключены.'),
   'End Voxel placeholder must explain that download/launch is not implemented yet');
-const replicaGameModesRule = css.match(/:root:not\\(\\[data-ui=['\"]end['\"]\\]\\)\\s+\\.game-modes-section\\s*\\{([^}]*)\\}/);
-check(Boolean(replicaGameModesRule && /display\\s*:\\s*none\\s*!important/.test(replicaGameModesRule[1])),
+const replicaGameModesRule = css.split(":root:not([data-ui='end']) .game-modes-section {")[1]?.split('}')[0] || '';
+check(replicaGameModesRule.includes('display: none !important;'),
   'End Launcher-only game-mode cards must stay out of Prism and other replica layouts while remaining available in native End mode');
 
 // The style IDs and the first-run selector must remain in sync.

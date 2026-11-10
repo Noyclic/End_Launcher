@@ -1247,8 +1247,22 @@ check(html.includes('id="ni-loader-version-title"')
     && html.includes('class="prism-loader-version-table"')
     && !html.includes('id="ni-loader-preview-description"')
     && js.includes("invoke('list_loader_versions', { gameVersion, loader })")
-    && js.includes("loaderVersion: selectedLoaderVersion || null")
+    && js.includes("const loaderVersion = selectedLoaderVersion || null;")
     && js.includes("savePrismLoaderVersionPreference(gameVersion, loader, selectedLoaderVersion)")
+    && (() => {
+      const start = js.indexOf("$('ni-create').addEventListener('click'");
+      const end = js.indexOf("$('mods-back').addEventListener", start);
+      const flow = js.slice(start, end);
+      const create = flow.indexOf("invoke('create_instance'");
+      return create > 0
+        && flow.indexOf("invoke('install_fabric'") >= 0
+        && flow.indexOf("invoke('install_fabric'") < create
+        && flow.indexOf("invoke('install_quilt'") >= 0
+        && flow.indexOf("invoke('install_quilt'") < create
+        && flow.indexOf("invoke('install_forge'") >= 0
+        && flow.indexOf("invoke('install_forge'") < create
+        && flow.includes("Загрузчик не подготовлен; сборка не создана.");
+    })()
     && rustJava.includes('pub async fn list_loader_versions(game_version: String, loader: String)')
     && rustJava.includes('pub async fn install_quilt(game_version: String, loader_version: Option<String>)')
     && rustJava.includes('install_fabric(inst.version.clone(), inst.loader_version.clone())')

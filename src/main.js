@@ -2621,27 +2621,24 @@ $('ni-create').addEventListener('click', async () => {
     $('ni-loader-version-rows')?.focus();
     return;
   }
-  btn.disabled = true;
-  btn.textContent = 'Создаём…';
-  $('ni-msg').textContent = 'Подготавливаем папку сборки…';
-  try {
-    // -> Rust: instances.rs :: create_instance(name, version, loader)
-    const version = $('ni-version').value;
-    const loader = $('ni-loader').value;
-    const loaderVersion = selectedLoaderVersion || null;
-    const created = await invoke('create_instance', {
-      name,
-      version,
-      loader,
-      loaderVersion,
-    });
-    const groupName = currentUi === 'prism' ? String($('ni-group')?.value || '').trim() : '';
-    if (created?.id && groupName) savePrismInstanceGroup(created, groupName);
 
-    // Prepare the selected loader immediately, so creation is a complete workflow
-    // instead of deferring the real work until the first launch.
-    if (loader !== 'vanilla') {
-      $('ni-msg').textContent = `Подготавливаем ${prismLoaderDescriptions[loader]?.[0] || loader} ${loaderVersion || ''}…`.trim();
+  const version = $('ni-version').value;
+  const loader = $('ni-loader').value;
+  const loaderVersion = selectedLoaderVersion || null;
+  const loaderPreparationRequired = loader !== 'vanilla';
+  let loaderPrepared = !loaderPreparationRequired;
+  let created = null;
+
+  btn.disabled = true;
+  btn.textContent = 'Подготовка…';
+  $('ni-msg').textContent = loaderPreparationRequired
+    ? `Подготавливаем ${prismLoaderDescriptions[loader]?.[0] || loader} ${loaderVersion || ''}…`.trim()
+    : 'Создаём экземпляр Vanilla…';
+
+  try {
+    // Prepare the loader first. If its installer fails, no instance is written,
+    // so pressing Retry cannot create duplicate profiles.
+    if (loaderPreparationRequired) {
       if (loader === 'fabric') {
         await invoke('install_fabric', { gameVersion: version, loaderVersion });
       } else if (loader === 'quilt') {
@@ -2653,7 +2650,18 @@ $('ni-create').addEventListener('click', async () => {
           loaderVersion,
         });
       }
+      loaderPrepared = true;
     }
+
+    $('ni-msg').textContent = 'Сохраняем экземпляр и выбранную версию загрузчика…';
+    created = await invoke('create_instance', {
+      name,
+      version,
+      loader,
+      loaderVersion,
+    });
+    const groupName = currentUi === 'prism' ? String($('ni-group')?.value || '').trim() : '';
+    if (created?.id && groupName) savePrismInstanceGroup(created, groupName);
 
     closeNewInstance();
     $('ni-name').value = '';
@@ -2663,17 +2671,25 @@ $('ni-create').addEventListener('click', async () => {
       ? `Экземпляр «${name}» создан и подготовлен`
       : `Сборка «${name}» создана и подготовлена`);
   } catch (e) {
-    // If preparation fails, keep the instance visible so the user can retry
-    // without losing the selected version/loader metadata.
     const message = String(e);
-    $('ni-msg').textContent = `Сборка создана, но подготовка не завершилась: ${message}`;
-    showToast('Сборка создана, но загрузчик не подготовлен.', false);
+    if (created) {
+      $('ni-msg').textContent = `Сборка создана, но обновить интерфейс не удалось: ${message}`;
+      showToast(`Сборка «${name}» создана, но список не обновлён.`, false);
+    } else if (loaderPreparationRequired && loaderPrepared) {
+      $('ni-msg').textContent = `Загрузчик подготовлен, но экземпляр не создан: ${message}`;
+      showToast('Загрузчик подготовлен, но экземпляр не создан.', false);
+    } else if (loaderPreparationRequired) {
+      $('ni-msg').textContent = `Не удалось подготовить ${prismLoaderDescriptions[loader]?.[0] || loader}. Экземпляр не создан: ${message}`;
+      showToast('Загрузчик не подготовлен; сборка не создана.', false);
+    } else {
+      $('ni-msg').textContent = `Не удалось создать сборку: ${message}`;
+      showToast('Не удалось создать сборку.', false);
+    }
   } finally {
     btn.disabled = false;
     btn.textContent = currentUi === 'prism' ? 'ОК' : '＋ Создать сборку';
   }
 });
-
 $('mods-back').addEventListener('click', () => goPage('play'));
 $('empty-create').addEventListener('click', openNewInstance);
 

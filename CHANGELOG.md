@@ -1,3 +1,10 @@
+## Instance creation — retry safely after loader preparation failures
+
+- Prepare the selected Fabric, Quilt, Forge or NeoForge profile before writing the new instance, so a failed loader download does not leave a duplicate-prone empty instance.
+- Keep the exact selected loader version in the instance metadata after successful preparation.
+- Distinguish loader-install failure, instance-write failure and post-create refresh failure in the status message.
+- Corrected the Prism loader-version regression assertion and added a check that every loader installer runs before `create_instance`.
+
 ## Modpack import — preserve pinned loader versions
 
 - Modrinth `.mrpack` imports now retain the exact Fabric, Quilt, Forge or NeoForge version from the manifest instead of silently falling back to the newest loader on first launch.

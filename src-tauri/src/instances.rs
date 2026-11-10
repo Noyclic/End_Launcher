@@ -13,6 +13,7 @@ use base64::Engine as _;
 use futures_util::StreamExt;
 use sha1::{Digest, Sha1};
 use tokio::io::AsyncWriteExt;
+use tauri::{AppHandle, Emitter};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Instance {
@@ -477,6 +478,39 @@ pub struct ImportResult {
     pub downloaded_files: usize,
     pub skipped_optional: usize,
     pub warning: Option<String>,
+}
+
+#[derive(Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct InstanceImportProgress {
+    stage: String,
+    current: usize,
+    total: usize,
+    file: Option<String>,
+    bytes_received: u64,
+    file_bytes_total: Option<u64>,
+    message: String,
+}
+
+fn emit_instance_import_progress(
+    app: &AppHandle,
+    stage: &str,
+    current: usize,
+    total: usize,
+    file: Option<&str>,
+    bytes_received: u64,
+    file_bytes_total: Option<u64>,
+    message: &str,
+) {
+    let _ = app.emit("instance-import-progress", InstanceImportProgress {
+        stage: stage.to_string(),
+        current,
+        total,
+        file: file.map(str::to_string),
+        bytes_received,
+        file_bytes_total,
+        message: message.to_string(),
+    });
 }
 
 #[derive(Clone)]
@@ -951,7 +985,7 @@ fn allowed_modrinth_url(url: &str) -> bool {
     ["cdn.modrinth.com", "github.com", "raw.githubusercontent.com", "gitlab.com"].iter().any(|allowed| host == *allowed || host.ends_with(&format!(".{allowed}")))
 }
 
-async fn download_modrinth_files(index: &serde_json::Value, target: &Path) -> Result<(usize, usize), String> {
+async fn download_modrinth_files(app: &AppHandle, index: &serde_json::Value, target: &Path) -> Result<(usize, usize), String> {
     let files = index.get("files").and_then(|v| v.as_array()).ok_or("В .mrpack отсутствует список files")?;
     if files.len() > 20_000 { return Err("В манифесте слишком много файлов; лимит — 20 000".into()); }
     // Use the application-wide client so imports share connection pooling and network defaults.
@@ -959,8 +993,14 @@ async fn download_modrinth_files(index: &serde_json::Value, target: &Path) -> Re
     let mut downloaded = 0usize;
     let mut skipped_optional = 0usize;
     let mut total = 0u64;
-    for item in files {
-        if item.get("env").and_then(|v| v.get("client")).and_then(|v| v.as_str()) == Some("unsupported") { continue; }
+    let total_files = files.len();
+    emit_instance_import_progress(app, "downloading", 0, total_files, None, 0, None, "Подготавливаем загрузку файлов модпака…");
+    for (file_index, item) in files.iter().enumerate() {
+        let current = file_index + 1;
+        if item.get("env").and_then(|v| v.get("client")).and_then(|v| v.as_str()) == Some("unsupported") {
+            emit_instance_import_progress(app, "file-skipped", current, total_files, None, 0, None, "Файл не нужен на клиенте");
+            continue;
+        }
         let relative_raw = item.get("path").and_then(|v| v.as_str()).ok_or("В манифесте .mrpack обнаружен файл без пути")?;
         let relative = safe_relative(relative_raw).ok_or_else(|| format!("Небезопасный путь в .mrpack: {relative_raw}"))?;
         let rel_text = relative.to_string_lossy().replace('\\', "/");
@@ -972,24 +1012,34 @@ async fn download_modrinth_files(index: &serde_json::Value, target: &Path) -> Re
         let required = item.get("env").and_then(|v| v.get("client")).and_then(|v| v.as_str()) != Some("optional");
         let Some(url) = url else {
             if required { return Err(format!("Для файла «{relative_raw}» нет безопасной HTTPS-ссылки")); }
-            skipped_optional += 1; continue;
+            skipped_optional += 1;
+            emit_instance_import_progress(app, "file-skipped", current, total_files, Some(relative_raw), 0, None, "Необязательный файл пропущен: нет безопасной ссылки");
+            continue;
         };
         // A stalled mirror must not keep this file transfer waiting indefinitely.
         let response = match client.get(url).timeout(std::time::Duration::from_secs(90)).send().await {
             Ok(r) if r.status().is_success() => r,
             Ok(r) => {
                 if required { return Err(format!("Не удалось скачать «{relative_raw}»: HTTP {}", r.status())); }
-                skipped_optional += 1; continue;
+                skipped_optional += 1;
+                emit_instance_import_progress(app, "file-skipped", current, total_files, Some(relative_raw), 0, None, "Необязательный файл недоступен");
+                continue;
             },
             Err(e) => {
                 if required { return Err(format!("Не удалось скачать «{relative_raw}»: {e}")); }
-                skipped_optional += 1; continue;
+                skipped_optional += 1;
+                emit_instance_import_progress(app, "file-skipped", current, total_files, Some(relative_raw), 0, None, "Необязательный файл не удалось скачать");
+                continue;
             }
         };
-        if response.content_length().unwrap_or(0) > 512 * 1024 * 1024 {
+        let file_bytes_total = response.content_length();
+        if file_bytes_total.unwrap_or(0) > 512 * 1024 * 1024 {
             if required { return Err(format!("Файл «{relative_raw}» превышает лимит 512 МБ")); }
-            skipped_optional += 1; continue;
+            skipped_optional += 1;
+            emit_instance_import_progress(app, "file-skipped", current, total_files, Some(relative_raw), 0, file_bytes_total, "Необязательный файл превышает лимит 512 МБ");
+            continue;
         }
+        emit_instance_import_progress(app, "file-start", current, total_files, Some(relative_raw), 0, file_bytes_total, "Загружаем файл…");
         let destination = target.join(&relative);
         if let Some(parent) = destination.parent() { std::fs::create_dir_all(parent).map_err(err)?; }
         let temporary = destination.with_extension("endlauncher-part");
@@ -997,6 +1047,7 @@ async fn download_modrinth_files(index: &serde_json::Value, target: &Path) -> Re
         let mut body = response.bytes_stream();
         let mut hasher = Sha1::new();
         let mut file_size = 0u64;
+        let mut last_progress_bytes = 0u64;
         let mut failure: Option<String> = None;
         while let Some(chunk) = body.next().await {
             let chunk = match chunk {
@@ -1014,12 +1065,17 @@ async fn download_modrinth_files(index: &serde_json::Value, target: &Path) -> Re
                 failure = Some(format!("Не удалось записать «{relative_raw}»: {e}"));
                 break;
             }
+            if file_size.saturating_sub(last_progress_bytes) >= 256 * 1024 {
+                last_progress_bytes = file_size;
+                emit_instance_import_progress(app, "file-progress", current, total_files, Some(relative_raw), file_size, file_bytes_total, "Загружаем файл…");
+            }
         }
         if let Some(message) = failure {
             drop(output);
             let _ = tokio::fs::remove_file(&temporary).await;
             if required { return Err(message); }
             skipped_optional += 1;
+            emit_instance_import_progress(app, "file-skipped", current, total_files, Some(relative_raw), file_size, file_bytes_total, "Необязательный файл пропущен после ошибки загрузки");
             continue;
         }
         output.flush().await.map_err(err)?;
@@ -1029,14 +1085,18 @@ async fn download_modrinth_files(index: &serde_json::Value, target: &Path) -> Re
             if !actual.eq_ignore_ascii_case(expected) {
                 let _ = tokio::fs::remove_file(&temporary).await;
                 if required { return Err(format!("Проверка SHA-1 не прошла для «{relative_raw}»; файл удалён")); }
-                skipped_optional += 1; continue;
+                skipped_optional += 1;
+                emit_instance_import_progress(app, "file-skipped", current, total_files, Some(relative_raw), file_size, file_bytes_total, "Необязательный файл удалён: SHA-1 не совпал");
+                continue;
             }
         }
         // Overrides can contain the same path; the downloaded manifest file takes precedence.
         let _ = tokio::fs::remove_file(&destination).await;
         tokio::fs::rename(&temporary, &destination).await.map_err(err)?;
         downloaded += 1;
+        emit_instance_import_progress(app, "file-complete", current, total_files, Some(relative_raw), file_size, file_bytes_total, "Файл загружен и проверен");
     }
+    emit_instance_import_progress(app, "downloading-complete", total_files, total_files, None, total, None, "Загрузка файлов модпака завершена");
     Ok((downloaded, skipped_optional))
 }
 
@@ -1172,7 +1232,21 @@ pub fn pick_local_path(kind: String) -> Result<Option<String>, String> {
 /// Импорт сборки по перетаскиванию файла .mrpack/.zip или папки стороннего лаунчера.
 /// Переносятся пользовательские данные, общие versions/libraries/assets устанавливаются заново через End Launcher.
 #[tauri::command]
-pub async fn import_instance(path: String) -> Result<ImportResult, String> {
+pub async fn import_instance(app: AppHandle, path: String) -> Result<ImportResult, String> {
+    emit_instance_import_progress(&app, "starting", 0, 0, None, 0, None, "Проверяем источник импорта…");
+    let result = import_instance_inner(&app, path).await;
+    match &result {
+        Ok(imported) => emit_instance_import_progress(
+            &app, "completed", imported.downloaded_files + imported.skipped_optional,
+            imported.downloaded_files + imported.skipped_optional, None, 0, None,
+            &format!("Импорт «{}» завершён", imported.instance.name),
+        ),
+        Err(error) => emit_instance_import_progress(&app, "failed", 0, 0, None, 0, None, error),
+    }
+    result
+}
+
+async fn import_instance_inner(app: &AppHandle, path: String) -> Result<ImportResult, String> {
     let source = PathBuf::from(path.trim());
     if !source.exists() { return Err("Файл или папка для импорта не найдены".into()); }
     if source.is_file() && source.extension().and_then(|v| v.to_str()).map(|v| v.eq_ignore_ascii_case("jar")).unwrap_or(false) {
@@ -1184,6 +1258,7 @@ pub async fn import_instance(path: String) -> Result<ImportResult, String> {
             else if source.join("minecraft").is_dir() { source.join("minecraft") } else { source.clone() };
         let inst = create_import_spec(&name, &version, &loader, loader_version)?;
         let target = instance_dir(&inst.id);
+        emit_instance_import_progress(app, "copying", 0, 0, None, 0, None, "Копируем пользовательские данные из папки сборки…");
         let mut copied_bytes = 0u64;
         if let Err(error) = copy_game_tree(&content, &target, 0, &mut copied_bytes) {
             let _ = std::fs::remove_dir_all(&target);
@@ -1201,6 +1276,7 @@ pub async fn import_instance(path: String) -> Result<ImportResult, String> {
     if !["zip", "mrpack"].contains(&ext.as_str()) {
         return Err("Поддерживаются сборки .mrpack, .zip и папки сторонних лаунчеров. Отдельные .jar переносите через страницу модов.".into());
     }
+    emit_instance_import_progress(app, "reading-manifest", 0, 0, None, 0, None, "Читаем манифест и проверяем формат архива…");
     let root_name = import_root_name(&source).filter(|s| !s.trim().is_empty()).unwrap_or_else(|| "Импортированная сборка".into());
     let file = std::fs::File::open(&source).map_err(err)?;
     let mut archive = zip::ZipArchive::new(file).map_err(|e| format!("Не удалось открыть ZIP: {e}"))?;
@@ -1247,6 +1323,7 @@ pub async fn import_instance(path: String) -> Result<ImportResult, String> {
     let inst = create_import_spec(&spec.name, &spec.version, &spec.loader, spec.loader_version.clone())?;
     let target = instance_dir(&inst.id);
     std::fs::create_dir_all(&target).map_err(err)?;
+    emit_instance_import_progress(app, "extracting", 0, 0, None, 0, None, "Распаковываем пользовательские файлы и overrides…");
     let operation = async {
         let payload_count = if mode == "modrinth" {
             // The spec applies client-overrides after regular overrides, independent of ZIP entry order.
@@ -1257,7 +1334,7 @@ pub async fn import_instance(path: String) -> Result<ImportResult, String> {
             write_zip_payload(&mut archive, &target, &mode)?
         };
         let (downloaded, skipped) = if let Some(index) = mrpack_manifest.as_ref() {
-            download_modrinth_files(index, &target).await?
+            download_modrinth_files(app, index, &target).await?
         } else { (0, 0) };
         Ok::<(usize, usize, usize), String>((payload_count, downloaded, skipped))
     }.await;
@@ -1265,6 +1342,7 @@ pub async fn import_instance(path: String) -> Result<ImportResult, String> {
         Ok(result) => result,
         Err(error) => { let _ = std::fs::remove_dir_all(&target); return Err(error); }
     };
+    emit_instance_import_progress(app, "finalizing", 0, 0, None, 0, None, "Сохраняем экземпляр и завершаем импорт…");
     for d in ["mods", "resourcepacks", "shaderpacks", "saves"] { let _ = std::fs::create_dir_all(target.join(d)); }
     if let Err(error) = write(&inst) { let _ = std::fs::remove_dir_all(&target); return Err(error); }
     let mut cfg = crate::config::load(); cfg.active_instance = Some(inst.id.clone());
@@ -1455,5 +1533,31 @@ mod import_path_tests {
         for path in ["../../outside.txt", "overrides/../../outside.txt", "C:\\\\outside.txt", "/etc/passwd"] {
             assert!(normalized_archive_path(path, true).is_none(), "archive path should be rejected: {path}");
         }
+    }
+}
+
+#[cfg(test)]
+mod import_progress_tests {
+    use super::InstanceImportProgress;
+
+    #[test]
+    fn import_progress_serializes_frontend_camel_case_fields() {
+        let progress = InstanceImportProgress {
+            stage: "file-progress".into(),
+            current: 2,
+            total: 5,
+            file: Some("mods/example.jar".into()),
+            bytes_received: 512,
+            file_bytes_total: Some(1024),
+            message: "Загружаем файл…".into(),
+        };
+        let value = serde_json::to_value(progress).unwrap();
+        assert_eq!(value["stage"], "file-progress");
+        assert_eq!(value["current"], 2);
+        assert_eq!(value["total"], 5);
+        assert_eq!(value["file"], "mods/example.jar");
+        assert_eq!(value["bytesReceived"], 512);
+        assert_eq!(value["fileBytesTotal"], 1024);
+        assert_eq!(value["message"], "Загружаем файл…");
     }
 }

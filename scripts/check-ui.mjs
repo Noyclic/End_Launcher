@@ -1369,6 +1369,23 @@ check(rustInstances.includes('fn modrinth_manifest_pins_exact_loader_versions()'
     && rustJava.includes('install_fabric(inst.version.clone(), inst.loader_version.clone())'),
   'Modpack import must preserve the exact manifest loader version, surface import progress, and pass the pin to first launch');
 
+check(html.includes('id="instance-drop-progress"')
+    && html.includes('id="instance-drop-progress-track"')
+    && html.includes('role="progressbar"')
+    && js.includes("event.listen('instance-import-progress'")
+    && js.includes('function updateDropImportProgress(payload)')
+    && js.includes('payload.fileBytesTotal')
+    && js.includes("stage === 'file-complete' || stage === 'file-skipped'")
+    && rustInstances.includes('struct InstanceImportProgress')
+    && rustInstances.includes('app.emit("instance-import-progress"')
+    && rustInstances.includes('async fn download_modrinth_files(app: &AppHandle')
+    && rustInstances.includes('"file-progress"')
+    && rustInstances.includes('"file-complete"')
+    && rustInstances.includes('"file-skipped"')
+    && rustInstances.includes('download_modrinth_files(app, index, &target)')
+    && rustInstances.includes('import_instance_inner(&app, path).await'),
+  'Modrinth .mrpack import must stream file-level progress to an accessible overlay and always report completion/failure');
+
 check(html.includes('id="p2p-diagnostics-btn"')
     && html.includes('id="p2p-diagnostics-results"')
     && html.includes('aria-live="polite"')

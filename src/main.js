@@ -4375,16 +4375,84 @@ window.__TAURI__.event.listen('mod-downloaded', ({ payload }) => {
 // Drag-and-drop: .jar импортируется как мод, .mrpack/.zip/папка — как отдельная сборка.
 const dropOverlay = $('instance-drop-overlay');
 let dropBusy = false;
+function resetDropProgress() {
+  const progress = $('instance-drop-progress');
+  const track = $('instance-drop-progress-track');
+  const bar = $('instance-drop-progress-bar');
+  if (progress) progress.hidden = true;
+  track?.classList.remove('indeterminate');
+  if (bar) bar.style.width = '0%';
+  track?.setAttribute('aria-valuenow', '0');
+  if ($('instance-drop-progress-detail')) $('instance-drop-progress-detail').textContent = '';
+}
 function setDropOverlay(active, title = 'Отпусти, чтобы импортировать', subtitle = '.mrpack · .zip · папка сборки · .jar моды') {
   if (!dropOverlay) return;
   dropOverlay.classList.toggle('active', active);
   dropOverlay.setAttribute('aria-hidden', String(!active));
   $('instance-drop-title').textContent = title;
   $('instance-drop-subtitle').textContent = subtitle;
+  if (!active) resetDropProgress();
 }
+function formatImportBytes(value) {
+  const bytes = Math.max(0, Number(value) || 0);
+  if (bytes < 1024) return bytes + ' Б';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' КБ';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' МБ';
+}
+function updateDropImportProgress(payload) {
+  const titles = {
+    starting: 'Подготовка импорта…',
+    'reading-manifest': 'Проверка модпака…',
+    extracting: 'Распаковка файлов…',
+    copying: 'Копирование сборки…',
+    downloading: 'Загрузка файлов модпака…',
+    'file-start': 'Загрузка файла…',
+    'file-progress': 'Загрузка файла…',
+    'file-complete': 'Файл проверен',
+    'file-skipped': 'Пропуск необязательного файла',
+    'downloading-complete': 'Файлы модпака загружены',
+    finalizing: 'Завершение импорта…',
+    completed: 'Импорт завершён',
+    failed: 'Импорт не выполнен',
+  };
+  const stage = String(payload.stage || '');
+  setDropOverlay(true, titles[stage] || 'Импортирую сборку…', payload.message || 'Пожалуйста, подожди…');
+  const progress = $('instance-drop-progress');
+  const track = $('instance-drop-progress-track');
+  const bar = $('instance-drop-progress-bar');
+  if (!progress || !track || !bar) return;
+  progress.hidden = false;
+  const total = Math.max(0, Number(payload.total) || 0);
+  const current = Math.max(0, Number(payload.current) || 0);
+  const fileTotal = Math.max(0, Number(payload.fileBytesTotal) || 0);
+  const bytes = Math.max(0, Number(payload.bytesReceived) || 0);
+  let percent = null;
+  if (total > 0) {
+    const finished = stage === 'file-complete' || stage === 'file-skipped';
+    const completedFiles = Math.max(0, Math.min(total, current - (finished ? 0 : 1)));
+    const withinFile = finished ? 0 : (fileTotal > 0 ? Math.min(1, bytes / fileTotal) : 0);
+    percent = Math.max(0, Math.min(100, ((completedFiles + withinFile) / total) * 100));
+  }
+  track.classList.toggle('indeterminate', percent === null);
+  if (percent === null) {
+    track.removeAttribute('aria-valuenow');
+  } else {
+    bar.style.width = percent.toFixed(1) + '%';
+    track.setAttribute('aria-valuenow', String(Math.round(percent)));
+  }
+  const details = [];
+  if (total > 0) details.push(Math.min(current, total) + ' / ' + total + ' файлов');
+  if (payload.file) details.push(String(payload.file));
+  if (fileTotal > 0) details.push(formatImportBytes(bytes) + ' / ' + formatImportBytes(fileTotal));
+  $('instance-drop-progress-detail').textContent = details.join(' · ') || payload.message || 'Подготавливаем файлы…';
+}
+window.__TAURI__.event.listen('instance-import-progress', ({ payload }) => {
+  if (dropBusy && payload) updateDropImportProgress(payload);
+});
 async function processDroppedPaths(paths) {
   if (dropBusy || !Array.isArray(paths) || !paths.length) return;
   dropBusy = true;
+  resetDropProgress();
   const jars = paths.filter((path) => /\.jar$/i.test(path));
   const imports = paths.filter((path) => !/\.jar$/i.test(path));
   try {

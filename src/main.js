@@ -707,7 +707,11 @@ function toggleMenu(card, inst) {
     b.addEventListener('click', async (e) => {
       e.stopPropagation();
       closeMenus();
-      await fn();
+      try {
+        await fn();
+      } catch (error) {
+        showToast('Не удалось выполнить действие: ' + String(error), false);
+      }
     });
     menu.appendChild(b);
   };

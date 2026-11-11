@@ -754,6 +754,14 @@ check(js.includes('function syncPrismSelectedInstance()')
     && js.includes("addAction('duplicate', '⧉ Копировать…'")
     && js.includes("addAction('delete', '▤ Удалить'"),
   'Prism action rail must expose working folder, export, copy, rename and delete actions');
+const instanceContextMenuStart = js.indexOf('function toggleMenu(card, inst)');
+const instanceContextMenuEnd = js.indexOf('\nlet libraryQuery', instanceContextMenuStart);
+const instanceContextMenuSource = instanceContextMenuStart >= 0 && instanceContextMenuEnd > instanceContextMenuStart
+  ? js.slice(instanceContextMenuStart, instanceContextMenuEnd)
+  : '';
+check(instanceContextMenuSource.includes("      try {\n        await fn();\n      } catch (error) {\n        showToast('Не удалось выполнить действие: ' + String(error), false);\n      }"),
+  'Instance context-menu actions must report rejected backend operations instead of leaving unhandled promise rejections');
+
 check(js.includes('function openPrismInstanceEditor(inst, button, actions)')
     && js.includes("addAction('edit', '✎ Изменить…'")
     && js.includes("invoke('update_instance', { id: inst.id, name, version, loader })")

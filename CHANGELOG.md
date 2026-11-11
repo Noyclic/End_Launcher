@@ -1,3 +1,9 @@
+## Prism instance menus — surface failed actions
+
+- Catch rejected asynchronous actions in the instance context menu and report them through the existing in-app error toast instead of leaving unhandled promise rejections.
+- Keep the menu closing before the action starts; preserve all existing menu items and action ordering.
+- Add a source regression assertion for the shared context-menu error path.
+
 ## UI fidelity pass — keep project-mode cards out of replica layouts
 
 - Hide the End Launcher-only Horizon/End Voxel section in Prism and other replica styles while retaining it in the native End layout.

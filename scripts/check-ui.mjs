@@ -762,6 +762,21 @@ const instanceContextMenuSource = instanceContextMenuStart >= 0 && instanceConte
 check(instanceContextMenuSource.includes("      try {\n        await fn();\n      } catch (error) {\n        showToast('Не удалось выполнить действие: ' + String(error), false);\n      }"),
   'Instance context-menu actions must report rejected backend operations instead of leaving unhandled promise rejections');
 
+const renameStart = js.indexOf('function beginRenameInstance(inst, card)');
+const renameEnd = js.indexOf('\nlet prismEmptyContextReturnFocus', renameStart);
+const renameSource = renameStart >= 0 && renameEnd > renameStart
+  ? js.slice(renameStart, renameEnd)
+  : '';
+check(renameSource.includes("input.setAttribute('aria-label', 'Новое название сборки')")
+    && renameSource.includes('const name = input.value.trim();')
+    && renameSource.includes('Array.from(name).length > 40')
+    && renameSource.includes('input.disabled = true;')
+    && renameSource.includes("showToast('Не удалось переименовать сборку: ' + String(error), false);")
+    && renameSource.includes("if (e.key === 'Escape') {\n      e.preventDefault();\n      void cancel();")
+    && renameSource.includes("input.addEventListener('blur', () => { void save(); });")
+    && !renameSource.includes("$('play-status').textContent = String(e);"),
+  'Instance rename must validate trimmed Unicode names, support Escape cancellation, and report failures inside the app');
+
 check(js.includes('function openPrismInstanceEditor(inst, button, actions)')
     && js.includes("addAction('edit', '✎ Изменить…'")
     && js.includes("invoke('update_instance', { id: inst.id, name, version, loader })")

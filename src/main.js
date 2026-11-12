@@ -594,27 +594,58 @@ function beginRenameInstance(inst, card) {
   const input = mk('input');
   input.value = inst.name;
   input.maxLength = 40;
+  input.setAttribute('aria-label', 'Новое название сборки');
   nameEl.replaceChildren(input);
   input.focus();
   input.select();
   input.addEventListener('click', (e) => e.stopPropagation());
-  let saved = false;
+  let finished = false;
+  const refresh = async () => {
+    try {
+      await loadInstances();
+    } catch (error) {
+      showToast('Не удалось обновить список сборок: ' + String(error), false);
+    }
+  };
+  const cancel = async () => {
+    if (finished) return;
+    finished = true;
+    await refresh();
+  };
   const save = async () => {
-    if (saved) return;
-    saved = true;
+    if (finished) return;
+    const name = input.value.trim();
+    if (!name || Array.from(name).length > 40) {
+      finished = true;
+      showToast('Название сборки должно содержать от 1 до 40 символов.', false);
+      await refresh();
+      return;
+    }
+    finished = true;
+    if (name === inst.name) {
+      await refresh();
+      return;
+    }
+    input.disabled = true;
     try {
       // -> Rust: instances.rs :: rename_instance(id, name)
-      await invoke('rename_instance', { id: inst.id, name: input.value });
-    } catch (e) {
-      $('play-status').textContent = String(e);
+      await invoke('rename_instance', { id: inst.id, name });
+    } catch (error) {
+      showToast('Не удалось переименовать сборку: ' + String(error), false);
     }
-    await loadInstances();
+    await refresh();
   };
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') save();
-    if (e.key === 'Escape') { saved = true; loadInstances(); }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      void save();
+    }
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      void cancel();
+    }
   });
-  input.addEventListener('blur', save);
+  input.addEventListener('blur', () => { void save(); });
 }
 
 let prismEmptyContextReturnFocus = null;

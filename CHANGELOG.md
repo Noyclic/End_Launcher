@@ -1,3 +1,10 @@
+## Instance rename — validate before saving and keep failures in-app
+
+- Trim names and validate the same 1–40 Unicode-code-point limit enforced by Rust before sending a rename request.
+- Treat unchanged names as a no-op, disable the editor while saving, and keep Enter/blur single-submit behavior.
+- Escape cancels without writing; backend and list-refresh failures use the existing in-app toast instead of the status bar.
+- Add a source regression check for validation, cancellation, and error reporting.
+
 ## Prism instance menus — surface failed actions
 
 - Catch rejected asynchronous actions in the instance context menu and report them through the existing in-app error toast instead of leaving unhandled promise rejections.

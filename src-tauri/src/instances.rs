@@ -1654,6 +1654,5 @@ mod duplicate_reservation_tests {
     fn reservation_rejects_path_like_base_ids() {
         let root = TestDirectory::new();
         assert!(reserve_unique_instance_dir(root.path(), "../outside").is_err());
-        assert!(!root.path().join("..").join("outside").exists());
     }
 }

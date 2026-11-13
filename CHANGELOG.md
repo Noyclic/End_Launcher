@@ -1,3 +1,9 @@
+## Prism duplicate instances — reserve destination IDs atomically
+
+- Replaced the check-then-create ID loop with an atomic directory reservation using `create_dir`, so simultaneous copy requests cannot write into the same destination.
+- Existing directories and files both count as occupied IDs; failed copies still clean up only the directory reserved by that request.
+- Added Rust coverage for concurrent reservations and path-like ID rejection, plus a source regression assertion.
+
 ## Instance rename — validate before saving and keep failures in-app
 
 - Trim names and validate the same 1–40 Unicode-code-point limit enforced by Rust before sending a rename request.

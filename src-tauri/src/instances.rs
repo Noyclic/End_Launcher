@@ -342,6 +342,32 @@ pub fn get_startup_instance() -> Option<String> {
 const MAX_DUPLICATE_FILE_BYTES: u64 = 512 * 1024 * 1024;
 const MAX_DUPLICATE_TOTAL_BYTES: u64 = 4 * 1024 * 1024 * 1024;
 
+/// Atomically reserves a unique directory name for a copied instance.
+/// Checking with exists() before create_dir() is racy when two copies start together.
+fn reserve_unique_instance_dir(parent: &Path, base_id: &str) -> Result<(String, PathBuf), String> {
+    if !valid_id(base_id) {
+        return Err("Некорректный идентификатор копии сборки".into());
+    }
+    std::fs::create_dir_all(parent).map_err(err)?;
+    let mut candidate = base_id.to_string();
+    let mut suffix = 2u64;
+    loop {
+        if !valid_id(&candidate) {
+            return Err("Не удалось подобрать свободный идентификатор копии сборки".into());
+        }
+        let path = parent.join(&candidate);
+        match std::fs::create_dir(&path) {
+            Ok(()) => return Ok((candidate, path)),
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
+                candidate = format!("{base_id}-{suffix}");
+                suffix = suffix.checked_add(1)
+                    .ok_or_else(|| "Закончились свободные идентификаторы копии сборки".to_string())?;
+            }
+            Err(error) => return Err(err(error)),
+        }
+    }
+}
+
 fn copy_dir_contents(src: &Path, dst: &Path, total_bytes: &mut u64) -> Result<(), String> {
     std::fs::create_dir_all(dst).map_err(err)?;
     for entry in std::fs::read_dir(src).map_err(err)? {
@@ -383,13 +409,11 @@ pub fn duplicate_instance(id: String) -> Result<Instance, String> {
     let base_name: String = original.name.chars().take(40 - suffix.chars().count()).collect();
     let name = format!("{base_name}{suffix}");
     let base = slug(&name);
-    let mut new_id = base.clone();
-    let mut n = 2;
-    while instance_dir(&new_id).exists() { new_id = format!("{base}-{n}"); n += 1; }
+    // create_dir is the reservation: concurrent duplicate requests cannot share a target.
+    let (new_id, target) = reserve_unique_instance_dir(&instances_dir(), &base)?;
     let mut copy = original.clone();
     copy.id = new_id;
     copy.name = name;
-    let target = instance_dir(&copy.id);
     let mut copied_bytes = 0u64;
     if let Err(error) = copy_dir_contents(&instance_dir(&id), &target, &mut copied_bytes) {
         let _ = std::fs::remove_dir_all(&target);
@@ -1559,5 +1583,77 @@ mod import_progress_tests {
         assert_eq!(value["bytesReceived"], 512);
         assert_eq!(value["fileBytesTotal"], 1024);
         assert_eq!(value["message"], "Загружаем файл…");
+    }
+}
+
+
+#[cfg(test)]
+mod duplicate_reservation_tests {
+    use super::reserve_unique_instance_dir;
+    use std::collections::HashSet;
+    use std::path::{Path, PathBuf};
+    use std::sync::{Arc, Barrier};
+
+    struct TestDirectory(PathBuf);
+
+    impl TestDirectory {
+        fn new() -> Self {
+            let nonce = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos();
+            let path = std::env::temp_dir().join(format!(
+                "end-launcher-duplicate-reservation-{}-{nonce}",
+                std::process::id()
+            ));
+            std::fs::create_dir(&path).unwrap();
+            Self(path)
+        }
+
+        fn path(&self) -> &Path {
+            &self.0
+        }
+    }
+
+    impl Drop for TestDirectory {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+
+    #[test]
+    fn concurrent_reservations_never_return_the_same_instance_id() {
+        const WORKERS: usize = 8;
+        let root = Arc::new(TestDirectory::new());
+        // Existing files and directories must both count as occupied IDs.
+        std::fs::create_dir(root.path().join("pack-copy")).unwrap();
+        std::fs::write(root.path().join("pack-copy-2"), b"occupied").unwrap();
+
+        let barrier = Arc::new(Barrier::new(WORKERS));
+        let workers: Vec<_> = (0..WORKERS)
+            .map(|_| {
+                let root = Arc::clone(&root);
+                let barrier = Arc::clone(&barrier);
+                std::thread::spawn(move || {
+                    barrier.wait();
+                    reserve_unique_instance_dir(root.path(), "pack-copy").unwrap()
+                })
+            })
+            .collect();
+
+        let mut ids = HashSet::new();
+        for worker in workers {
+            let (id, path) = worker.join().unwrap();
+            assert!(ids.insert(id), "two copies received the same instance ID");
+            assert!(path.is_dir(), "reserved target directory must exist");
+        }
+        assert_eq!(ids.len(), WORKERS);
+    }
+
+    #[test]
+    fn reservation_rejects_path_like_base_ids() {
+        let root = TestDirectory::new();
+        assert!(reserve_unique_instance_dir(root.path(), "../outside").is_err());
+        assert!(!root.path().join("..").join("outside").exists());
     }
 }

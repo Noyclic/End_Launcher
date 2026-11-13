@@ -1218,6 +1218,19 @@ check(js.includes('async function duplicatePrismInstance(inst)')
     && js.includes("localStorage.setItem(FAVORITES_STORE, JSON.stringify([...favoriteInstanceIds]))")
     && (js.match(/await duplicatePrismInstance\(inst\);/g) || []).length >= 3,
   'Prism duplicate actions must preserve custom group/icon/favorite metadata and share one tested code path');
+
+const duplicateRustStart = rustInstances.indexOf('pub fn duplicate_instance(id: String)');
+const duplicateRustEnd = rustInstances.indexOf('/// Builds an instance ZIP', duplicateRustStart);
+const duplicateRustSource = duplicateRustStart >= 0 && duplicateRustEnd > duplicateRustStart
+  ? rustInstances.slice(duplicateRustStart, duplicateRustEnd)
+  : '';
+check(rustInstances.includes('fn reserve_unique_instance_dir(parent: &Path, base_id: &str)')
+    && rustInstances.includes('std::fs::create_dir(&path)')
+    && duplicateRustSource.includes('reserve_unique_instance_dir(&instances_dir(), &base)')
+    && !duplicateRustSource.includes('while instance_dir(&new_id).exists()')
+    && rustInstances.includes('concurrent_reservations_never_return_the_same_instance_id'),
+  'Concurrent Prism duplicate requests must atomically reserve different instance directories and include a Rust regression test');
+
 check(js.includes("item('⇩ Экспортировать…', async () => {\n      await exportInstanceWithDialog(inst);")
     && js.includes("item('🧩 Папка модов', async () => {")
     && js.includes("menu.setAttribute('role', 'menu')")

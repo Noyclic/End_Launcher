@@ -762,6 +762,19 @@ const instanceContextMenuSource = instanceContextMenuStart >= 0 && instanceConte
 check(instanceContextMenuSource.includes("      try {\n        await fn();\n      } catch (error) {\n        showToast('Не удалось выполнить действие: ' + String(error), false);\n      }"),
   'Instance context-menu actions must report rejected backend operations instead of leaving unhandled promise rejections');
 
+const createInstanceStart = rustInstances.indexOf('pub fn create_instance(');
+const createInstanceEnd = rustInstances.indexOf('\n#[tauri::command]', createInstanceStart);
+const createInstanceSource = createInstanceStart >= 0 && createInstanceEnd > createInstanceStart
+  ? rustInstances.slice(createInstanceStart, createInstanceEnd)
+  : '';
+check(createInstanceSource.includes('reserve_unique_instance_dir(&instances_dir(), &base)')
+    && !createInstanceSource.includes('instance_dir(&id).exists()')
+    && createInstanceSource.includes('if let Err(error) = write(&inst)')
+    && createInstanceSource.includes('std::fs::remove_dir_all(&target)')
+    && rustInstances.includes('match std::fs::create_dir(&path)')
+    && rustInstances.includes('std::io::ErrorKind::AlreadyExists'),
+  'New instance creation must atomically reserve its destination and clean up only its own directory when metadata writing fails');
+
 const renameStart = js.indexOf('function beginRenameInstance(inst, card)');
 const renameEnd = js.indexOf('\nlet prismEmptyContextReturnFocus', renameStart);
 const renameSource = renameStart >= 0 && renameEnd > renameStart

@@ -106,12 +106,6 @@ pub fn create_instance(name: String, version: String, loader: String, loader_ver
     }
 
     let base = slug(&name);
-    let mut id = base.clone();
-    let mut n = 2;
-    while instance_dir(&id).exists() {
-        id = format!("{base}-{n}");
-        n += 1;
-    }
     if let Some(value) = loader_version.as_deref() {
         if value.is_empty() || value.len() > 80 || !value.chars().all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '.' | '+' | '-' | '_')) {
             return Err("некорректная версия загрузчика".into());
@@ -123,8 +117,14 @@ pub fn create_instance(name: String, version: String, loader: String, loader_ver
     if loader != "vanilla" && loader_version.is_none() {
         return Err("не выбрана версия загрузчика модов".into());
     }
+
+    // Reserve the destination only after every user-supplied field has passed validation.
+    let (id, target) = reserve_unique_instance_dir(&instances_dir(), &base)?;
     let inst = Instance { id, name, version, loader, loader_version };
-    write(&inst)?;
+    if let Err(error) = write(&inst) {
+        let _ = std::fs::remove_dir_all(&target);
+        return Err(error);
+    }
     for d in ["mods", "resourcepacks", "shaderpacks", "saves"] {
         let _ = std::fs::create_dir_all(instance_dir(&inst.id).join(d));
     }
@@ -342,18 +342,18 @@ pub fn get_startup_instance() -> Option<String> {
 const MAX_DUPLICATE_FILE_BYTES: u64 = 512 * 1024 * 1024;
 const MAX_DUPLICATE_TOTAL_BYTES: u64 = 4 * 1024 * 1024 * 1024;
 
-/// Atomically reserves a unique directory name for a copied instance.
+/// Atomically reserves a unique directory name for an instance.
 /// Checking with exists() before create_dir() is racy when two copies start together.
 fn reserve_unique_instance_dir(parent: &Path, base_id: &str) -> Result<(String, PathBuf), String> {
     if !valid_id(base_id) {
-        return Err("Некорректный идентификатор копии сборки".into());
+        return Err("Некорректный идентификатор сборки".into());
     }
     std::fs::create_dir_all(parent).map_err(err)?;
     let mut candidate = base_id.to_string();
     let mut suffix = 2u64;
     loop {
         if !valid_id(&candidate) {
-            return Err("Не удалось подобрать свободный идентификатор копии сборки".into());
+            return Err("Не удалось подобрать свободный идентификатор сборки".into());
         }
         let path = parent.join(&candidate);
         match std::fs::create_dir(&path) {
@@ -361,7 +361,7 @@ fn reserve_unique_instance_dir(parent: &Path, base_id: &str) -> Result<(String, 
             Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
                 candidate = format!("{base_id}-{suffix}");
                 suffix = suffix.checked_add(1)
-                    .ok_or_else(|| "Закончились свободные идентификаторы копии сборки".to_string())?;
+                    .ok_or_else(|| "Закончились свободные идентификаторы сборки".to_string())?;
             }
             Err(error) => return Err(err(error)),
         }
@@ -1588,7 +1588,7 @@ mod import_progress_tests {
 
 
 #[cfg(test)]
-mod duplicate_reservation_tests {
+mod instance_reservation_tests {
     use super::reserve_unique_instance_dir;
     use std::collections::HashSet;
     use std::path::{Path, PathBuf};
@@ -1603,7 +1603,7 @@ mod duplicate_reservation_tests {
                 .unwrap()
                 .as_nanos();
             let path = std::env::temp_dir().join(format!(
-                "end-launcher-duplicate-reservation-{}-{nonce}",
+                "end-launcher-instance-reservation-{}-{nonce}",
                 std::process::id()
             ));
             std::fs::create_dir(&path).unwrap();
@@ -1647,6 +1647,10 @@ mod duplicate_reservation_tests {
             assert!(ids.insert(id), "two copies received the same instance ID");
             assert!(path.is_dir(), "reserved target directory must exist");
         }
+        assert!(root.path().join("pack-copy").is_dir());
+        assert!(root.path().join("pack-copy-2").is_file());
+        assert!(!ids.contains("pack-copy"));
+        assert!(!ids.contains("pack-copy-2"));
         assert_eq!(ids.len(), WORKERS);
     }
 

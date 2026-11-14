@@ -1,3 +1,9 @@
+## Instance creation — reserve new IDs atomically
+
+- Reuse the atomic directory reservation already used by duplication, preventing simultaneous creates with the same name from writing into one instance folder.
+- Validate the loader selection before reserving a destination, and remove only the newly reserved directory if writing its metadata fails.
+- Extend the shared reservation test to assert that pre-existing files and directories remain occupied and untouched; add a source regression invariant for the create path.
+
 ## Prism duplicate instances — reserve destination IDs atomically
 
 - Replaced the check-then-create ID loop with an atomic directory reservation using `create_dir`, so simultaneous copy requests cannot write into the same destination.

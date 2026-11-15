@@ -432,33 +432,153 @@ pub fn duplicate_instance(id: String) -> Result<Instance, String> {
     Ok(copy)
 }
 
-/// Builds an instance ZIP directly at the requested path to avoid a second full-size copy.
-fn write_instance_export(id: &str, archive_path: &Path) -> Result<String, String> {
-    get(id).ok_or("сборка не найдена")?;
-    let source = instance_dir(id);
-    let file = std::fs::File::create(archive_path).map_err(err)?;
-    let mut zip = zip::ZipWriter::new(file);
-    let options = zip::write::FileOptions::default().compression_method(zip::CompressionMethod::Deflated);
-    fn add_dir(zip: &mut zip::ZipWriter<std::fs::File>, root: &Path, dir: &Path, options: zip::write::FileOptions) -> Result<(), String> {
-        for entry in std::fs::read_dir(dir).map_err(err)? {
-            let entry = entry.map_err(err)?;
-            let path = entry.path();
-            let rel = path.strip_prefix(root).map_err(err)?.to_string_lossy().replace('\\', "/");
-            let ty = entry.file_type().map_err(err)?;
-            if ty.is_dir() {
-                zip.add_directory(format!("{rel}/"), options).map_err(err)?;
-                add_dir(zip, root, &path, options)?;
-            } else if ty.is_file() {
-                zip.start_file(rel, options).map_err(err)?;
-                let mut input = std::fs::File::open(&path).map_err(err)?;
-                std::io::copy(&mut input, zip).map_err(err)?;
-            }
-        }
-        Ok(())
+/// Writes a ZIP to a unique sibling file and publishes it only after the archive is complete.
+/// Internal exports never replace an existing file; Save As may replace only after its native
+/// dialog has returned a path (the dialog itself asks the user to confirm overwriting).
+fn write_zip_atomically<F>(
+    archive_path: &Path,
+    overwrite_existing: bool,
+    build: F,
+) -> Result<String, String>
+where
+    F: FnOnce(&mut zip::ZipWriter<std::fs::File>, &Path) -> Result<(), String>,
+{
+    let parent = archive_path
+        .parent()
+        .filter(|path| !path.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."));
+    if !parent.is_dir() {
+        return Err("Папка назначения не существует".into());
     }
-    add_dir(&mut zip, &source, &source, options)?;
-    zip.finish().map_err(err)?;
+    if archive_path.file_name().is_none() {
+        return Err("Не указано имя ZIP-файла".into());
+    }
+
+    let stamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_err(err)?
+        .as_nanos();
+    let mut reserved = None;
+    for attempt in 0..64u32 {
+        let temp_path = parent.join(format!(
+            ".end-launcher-export-{}-{stamp}-{attempt}.tmp",
+            std::process::id()
+        ));
+        match std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&temp_path)
+        {
+            Ok(file) => {
+                reserved = Some((temp_path, file));
+                break;
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {}
+            Err(error) => return Err(err(error)),
+        }
+    }
+    let (temp_path, file) = reserved
+        .ok_or_else(|| "Не удалось создать временный файл экспорта".to_string())?;
+
+    let build_result = (|| {
+        let mut zip = zip::ZipWriter::new(file);
+        build(&mut zip, &temp_path)?;
+        let completed = zip.finish().map_err(err)?;
+        completed.sync_all().map_err(err)?;
+        Ok(())
+    })();
+    if let Err(error) = build_result {
+        let _ = std::fs::remove_file(&temp_path);
+        return Err(error);
+    }
+
+    // hard_link is an atomic no-clobber publish for the default export action.
+    // rename atomically replaces the selected file only after the Save As dialog confirmed it.
+    let publish_result = if overwrite_existing {
+        std::fs::rename(&temp_path, archive_path)
+    } else {
+        std::fs::hard_link(&temp_path, archive_path)
+    };
+    if let Err(error) = publish_result {
+        let _ = std::fs::remove_file(&temp_path);
+        if !overwrite_existing && error.kind() == std::io::ErrorKind::AlreadyExists {
+            return Err("Файл экспорта уже существует. Выбери другое имя или подтверди замену через системный диалог.".into());
+        }
+        return Err(format!("Не удалось сохранить ZIP: {}", err(error)));
+    }
+    if !overwrite_existing {
+        let _ = std::fs::remove_file(&temp_path);
+    }
+
     Ok(archive_path.to_string_lossy().to_string())
+}
+
+fn write_directory_zip(
+    source: &Path,
+    archive_path: &Path,
+    overwrite_existing: bool,
+) -> Result<String, String> {
+    let source_root = std::fs::canonicalize(source).map_err(err)?;
+    if !source_root.is_dir() {
+        return Err("Папка экземпляра не найдена".into());
+    }
+
+    write_zip_atomically(archive_path, overwrite_existing, |zip, temp_path| {
+        let canonical_temp = std::fs::canonicalize(temp_path).map_err(err)?;
+        // A user may choose a ZIP path inside the instance itself. Do not archive
+        // the temporary file while it is still being written.
+        let excluded_relative = canonical_temp
+            .strip_prefix(&source_root)
+            .ok()
+            .map(Path::to_path_buf);
+        let options = zip::write::FileOptions::default()
+            .compression_method(zip::CompressionMethod::Deflated);
+
+        fn add_dir(
+            zip: &mut zip::ZipWriter<std::fs::File>,
+            root: &Path,
+            dir: &Path,
+            excluded_relative: Option<&Path>,
+            options: zip::write::FileOptions,
+        ) -> Result<(), String> {
+            for entry in std::fs::read_dir(dir).map_err(err)? {
+                let entry = entry.map_err(err)?;
+                let path = entry.path();
+                let relative_path = path.strip_prefix(root).map_err(err)?;
+                if excluded_relative == Some(relative_path) {
+                    continue;
+                }
+                let rel = relative_path.to_string_lossy().replace('\\', "/");
+                let ty = entry.file_type().map_err(err)?;
+                if ty.is_dir() {
+                    zip.add_directory(format!("{rel}/"), options).map_err(err)?;
+                    add_dir(zip, root, &path, excluded_relative, options)?;
+                } else if ty.is_file() {
+                    zip.start_file(rel, options).map_err(err)?;
+                    let mut input = std::fs::File::open(&path).map_err(err)?;
+                    std::io::copy(&mut input, zip).map_err(err)?;
+                }
+            }
+            Ok(())
+        }
+
+        add_dir(
+            zip,
+            &source_root,
+            &source_root,
+            excluded_relative.as_deref(),
+            options,
+        )
+    })
+}
+
+fn write_instance_export(
+    id: &str,
+    archive_path: &Path,
+    overwrite_existing: bool,
+) -> Result<String, String> {
+    get(id).ok_or("сборка не найдена")?;
+    write_directory_zip(&instance_dir(id), archive_path, overwrite_existing)
 }
 
 /// Экспортирует сборку в ZIP в config/exports и возвращает полный путь к архиву.
@@ -467,9 +587,9 @@ pub fn export_instance(id: String) -> Result<String, String> {
     let inst = get(&id).ok_or("сборка не найдена")?;
     let export_dir = crate::config::config_dir().join("exports");
     std::fs::create_dir_all(&export_dir).map_err(err)?;
-    let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_err(err)?.as_millis();
+    let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_err(err)?.as_nanos();
     let archive_path = export_dir.join(format!("{}-{stamp}.zip", slug(&inst.name)));
-    write_instance_export(&id, &archive_path)
+    write_instance_export(&id, &archive_path, false)
 }
 
 /// Exports an instance directly to the path returned by the native Save As dialog.
@@ -492,7 +612,8 @@ pub fn export_instance_to_path(id: String, path: String) -> Result<String, Strin
     if !parent.is_dir() {
         return Err("Папка назначения не существует".into());
     }
-    write_instance_export(&id, &destination)
+    // pick_local_path("export") returns only after the native Save As overwrite prompt is accepted.
+    write_instance_export(&id, &destination, true)
 }
 
 #[derive(Serialize)]
@@ -1658,5 +1779,158 @@ mod instance_reservation_tests {
     fn reservation_rejects_path_like_base_ids() {
         let root = TestDirectory::new();
         assert!(reserve_unique_instance_dir(root.path(), "../outside").is_err());
+    }
+}
+
+
+#[cfg(test)]
+mod instance_export_tests {
+    use super::{err, write_directory_zip, write_zip_atomically};
+    use std::fs;
+    use std::io::{Read, Write};
+    use std::path::{Path, PathBuf};
+
+    struct TestDirectory(PathBuf);
+
+    impl TestDirectory {
+        fn new() -> Self {
+            let nonce = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos();
+            let path = std::env::temp_dir().join(format!(
+                "end-launcher-instance-export-{}-{nonce}",
+                std::process::id()
+            ));
+            fs::create_dir_all(&path).unwrap();
+            Self(path)
+        }
+
+        fn path(&self) -> &Path {
+            &self.0
+        }
+    }
+
+    impl Drop for TestDirectory {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.0);
+        }
+    }
+
+    fn create_source(root: &Path) -> PathBuf {
+        let source = root.join("instance");
+        fs::create_dir_all(source.join("mods")).unwrap();
+        fs::create_dir_all(source.join("saves/world")).unwrap();
+        fs::write(source.join("instance.json"), br#"{"name":"Test pack"}"#).unwrap();
+        fs::write(source.join("mods/example.jar"), b"mod-data").unwrap();
+        fs::write(source.join("saves/world/level.dat"), b"world-data").unwrap();
+        source
+    }
+
+    fn assert_no_temporary_exports(parent: &Path) {
+        let leftovers: Vec<String> = fs::read_dir(parent)
+            .unwrap()
+            .filter_map(|entry| entry.ok())
+            .filter(|entry| entry.file_name().to_string_lossy().starts_with(".end-launcher-export-"))
+            .map(|entry| entry.file_name().to_string_lossy().into_owned())
+            .collect();
+        assert!(leftovers.is_empty(), "temporary export files remain: {leftovers:?}");
+    }
+
+    #[test]
+    fn export_contains_nested_files_and_excludes_its_own_temporary_file() {
+        let root = TestDirectory::new();
+        let source = create_source(root.path());
+        let destination = source.join("backup.zip");
+
+        write_directory_zip(&source, &destination, false).unwrap();
+
+        let file = fs::File::open(&destination).unwrap();
+        let mut archive = zip::ZipArchive::new(file).unwrap();
+        let mut mod_data = String::new();
+        archive.by_name("mods/example.jar").unwrap().read_to_string(&mut mod_data).unwrap();
+        assert_eq!(mod_data, "mod-data");
+        let mut world_data = String::new();
+        archive.by_name("saves/world/level.dat").unwrap().read_to_string(&mut world_data).unwrap();
+        assert_eq!(world_data, "world-data");
+        let mut metadata = String::new();
+        archive.by_name("instance.json").unwrap().read_to_string(&mut metadata).unwrap();
+        assert!(metadata.contains("Test pack"));
+        assert!(!archive.file_names().any(|name| name.contains(".end-launcher-export-")));
+        assert_no_temporary_exports(&source);
+    }
+
+    #[test]
+    fn export_without_confirmation_never_overwrites_an_existing_archive() {
+        let root = TestDirectory::new();
+        let source = create_source(root.path());
+        let export_dir = root.path().join("exports");
+        fs::create_dir_all(&export_dir).unwrap();
+        let destination = export_dir.join("pack.zip");
+        fs::write(&destination, b"keep-existing-archive").unwrap();
+
+        let error = write_directory_zip(&source, &destination, false).unwrap_err();
+
+        assert!(error.contains("уже существует"));
+        assert_eq!(fs::read(&destination).unwrap(), b"keep-existing-archive");
+        assert_no_temporary_exports(&export_dir);
+    }
+
+    #[test]
+    fn confirmed_export_replaces_an_existing_archive_with_a_valid_zip() {
+        let root = TestDirectory::new();
+        let source = create_source(root.path());
+        let export_dir = root.path().join("exports");
+        fs::create_dir_all(&export_dir).unwrap();
+        let destination = export_dir.join("pack.zip");
+        fs::write(&destination, b"old-archive").unwrap();
+
+        write_directory_zip(&source, &destination, true).unwrap();
+
+        let file = fs::File::open(&destination).unwrap();
+        let mut archive = zip::ZipArchive::new(file).unwrap();
+        let mut data = String::new();
+        archive.by_name("mods/example.jar").unwrap().read_to_string(&mut data).unwrap();
+        assert_eq!(data, "mod-data");
+        assert_no_temporary_exports(&export_dir);
+    }
+
+    #[test]
+    fn failed_export_does_not_publish_a_partial_archive_or_leave_a_temp_file() {
+        let root = TestDirectory::new();
+        let export_dir = root.path().join("exports");
+        fs::create_dir_all(&export_dir).unwrap();
+        let destination = export_dir.join("failed.zip");
+        let options = zip::write::FileOptions::default();
+
+        let error = write_zip_atomically(&destination, false, |writer, _| {
+            writer.start_file("partial.txt", options).map_err(err)?;
+            writer.write_all(b"partial archive").map_err(err)?;
+            Err("forced export failure".into())
+        }).unwrap_err();
+
+        assert_eq!(error, "forced export failure");
+        assert!(!destination.exists());
+        assert_no_temporary_exports(&export_dir);
+    }
+
+    #[test]
+    fn failed_confirmed_overwrite_keeps_the_previous_archive_intact() {
+        let root = TestDirectory::new();
+        let export_dir = root.path().join("exports");
+        fs::create_dir_all(&export_dir).unwrap();
+        let destination = export_dir.join("existing.zip");
+        fs::write(&destination, b"preserve-this-archive").unwrap();
+        let options = zip::write::FileOptions::default();
+
+        let error = write_zip_atomically(&destination, true, |writer, _| {
+            writer.start_file("partial.txt", options).map_err(err)?;
+            writer.write_all(b"partial archive").map_err(err)?;
+            Err("forced overwrite failure".into())
+        }).unwrap_err();
+
+        assert_eq!(error, "forced overwrite failure");
+        assert_eq!(fs::read(&destination).unwrap(), b"preserve-this-archive");
+        assert_no_temporary_exports(&export_dir);
     }
 }

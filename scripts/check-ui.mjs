@@ -1224,6 +1224,33 @@ check(js.includes('async function exportInstanceWithDialog(inst)')
   'Prism instance export must use a native Save As dialog and persist the archive to the selected ZIP path');
 
 
+// Instance ZIP exports are staged beside the destination and published only when complete.
+const exportWriterStart = rustInstances.indexOf('fn write_zip_atomically');
+const exportWriterEnd = rustInstances.indexOf('/// Экспортирует сборку в ZIP', exportWriterStart);
+const exportWriterSource = exportWriterStart >= 0 && exportWriterEnd > exportWriterStart
+  ? rustInstances.slice(exportWriterStart, exportWriterEnd)
+  : '';
+check(exportWriterSource.includes('create_new(true)')
+    && exportWriterSource.includes('completed.sync_all()')
+    && exportWriterSource.includes('std::fs::hard_link(&temp_path, archive_path)')
+    && exportWriterSource.includes('std::fs::rename(&temp_path, archive_path)')
+    && exportWriterSource.includes('std::fs::remove_file(&temp_path)')
+    && exportWriterSource.includes('excluded_relative == Some(relative_path)'),
+  'Instance ZIP export must stage a complete archive, avoid accidental overwrite, clean failures and skip its own temporary file');
+check(rustInstances.includes('write_instance_export(&id, &archive_path, false)')
+    && rustInstances.includes('write_instance_export(&id, &destination, true)')
+    && rustInstances.includes('pick_local_path("export") returns only after the native Save As overwrite prompt is accepted'),
+  'Only the confirmed native Save As flow may replace an existing archive');
+for (const testName of [
+  'export_contains_nested_files_and_excludes_its_own_temporary_file',
+  'export_without_confirmation_never_overwrites_an_existing_archive',
+  'confirmed_export_replaces_an_existing_archive_with_a_valid_zip',
+  'failed_export_does_not_publish_a_partial_archive_or_leave_a_temp_file',
+  'failed_confirmed_overwrite_keeps_the_previous_archive_intact'
+]) {
+  check(rustInstances.includes(testName), 'Missing ZIP export regression test: ' + testName);
+}
+
 // Prism/Pinecone pass 43: duplicated instances inherit their launcher presentation metadata.
 check(js.includes('async function duplicatePrismInstance(inst)')
     && js.includes('savePrismInstanceGroup(created, group)')

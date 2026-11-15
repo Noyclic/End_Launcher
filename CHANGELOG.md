@@ -3,6 +3,7 @@
 - Build archives in a unique temporary file beside the destination, flush the completed ZIP, then publish it; failed builds clean up the temporary file and never expose a partial destination.
 - The in-app export action refuses to replace an existing archive. The native Save As path retains its explicit overwrite prompt and replaces the destination only after the new ZIP is complete.
 - Exclude the temporary archive from traversal when a user saves the ZIP inside the instance folder.
+- If the backend has to append `.zip`, refuse to replace an existing file unless the native dialog selected the exact `.zip` path; auto-appended paths use no-clobber publishing to close the confirmation race.
 - Add Rust regression tests for nested world/mod files, overwrite protection, confirmed replacement, failed builds, and temporary-file cleanup.
 
 ## Instance creation — reserve new IDs atomically

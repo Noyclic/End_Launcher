@@ -1251,6 +1251,20 @@ for (const testName of [
   check(rustInstances.includes(testName), 'Missing ZIP export regression test: ' + testName);
 }
 
+check(rustInstances.includes('fn normalize_export_destination(raw_path: &str)')
+    && rustInstances.includes('fn ensure_export_overwrite_confirmed(')
+    && rustInstances.includes('std::fs::symlink_metadata(destination)')
+    && rustInstances.includes('ensure_export_overwrite_confirmed(&destination, extension_was_added)?')
+    && rustInstances.includes('write_instance_export(&id, &destination, !extension_was_added)'),
+  'Appending .zip must not silently overwrite a path that the native Save As dialog did not confirm');
+for (const testName of [
+  'auto_appended_zip_extension_never_replaces_an_existing_file',
+  'explicit_zip_extension_is_the_native_overwrite_confirmation_signal',
+  'auto_appended_zip_extension_is_safe_for_a_new_destination'
+]) {
+  check(rustInstances.includes(testName), 'Missing Save As extension-safety regression test: ' + testName);
+}
+
 // Prism/Pinecone pass 43: duplicated instances inherit their launcher presentation metadata.
 check(js.includes('async function duplicatePrismInstance(inst)')
     && js.includes('savePrismInstanceGroup(created, group)')

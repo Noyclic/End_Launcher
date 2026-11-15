@@ -593,9 +593,8 @@ pub fn export_instance(id: String) -> Result<String, String> {
 }
 
 /// Exports an instance directly to the path returned by the native Save As dialog.
-#[tauri::command]
-pub fn export_instance_to_path(id: String, path: String) -> Result<String, String> {
-    let raw_path = path.trim();
+fn normalize_export_destination(raw_path: &str) -> Result<(PathBuf, bool), String> {
+    let raw_path = raw_path.trim();
     if raw_path.is_empty() {
         return Err("Путь экспорта не указан".into());
     }
@@ -603,17 +602,42 @@ pub fn export_instance_to_path(id: String, path: String) -> Result<String, Strin
     if !destination.is_absolute() {
         return Err("Путь экспорта должен быть абсолютным (его должен вернуть системный диалог)".into());
     }
-    match destination.extension().and_then(|value| value.to_str()) {
-        Some(extension) if extension.eq_ignore_ascii_case("zip") => {}
-        None => { destination.set_extension("zip"); }
+    let extension_was_added = match destination.extension().and_then(|value| value.to_str()) {
+        Some(extension) if extension.eq_ignore_ascii_case("zip") => false,
+        None => {
+            destination.set_extension("zip");
+            true
+        }
         _ => return Err("Экспорт экземпляра поддерживает ZIP-архивы (*.zip)".into()),
+    };
+    Ok((destination, extension_was_added))
+}
+
+fn ensure_export_overwrite_confirmed(
+    destination: &Path,
+    extension_was_added: bool,
+) -> Result<(), String> {
+    if !extension_was_added {
+        return Ok(());
     }
+    match std::fs::symlink_metadata(destination) {
+        Ok(_) => Err("Файл ZIP уже существует. Выбери его с расширением .zip в системном диалоге, чтобы подтвердить замену.".into()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(err(error)),
+    }
+}
+
+#[tauri::command]
+pub fn export_instance_to_path(id: String, path: String) -> Result<String, String> {
+    let (destination, extension_was_added) = normalize_export_destination(&path)?;
+    ensure_export_overwrite_confirmed(&destination, extension_was_added)?;
     let parent = destination.parent().ok_or("Не удалось определить папку экспорта")?;
     if !parent.is_dir() {
         return Err("Папка назначения не существует".into());
     }
     // pick_local_path("export") returns only after the native Save As overwrite prompt is accepted.
-    write_instance_export(&id, &destination, true)
+    // Auto-appended extensions were not part of the dialog confirmation; publish those without clobbering.
+    write_instance_export(&id, &destination, !extension_was_added)
 }
 
 #[derive(Serialize)]
@@ -1933,4 +1957,42 @@ mod instance_export_tests {
         assert_eq!(fs::read(&destination).unwrap(), b"preserve-this-archive");
         assert_no_temporary_exports(&export_dir);
     }
+
+    #[test]
+    fn auto_appended_zip_extension_never_replaces_an_existing_file() {
+        let root = TestDirectory::new();
+        let destination = root.path().join("pack.zip");
+        fs::write(&destination, b"preserve-existing").unwrap();
+
+        let (normalized, extension_was_added) =
+            super::normalize_export_destination(&root.path().join("pack").to_string_lossy()).unwrap();
+        assert!(extension_was_added);
+        assert_eq!(normalized, destination);
+        assert!(super::ensure_export_overwrite_confirmed(&normalized, extension_was_added).is_err());
+        assert_eq!(fs::read(&destination).unwrap(), b"preserve-existing");
+    }
+
+    #[test]
+    fn explicit_zip_extension_is_the_native_overwrite_confirmation_signal() {
+        let root = TestDirectory::new();
+        let destination = root.path().join("pack.zip");
+        fs::write(&destination, b"replace-after-dialog-confirmation").unwrap();
+
+        let (normalized, extension_was_added) =
+            super::normalize_export_destination(&destination.to_string_lossy()).unwrap();
+        assert!(!extension_was_added);
+        super::ensure_export_overwrite_confirmed(&normalized, extension_was_added).unwrap();
+    }
+
+    #[test]
+    fn auto_appended_zip_extension_is_safe_for_a_new_destination() {
+        let root = TestDirectory::new();
+        let (destination, extension_was_added) =
+            super::normalize_export_destination(&root.path().join("new-pack").to_string_lossy()).unwrap();
+
+        assert!(extension_was_added);
+        assert!(!destination.exists());
+        super::ensure_export_overwrite_confirmed(&destination, extension_was_added).unwrap();
+    }
+
 }

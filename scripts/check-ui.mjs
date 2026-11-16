@@ -596,12 +596,22 @@ check(css.includes(":root:not([data-ui='end']) #page-mods,")
   'Reference-inspired secondary pages must use a wider, responsive content surface');
 
 
-check(js.includes("const folderButton = $('prism-open-folder');")
-    && js.includes("element.insertBefore(addButton, element.firstChild);")
-    && js.includes("element.insertBefore(folderButton, addButton.nextSibling);")
-    && js.includes("const originalOrder = [")
-    && js.includes("$('library-search-control'), $('library-view'), folderButton"),
-  'Prism toolbar must keep Add Instance… before Folders and restore the original non-Prism order when leaving the skin');
+const prismToolbarStart = js.indexOf('function syncPrismToolbar(mode) {');
+const prismToolbarEnd = js.indexOf('\nlet prismLogoNavigationBound', prismToolbarStart);
+const prismToolbarSource = prismToolbarStart >= 0 && prismToolbarEnd > prismToolbarStart
+  ? js.slice(prismToolbarStart, prismToolbarEnd)
+  : '';
+const settingsPlacement = prismToolbarSource.indexOf('sidebar.insertBefore(settingsButton, firstAfterToolbar);');
+const commandsPlacement = prismToolbarSource.indexOf('sidebar.insertBefore(element, commandBoundary);');
+check(settingsPlacement >= 0
+    && commandsPlacement > settingsPlacement
+    && prismToolbarSource.includes('const commandBoundary = settingsButton?.parentElement === sidebar')
+    && prismToolbarSource.includes(": $('prism-help') || prismOverflowToggle || account;")
+    && prismToolbarSource.includes("element.insertBefore(addButton, element.firstChild);")
+    && prismToolbarSource.includes("element.insertBefore(folderButton, addButton.nextSibling);")
+    && prismToolbarSource.includes("const originalOrder = [")
+    && prismToolbarSource.includes("$('library-search-control'), $('library-view'), folderButton"),
+  'Prism toolbar must keep Add Instance…, Folders, Parameters, Help and Update in the reference order and restore the original non-Prism order when leaving the skin');
 
 check(js.includes("const target = ['end', 'tl'].includes(mode) ? $('slot-page') : $('slot-bar');"),
   'TL layout must place the working play controls inside its centered launcher panel');

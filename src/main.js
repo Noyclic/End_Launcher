@@ -3287,18 +3287,9 @@ document.addEventListener('keydown', (event) => {
 function syncPrismToolbar(mode) {
   const sidebar = document.querySelector('.sidebar');
   const account = $('account-box');
-  const element = $('library-toolbar-actions');
-  if (element) {
-    if (mode === 'prism' && sidebar && account) {
-      sidebar.insertBefore(element, prismOverflowToggle || account);
-    } else {
-      const marker = prismToolbarHome['library-toolbar-actions'];
-      if (marker?.parentNode) marker.parentNode.insertBefore(element, marker.nextSibling);
-    }
-  }
 
-  // Treat Settings as a first-class Prism toolbar command, then restore it to
-  // the original navigation slot when switching back to any other UI layout.
+  // Keep Settings between the library commands and Help in the Prism toolbar.
+  // The node is moved, not cloned, so its original click handler remains intact.
   const settingsButton = $('nav-settings-button');
   if (settingsButton) {
     const settingsLabel = settingsButton.querySelector('.lbl');
@@ -3318,15 +3309,28 @@ function syncPrismToolbar(mode) {
     }
   }
 
+  const element = $('library-toolbar-actions');
+  if (element) {
+    if (mode === 'prism' && sidebar && account) {
+      const commandBoundary = settingsButton?.parentElement === sidebar
+        ? settingsButton
+        : $('prism-help') || prismOverflowToggle || account;
+      sidebar.insertBefore(element, commandBoundary);
+    } else {
+      const marker = prismToolbarHome['library-toolbar-actions'];
+      if (marker?.parentNode) marker.parentNode.insertBefore(element, marker.nextSibling);
+    }
+  }
+
   const addButton = $('library-add');
   const folderButton = $('prism-open-folder');
   if (mode === 'prism' && element && addButton && folderButton) {
-    // Keep the agreed Prism command order without cloning handlers or controls:
-    // Add Instance…, Folders, then the remaining library tools.
+    // Preserve the agreed command order: Add Instance…, Folders, then Parameters,
+    // Help and Update. Keep the original controls and their event handlers.
     element.insertBefore(addButton, element.firstChild);
     element.insertBefore(folderButton, addButton.nextSibling);
   } else if (mode !== 'prism' && element && addButton && folderButton) {
-    // Restore the original non-Prism toolbar order when leaving Prism.
+    // Restore the original non-Prism toolbar order when leaving the skin.
     const originalOrder = [
       $('library-search-control'), $('library-view'), folderButton,
       $('library-import'), $('layout-extras-toggle'), addButton,
@@ -3339,7 +3343,6 @@ function syncPrismToolbar(mode) {
     addButton.title = isPrism ? 'Добавить новый экземпляр Minecraft' : 'Создать новую сборку';
   }
 }
-
 let prismLogoNavigationBound = false;
 function syncPrismLogoNavigation(mode) {
   const logo = document.querySelector('.sidebar .logo');

@@ -1,3 +1,9 @@
+## Prism toolbar — restore the five-command reference order
+
+- Move the existing Add Instance and Folders controls ahead of Parameters, Help and Update in Prism mode; the previous placement put Add and Folders after Help and Update.
+- Preserve the original DOM nodes and handlers, and restore their original locations when switching to another launcher skin.
+- Extend the UI regression check to guard the full command-group placement rather than only the Add/Folders order inside the group.
+
 ## Modrinth UI pass 51 — readable instance cards
 
 - Increase the Modrinth library card minimum width from 230 px to 270 px so desktop names and metadata have a usable text column.

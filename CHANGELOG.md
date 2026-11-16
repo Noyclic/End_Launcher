@@ -1,3 +1,11 @@
+## Modrinth UI pass 51 — readable instance cards
+
+- Increase the Modrinth library card minimum width from 230 px to 270 px so desktop names and metadata have a usable text column.
+- Keep long instance names on one line with ellipsis instead of splitting words into narrow vertical fragments.
+- Bound loader/version chips with safe truncation and preserve the single-column mobile layout.
+- Keep the existing Play and overflow-menu controls and their handlers in the same card structure.
+- Add a UI regression assertion for desktop width, safe text truncation, and the narrow-window layout.
+
 ## Instance ZIP export — publish complete archives safely
 
 - Build archives in a unique temporary file beside the destination, flush the completed ZIP, then publish it; failed builds clean up the temporary file and never expose a partial destination.

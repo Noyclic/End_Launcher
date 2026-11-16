@@ -3330,3 +3330,42 @@
   :root[data-ui='modrinth'] #page-play .library-toolbar-actions > #modrinth-new-group,
   :root[data-ui='modrinth'] #page-play .library-toolbar-actions > #library-import { flex:1 1 100%; }
 }
+
+
+/* Modrinth pass 51 — readable instance cards. */
+:root[data-ui='modrinth'] #library:not(.list-view) {
+  grid-template-columns:repeat(auto-fill,minmax(min(270px,100%),1fr));
+}
+:root[data-ui='modrinth'] #library .inst-card:not(.add) {
+  grid-template-columns:44px minmax(0,1fr) 32px;
+  grid-template-rows:minmax(22px,auto) minmax(22px,auto);
+  min-width:0;
+}
+:root[data-ui='modrinth'] #library .inst-card .inst-name {
+  min-width:0;
+  max-width:100%;
+  overflow:hidden;
+  overflow-wrap:normal;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  word-break:normal;
+}
+:root[data-ui='modrinth'] #library .inst-card .chip {
+  min-width:0;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+@media (max-width:760px) {
+  :root[data-ui='modrinth'] #library:not(.list-view) {
+    grid-template-columns:minmax(0,1fr);
+  }
+  :root[data-ui='modrinth'] #library .inst-card:not(.add) {
+    grid-template-columns:40px minmax(0,1fr) 32px;
+  }
+  :root[data-ui='modrinth'] #library .inst-card .inst-icon {
+    width:40px;
+    height:40px;
+  }
+}

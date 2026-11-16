@@ -530,6 +530,18 @@ check(js.includes('function clearModrinthLibraryFilters()')
     && js.includes('reset.addEventListener(\'click\', clearModrinthLibraryFilters)'),
   'An empty Modrinth filter result must offer a working search-and-filter reset');
 
+const modrinthCardLayoutStart = repairCss.lastIndexOf('/* Modrinth pass 51 — readable instance cards. */');
+const modrinthCardLayout = modrinthCardLayoutStart >= 0 ? repairCss.slice(modrinthCardLayoutStart) : '';
+check(modrinthCardLayout.includes('minmax(min(270px,100%),1fr)')
+    && modrinthCardLayout.includes('overflow-wrap:normal;')
+    && modrinthCardLayout.includes('word-break:normal;')
+    && modrinthCardLayout.includes('text-overflow:ellipsis;')
+    && modrinthCardLayout.includes('grid-template-columns:minmax(0,1fr);')
+    && js.includes("mk('div', 'inst-name', inst.name)")
+    && js.includes("mk('span', 'chip', `${inst.version} · ${LOADER_NAME[inst.loader] || inst.loader}`)"),
+  'Modrinth instance cards must keep names readable, truncate long metadata safely, and remain single-column on narrow windows');
+
+
 check(js.includes('function homeModsSelectionKey()')
     && js.includes('let homeModsRequestId = 0;')
     && js.includes('if (requestId !== homeModsRequestId || homeModsSelectionKey() !== key) return;')

@@ -5,7 +5,7 @@
 - Keep an exact-group selection across refreshes, but reset it safely if the selected group no longer exists after instances finish loading.
 - Add a persistent-in-session “Сбросить” action that appears only while search or filters are active, and report active criteria in the live result counter tooltip.
 - Correct the Modrinth card grid so the version/loader/group metadata occupies a real second row instead of being squeezed into the reserved action column; preserve the existing Play and overflow controls.
-- Add source-level regression checks for dynamic groups, exact filtering, stale group recovery, active-filter reset, card metadata and narrow layouts.
+- Add regression checks for dynamic groups, stale-group recovery, active-filter reset, card metadata and narrow layouts; exercise the exact-group matcher against assigned, unassigned and case-sensitive group examples.
 
 ## Prism toolbar — restore the five-command reference order
 

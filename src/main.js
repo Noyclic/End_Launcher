@@ -1800,6 +1800,14 @@ function renderModrinthJumpIn() {
   }
 }
 
+function matchesModrinthGroupFilter(groupName, filter) {
+  const group = String(groupName || '').trim();
+  if (filter === 'grouped') return Boolean(group);
+  if (filter === 'ungrouped') return !group;
+  if (filter.startsWith('group:')) return group === filter.slice(6);
+  return true;
+}
+
 function syncModrinthGroupFilterOptions() {
   const select = $('modrinth-group-filter');
   if (!select) return;
@@ -1904,9 +1912,7 @@ function renderLibrary() {
     if (currentUi === 'modrinth') {
       const loader = String(inst.loader || 'vanilla').toLowerCase();
       if (modrinthLoaderFilter !== 'all' && loader !== modrinthLoaderFilter) return false;
-      if (modrinthGroupFilter === 'grouped' && !groupName) return false;
-      if (modrinthGroupFilter === 'ungrouped' && groupName) return false;
-      if (modrinthGroupFilter.startsWith('group:') && groupName !== modrinthGroupFilter.slice(6)) return false;
+      if (!matchesModrinthGroupFilter(groupName, modrinthGroupFilter)) return false;
     }
     return true;
   });
@@ -1985,7 +1991,7 @@ function renderLibrary() {
         lastGroup = currentGroupLabel;
       }
     }
-    const groupName = modrinthGroupFor(inst);
+    const groupName = currentUi === 'modrinth' ? modrinthGroupFor(inst) : '';
     const searchable = `${inst.name || ''} ${inst.version || ''} ${LOADER_NAME[inst.loader] || inst.loader || ''} ${groupName}`.toLocaleLowerCase();
     const isFavorite = favoriteInstanceIds.has(String(inst.id));
     const card = mk('div', 'inst-card' + (inst.id === activeId ? ' active' : '') + (isFavorite ? ' is-favorite' : ''));

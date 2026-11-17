@@ -983,6 +983,21 @@ check(js.includes('function modrinthGroupFor(inst)')
     && js.includes("`group:${group}`")
     && js.includes("groupOptions.label = 'Отдельные группы'"),
   'Modrinth group filter must be populated from real instance groups, with stable exact-group option values');
+const modrinthGroupMatcherSource = js.match(/function matchesModrinthGroupFilter\(groupName, filter\) \{[\s\S]*?\n\}/)?.[0] || '';
+check(!!modrinthGroupMatcherSource
+    && js.includes('if (!matchesModrinthGroupFilter(groupName, modrinthGroupFilter)) return false;'),
+  'Modrinth exact-group matching must be isolated in a testable helper used by the real library filter');
+if (modrinthGroupMatcherSource) {
+  const matchesModrinthGroupFilter = new Function(`${modrinthGroupMatcherSource}; return matchesModrinthGroupFilter;`)();
+  assert.equal(matchesModrinthGroupFilter('Modpack', 'group:Modpack'), true, 'exact group should match');
+  assert.equal(matchesModrinthGroupFilter('Vanilla-like', 'group:Modpack'), false, 'different group should not match');
+  assert.equal(matchesModrinthGroupFilter('Modpack', 'group:modpack'), false, 'group matching should stay exact');
+  assert.equal(matchesModrinthGroupFilter('Modpack', 'grouped'), true, 'grouped should include assigned groups');
+  assert.equal(matchesModrinthGroupFilter('', 'grouped'), false, 'grouped should exclude unassigned instances');
+  assert.equal(matchesModrinthGroupFilter('', 'ungrouped'), true, 'ungrouped should include unassigned instances');
+  assert.equal(matchesModrinthGroupFilter('Modpack', 'ungrouped'), false, 'ungrouped should exclude assigned instances');
+  assert.equal(matchesModrinthGroupFilter('Modpack', 'all'), true, 'all should not restrict groups');
+}
 check(js.includes("modrinthGroupFilter.startsWith('group:')")
     && js.includes("groupName !== modrinthGroupFilter.slice(6)")
     && js.includes("currentUi === 'modrinth' ? groupName : ''")

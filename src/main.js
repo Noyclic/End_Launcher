@@ -435,6 +435,7 @@ $('ms-logout').addEventListener('click', async () => {
 // ─────────────── СБОРКИ (instances) ───────────────
 const LOADER_NAME = { vanilla: 'Vanilla', fabric: 'Fabric', quilt: 'Quilt', forge: 'Forge', neoforge: 'NeoForge' };
 let instances = [];
+let instancesLoaded = false;
 let activeId = null;
 let installedCache = [];
 
@@ -550,6 +551,7 @@ function renderInstanceSelect() {
 async function loadInstances() {
   // -> Rust: instances.rs :: list_instances() / get_active_instance()
   instances = await invoke('list_instances');
+  instancesLoaded = true;
   const a = await invoke('get_active_instance');
   activeId = instances.some((i) => i.id === a) ? a : (instances[0] ? instances[0].id : null);
   if (activeId && activeId !== a) await invoke('set_active_instance', { id: activeId }).catch(() => {});
@@ -874,7 +876,8 @@ let modrinthLibrarySort = (() => {
 let modrinthGroupFilter = (() => {
   try {
     const value = localStorage.getItem('el-modrinth-group-filter') || 'all';
-    return ['all', 'grouped', 'ungrouped'].includes(value) ? value : 'all';
+    return ['all', 'grouped', 'ungrouped'].includes(value)
+      || (value.startsWith('group:') && value.length > 6) ? value : 'all';
   } catch { return 'all'; }
 })();
 let modrinthLoaderFilter = (() => {
@@ -1032,6 +1035,9 @@ let prismInstanceGroups = (() => {
       .map(([id, group]) => [String(id), group.trim().slice(0, 32)]));
   } catch { return {}; }
 })();
+function modrinthGroupFor(inst) {
+  return String(prismInstanceGroups[String(inst?.id ?? '')] || '').trim();
+}
 function savePrismInstanceGroup(inst, rawGroup) {
   if (!inst) return false;
   const group = String(rawGroup || '').trim().slice(0, 32);
@@ -1707,9 +1713,12 @@ function syncModrinthAccountPanel() {
   if (mode) mode.textContent = accountMode;
   if (avatar) avatar.textContent = accountAvatar.slice(0, 2);
   if (selectedName) selectedName.textContent = inst?.name || 'Нет выбранной сборки';
-  if (selectedMeta) selectedMeta.textContent = inst
-    ? `Minecraft ${inst.version || '—'} · ${LOADER_NAME[inst.loader] || inst.loader || 'Vanilla'}`
-    : 'Создайте или выберите сборку';
+  if (selectedMeta) {
+    const group = modrinthGroupFor(inst);
+    selectedMeta.textContent = inst
+      ? `Minecraft ${inst.version || '—'} · ${LOADER_NAME[inst.loader] || inst.loader || 'Vanilla'}${group ? ` · ${group}` : ''}`
+      : 'Создайте или выберите сборку';
+  }
   if (selectedIcon) {
     selectedIcon.textContent = (inst?.name || 'E').slice(0, 1).toUpperCase();
     selectedIcon.dataset.loader = String(inst?.loader || 'vanilla').toLowerCase();
@@ -1765,7 +1774,7 @@ function renderModrinthJumpIn() {
     const copy = mk('span', 'modrinth-jump-copy');
     copy.append(
       mk('strong', 'inst-name', inst.name),
-      mk('span', 'dim small', `${LOADER_NAME[inst.loader] || inst.loader} ${inst.version} · ${formatModrinthLastPlayed(lastPlayedAt)}`)
+      mk('span', 'dim small', `${LOADER_NAME[inst.loader] || inst.loader} ${inst.version} · ${formatModrinthLastPlayed(lastPlayedAt)}${modrinthGroupFor(inst) ? ` · ${modrinthGroupFor(inst)}` : ''}`)
     );
     select.append(icon, copy);
     select.addEventListener('click', () => setActive(inst.id));
@@ -1789,6 +1798,61 @@ function renderModrinthJumpIn() {
     card.append(select, play, more);
     box.appendChild(card);
   }
+}
+
+function syncModrinthGroupFilterOptions() {
+  const select = $('modrinth-group-filter');
+  if (!select) return;
+  const groupCounts = new Map();
+  for (const inst of instances) {
+    const group = modrinthGroupFor(inst);
+    if (group) groupCounts.set(group, (groupCounts.get(group) || 0) + 1);
+  }
+  const groups = [...groupCounts.keys()].sort((a, b) => naturalCompare(a, b));
+  const validGroupValues = new Set(groups.map((group) => `group:${group}`));
+  if (instancesLoaded && modrinthGroupFilter.startsWith('group:') && !validGroupValues.has(modrinthGroupFilter)) {
+    modrinthGroupFilter = 'all';
+    try { localStorage.setItem('el-modrinth-group-filter', 'all'); } catch {}
+  }
+  const addOption = (parent, value, label) => {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = label;
+    parent.appendChild(option);
+  };
+  select.replaceChildren();
+  addOption(select, 'all', 'Все группы');
+  addOption(select, 'grouped', 'Мои группы');
+  addOption(select, 'ungrouped', 'Без группы');
+  if (groups.length) {
+    const groupOptions = document.createElement('optgroup');
+    groupOptions.label = 'Отдельные группы';
+    for (const group of groups) addOption(groupOptions, `group:${group}`, `${group} (${groupCounts.get(group)})`);
+    select.appendChild(groupOptions);
+  }
+  select.value = modrinthGroupFilter;
+}
+
+function syncModrinthFilterChrome(shownCount) {
+  const count = $('modrinth-filter-count');
+  const reset = $('modrinth-clear-filters');
+  if (currentUi !== 'modrinth') {
+    if (count) { count.textContent = ''; count.title = ''; }
+    if (reset) reset.hidden = true;
+    return;
+  }
+  const active = !!libraryQuery.trim() || modrinthGroupFilter !== 'all' || modrinthLoaderFilter !== 'all';
+  if (count) {
+    count.textContent = active ? `${shownCount} из ${instances.length} сборок` : `${instances.length} сборок`;
+    const details = [];
+    if (libraryQuery.trim()) details.push(`Поиск: ${libraryQuery.trim()}`);
+    if (modrinthGroupFilter === 'grouped') details.push('С группой');
+    else if (modrinthGroupFilter === 'ungrouped') details.push('Без группы');
+    else if (modrinthGroupFilter.startsWith('group:')) details.push(`Группа: ${modrinthGroupFilter.slice(6)}`);
+    if (modrinthLoaderFilter !== 'all') details.push(`Загрузчик: ${LOADER_NAME[modrinthLoaderFilter] || modrinthLoaderFilter}`);
+    count.title = details.length ? details.join(' · ') : 'Все сборки';
+  }
+  if (reset) reset.hidden = !active;
 }
 
 function clearModrinthLibraryFilters() {
@@ -1815,6 +1879,7 @@ function renderLibrary() {
   box.classList.toggle('list-view', libraryListMode && currentUi !== 'modrinth');
   box.dataset.layout = currentUi;
   syncModrinthAccountPanel();
+  syncModrinthGroupFilterOptions();
   renderModrinthJumpIn();
   $('empty-hero').style.display = instances.length ? 'none' : '';
   const query = libraryQuery.trim().toLocaleLowerCase();
@@ -1831,16 +1896,17 @@ function renderLibrary() {
     return (showReleases && release) || (showSnapshots && snapshot) || (showModded && modded);
   };
   const visibleInstances = instances.filter((inst) => {
-    const searchable = `${inst.name} ${inst.version} ${LOADER_NAME[inst.loader] || inst.loader}`.toLocaleLowerCase();
+    const groupName = currentUi === 'modrinth' ? modrinthGroupFor(inst) : '';
+    const searchable = `${inst.name || ''} ${inst.version || ''} ${LOADER_NAME[inst.loader] || inst.loader || ''} ${groupName}`.toLocaleLowerCase();
     if (query && !searchable.includes(query)) return false;
     if (currentUi === 'official' && !isOfficialCategoryVisible(inst)) return false;
     if (currentUi === 'lunar' && lunarFavoritesOnly && !favoriteInstanceIds.has(String(inst.id))) return false;
     if (currentUi === 'modrinth') {
-      const group = String(prismInstanceGroups[String(inst.id)] || '').trim();
       const loader = String(inst.loader || 'vanilla').toLowerCase();
       if (modrinthLoaderFilter !== 'all' && loader !== modrinthLoaderFilter) return false;
-      if (modrinthGroupFilter === 'grouped' && !group) return false;
-      if (modrinthGroupFilter === 'ungrouped' && group) return false;
+      if (modrinthGroupFilter === 'grouped' && !groupName) return false;
+      if (modrinthGroupFilter === 'ungrouped' && groupName) return false;
+      if (modrinthGroupFilter.startsWith('group:') && groupName !== modrinthGroupFilter.slice(6)) return false;
     }
     return true;
   });
@@ -1892,12 +1958,7 @@ function renderLibrary() {
   });
   let ci = 0;
   const shownCount = visibleInstances.length;
-  const modrinthCount = $('modrinth-filter-count');
-  if (modrinthCount) {
-    modrinthCount.textContent = currentUi === 'modrinth'
-      ? `${shownCount} из ${instances.length} сборок`
-      : '';
-  }
+  syncModrinthFilterChrome(shownCount);
   let lastGroup = null;
   for (const inst of visibleInstances) {
     let currentGroupLabel = '';
@@ -1924,11 +1985,13 @@ function renderLibrary() {
         lastGroup = currentGroupLabel;
       }
     }
-    const searchable = `${inst.name} ${inst.version} ${LOADER_NAME[inst.loader] || inst.loader}`.toLocaleLowerCase();
+    const groupName = modrinthGroupFor(inst);
+    const searchable = `${inst.name || ''} ${inst.version || ''} ${LOADER_NAME[inst.loader] || inst.loader || ''} ${groupName}`.toLocaleLowerCase();
     const isFavorite = favoriteInstanceIds.has(String(inst.id));
     const card = mk('div', 'inst-card' + (inst.id === activeId ? ' active' : '') + (isFavorite ? ' is-favorite' : ''));
     card.dataset.instanceId = String(inst.id);
     card.dataset.loader = String(inst.loader || 'vanilla').toLowerCase();
+    if (currentUi === 'modrinth') card.dataset.groupLabel = groupName;
     if (currentUi === 'prism') {
       card.dataset.groupLabel = currentGroupLabel;
       card.hidden = !query && prismCollapsedGroups.has(currentGroupLabel);
@@ -1937,7 +2000,7 @@ function renderLibrary() {
     card.style.setProperty('--i', Math.min(ci++, 10));
     card.tabIndex = 0;
     card.setAttribute('role', 'group');
-    card.setAttribute('aria-label', `${inst.name}${inst.id === activeId ? ' — выбрана' : ''}`);
+    card.setAttribute('aria-label', `${inst.name}${inst.id === activeId ? ' — выбрана' : ''}${currentUi === 'modrinth' && groupName ? ` · группа ${groupName}` : ''}`);
     const play = mk('button', 'inst-play', '▶');
     play.title = `Играть: ${inst.name}`;
     play.setAttribute('aria-label', `Запустить ${inst.name}`);
@@ -1956,10 +2019,15 @@ function renderLibrary() {
     const icon = mk('div', 'inst-icon', (inst.name[0] || '?').toUpperCase());
     icon.dataset.loader = String(inst.loader || 'vanilla').toLowerCase();
     if (currentUi === 'prism') applyPrismInstanceIcon(icon, inst);
+    const metadataText = [inst.version || 'Версия не указана', LOADER_NAME[inst.loader] || inst.loader || 'Vanilla', currentUi === 'modrinth' ? groupName : '']
+      .filter(Boolean)
+      .join(' · ');
+    const metadata = mk('span', 'chip', metadataText);
+    metadata.title = metadataText;
     card.append(
       icon,
       mk('div', 'inst-name', inst.name),
-      mk('span', 'chip', `${inst.version} · ${LOADER_NAME[inst.loader] || inst.loader}`),
+      metadata,
       play,
       more,
     );
@@ -3903,11 +3971,12 @@ if (modrinthGroupSelect) {
   modrinthGroupSelect.value = modrinthGroupFilter;
   modrinthGroupSelect.addEventListener('change', () => {
     modrinthGroupFilter = ['all', 'grouped', 'ungrouped'].includes(modrinthGroupSelect.value)
-      ? modrinthGroupSelect.value : 'all';
+      || modrinthGroupSelect.value.startsWith('group:') ? modrinthGroupSelect.value : 'all';
     try { localStorage.setItem('el-modrinth-group-filter', modrinthGroupFilter); } catch {}
     renderLibrary();
   });
 }
+$('modrinth-clear-filters')?.addEventListener('click', clearModrinthLibraryFilters);
 if (modrinthLoaderSelect) {
   modrinthLoaderSelect.value = modrinthLoaderFilter;
   modrinthLoaderSelect.addEventListener('change', () => {

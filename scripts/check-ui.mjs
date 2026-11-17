@@ -538,7 +538,8 @@ check(modrinthCardLayout.includes('minmax(min(270px,100%),1fr)')
     && modrinthCardLayout.includes('text-overflow:ellipsis;')
     && modrinthCardLayout.includes('grid-template-columns:minmax(0,1fr);')
     && js.includes("mk('div', 'inst-name', inst.name)")
-    && js.includes("mk('span', 'chip', `${inst.version} · ${LOADER_NAME[inst.loader] || inst.loader}`)"),
+    && js.includes("const metadataText = [inst.version || 'Версия не указана'")
+    && js.includes("currentUi === 'modrinth' ? groupName : ''"),
   'Modrinth instance cards must keep names readable, truncate long metadata safely, and remain single-column on narrow windows');
 
 
@@ -970,6 +971,40 @@ check(css.includes(":root[data-ui='modrinth'] #page-play .library-toolbar-action
     && css.includes(":root[data-ui='modrinth'] #mod-results > .mod-card")
     && css.includes(":root[data-ui='modrinth'] .mods-search-controls"),
   'Modrinth library, filters and catalog cards must use shrink-safe, responsive layouts');
+
+
+check(html.includes('id="modrinth-clear-filters"')
+    && html.includes('class="modrinth-filter-reset"')
+    && js.includes("$('modrinth-clear-filters')?.addEventListener('click', clearModrinthLibraryFilters)"),
+  'Modrinth library must expose a visible, working reset action whenever search or filters are active');
+check(js.includes('function modrinthGroupFor(inst)')
+    && js.includes('function syncModrinthGroupFilterOptions()')
+    && js.includes("option.value = value;")
+    && js.includes("`group:${group}`")
+    && js.includes("groupOptions.label = 'Отдельные группы'"),
+  'Modrinth group filter must be populated from real instance groups, with stable exact-group option values');
+check(js.includes("modrinthGroupFilter.startsWith('group:')")
+    && js.includes("groupName !== modrinthGroupFilter.slice(6)")
+    && js.includes("currentUi === 'modrinth' ? groupName : ''")
+    && js.includes('instancesLoaded && modrinthGroupFilter.startsWith'),
+  'Modrinth must filter one exact group, search by group name, and discard a stale selection only after instances load');
+check(js.includes("const groupName = currentUi === 'modrinth' ? modrinthGroupFor(inst) : '';"),
+  'Group-name search must remain scoped to Modrinth so Prism and other layouts keep their existing search semantics');
+check(js.includes('function syncModrinthFilterChrome(shownCount)')
+    && js.includes("reset.hidden = !active")
+    && js.includes("count.title = details.length ? details.join(' · ') : 'Все сборки'"),
+  'Modrinth filter status must report active criteria and hide its reset action when the library is unfiltered');
+check(js.includes('card.dataset.groupLabel = groupName')
+    && js.includes("currentUi === 'modrinth' && groupName ? ` · группа ${groupName}` : ''")
+    && js.includes('metadata.title = metadataText')
+    && js.includes("modrinthGroupFor(inst) ? ` · ${modrinthGroupFor(inst)}` : ''"),
+  'Modrinth cards, Jump In rows and selected-instance details must keep the assigned group discoverable');
+check(repairCss.includes('/* Modrinth pass 52 — group-aware library workflow and complete instance metadata. */')
+    && repairCss.includes('grid-template-columns:44px minmax(0,1fr);')
+    && repairCss.includes('grid-row:1 / span 2;')
+    && repairCss.includes('#modrinth-clear-filters[hidden]')
+    && repairCss.includes('grid-template-columns:40px minmax(0,1fr);'),
+  'Modrinth instance metadata must occupy a real second row and the reset control must remain responsive');
 
 check(css.lastIndexOf("/* Prism/Pinecone pass 14")
       > css.lastIndexOf("/* Prism/Pinecone pass 13")

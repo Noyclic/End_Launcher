@@ -3369,3 +3369,69 @@
     height:40px;
   }
 }
+
+
+/* Modrinth pass 52 — group-aware library workflow and complete instance metadata. */
+:root[data-ui='modrinth'] #library .inst-card:not(.add) {
+  grid-template-columns:44px minmax(0,1fr);
+  grid-template-rows:minmax(22px,auto) minmax(18px,auto);
+  align-content:center;
+}
+:root[data-ui='modrinth'] #library .inst-card .inst-icon {
+  grid-column:1;
+  grid-row:1 / span 2;
+}
+:root[data-ui='modrinth'] #library .inst-card .inst-name {
+  grid-column:2;
+  grid-row:1;
+  min-width:0;
+}
+:root[data-ui='modrinth'] #library .inst-card .chip {
+  grid-column:2;
+  grid-row:2;
+  justify-self:start;
+  max-width:100%;
+}
+:root[data-ui='modrinth'] #modrinth-clear-filters {
+  flex:0 0 auto;
+  min-height:32px;
+  padding:0 11px;
+  border:1px solid #416c4d;
+  border-radius:8px;
+  background:#1b2c20;
+  color:#bde9c9;
+  font:600 10px Inter,sans-serif;
+  box-shadow:none;
+}
+:root[data-ui='modrinth'] #modrinth-clear-filters:hover {
+  border-color:#72bd83;
+  background:#263d2d;
+  filter:none;
+}
+:root[data-ui='modrinth'] #modrinth-clear-filters[hidden] {
+  display:none !important;
+}
+:root[data-ui='modrinth'] #modrinth-library-filters .modrinth-filter-count {
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+@media (max-width:760px) {
+  :root[data-ui='modrinth'] #library .inst-card:not(.add) {
+    grid-template-columns:40px minmax(0,1fr);
+  }
+  :root[data-ui='modrinth'] #library .inst-card .inst-icon {
+    width:40px;
+    height:40px;
+  }
+}
+@media (max-width:560px) {
+  :root[data-ui='modrinth'] #modrinth-library-filters .modrinth-filter-count {
+    width:auto;
+    flex:1 1 100%;
+    text-align:left;
+  }
+  :root[data-ui='modrinth'] #modrinth-clear-filters {
+    margin-left:auto;
+  }
+}

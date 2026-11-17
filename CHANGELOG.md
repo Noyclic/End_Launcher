@@ -1,3 +1,12 @@
+## Modrinth pass 52 — group-aware library and readable instance metadata
+
+- Populate the Modrinth group filter from groups that are actually assigned to installed instances, with exact per-group filtering in addition to all/grouped/ungrouped views.
+- Include group names in library search, card metadata, recent-play rows and the selected-instance panel so a group is discoverable without opening its editor.
+- Keep an exact-group selection across refreshes, but reset it safely if the selected group no longer exists after instances finish loading.
+- Add a persistent-in-session “Сбросить” action that appears only while search or filters are active, and report active criteria in the live result counter tooltip.
+- Correct the Modrinth card grid so the version/loader/group metadata occupies a real second row instead of being squeezed into the reserved action column; preserve the existing Play and overflow controls.
+- Add source-level regression checks for dynamic groups, exact filtering, stale group recovery, active-filter reset, card metadata and narrow layouts.
+
 ## Prism toolbar — restore the five-command reference order
 
 - Move the existing Add Instance and Folders controls ahead of Parameters, Help and Update in Prism mode; the previous placement put Add and Folders after Help and Update.

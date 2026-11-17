@@ -155,6 +155,14 @@ check(js.includes('function closeNewInstance()')
     && js.includes("trapModalFocus(event, wrapper.querySelector('[role=\"dialog\"]'))")
     && js.includes("if (event.key === 'Escape') {\n    closeNewInstance();"),
   'Prism new-instance dialog must restore focus, trap Tab, and close on Escape');
+check(js.includes('let createInstanceOperation = null;')
+    && js.includes('function cancelCreateInstanceOperation()')
+    && js.includes('operation.cancelled = true')
+    && js.includes('assertCreateInstanceOperation(operation)')
+    && js.includes("if (operation.cancelled) return;")
+    && js.includes("$('new-instance')?.removeAttribute('aria-busy');")
+    && js.includes("setAttribute('aria-busy', 'true')"),
+  'Closing the create-instance dialog must cancel the pending workflow and prevent a late installer response from creating an instance');
 check(js.includes('let createInstanceOpenRequest = 0;')
     && js.includes('const openRequest = ++createInstanceOpenRequest;')
     && js.includes('createInstanceOpenRequest += 1;')

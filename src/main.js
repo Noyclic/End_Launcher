@@ -2804,7 +2804,12 @@ $('ni-create').addEventListener('click', async () => {
       : `Сборка «${name}» создана и подготовлена`);
   } catch (e) {
     const message = String(e);
-    if (operation.cancelled) return;
+    if (operation.cancelled) {
+      if (created?.id) {
+        try { await invoke('delete_instance', { id: created.id }); } catch {}
+      }
+      return;
+    }
     if (created) {
       $('ni-msg').textContent = `Сборка создана, но обновить интерфейс не удалось: ${message}`;
       showToast(`Сборка «${name}» создана, но список не обновлён.`, false);

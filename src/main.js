@@ -2532,8 +2532,18 @@ function restoreNewInstanceLocation() {
     createInstanceHomeMarker.parentNode.insertBefore(createInstanceWrapper, createInstanceHomeMarker.nextSibling);
   }
 }
+let createInstanceOperation = null;
+function cancelCreateInstanceOperation() {
+  if (createInstanceOperation) createInstanceOperation.cancelled = true;
+}
+function assertCreateInstanceOperation(operation) {
+  if (!operation || operation.cancelled || operation.request !== createInstanceOpenRequest) {
+    throw new Error('Создание экземпляра отменено.');
+  }
+}
 function closeNewInstance() {
   createInstanceOpenRequest += 1;
+  cancelCreateInstanceOperation();
   const wrapper = $('new-instance');
   wrapper.style.display = 'none';
   wrapper.setAttribute('aria-hidden', 'true');
@@ -2715,6 +2725,15 @@ document.addEventListener('keydown', (event) => {
 });
 $('ni-create').addEventListener('click', async () => {
   const btn = $('ni-create');
+  const operation = { request: createInstanceOpenRequest, cancelled: false };
+  createInstanceOperation = operation;
+  const setCreateProgress = (message) => {
+    if (operation.cancelled) return;
+    const status = $('ni-msg');
+    if (status) status.textContent = message;
+    const wrapper = $('new-instance');
+    wrapper?.setAttribute('aria-busy', 'true');
+  };
   const name = $('ni-name').value.trim();
   if (!name) {
     $('ni-msg').textContent = 'Введи название сборки — например, Vanilla 1.21.';
@@ -2740,11 +2759,12 @@ $('ni-create').addEventListener('click', async () => {
 
   btn.disabled = true;
   btn.textContent = 'Подготовка…';
-  $('ni-msg').textContent = loaderPreparationRequired
+  setCreateProgress(loaderPreparationRequired
     ? `Подготавливаем ${prismLoaderDescriptions[loader]?.[0] || loader} ${loaderVersion || ''}…`.trim()
-    : 'Создаём экземпляр Vanilla…';
+    : 'Создаём экземпляр Vanilla…');
 
   try {
+    assertCreateInstanceOperation(operation);
     // Prepare the loader first. If its installer fails, no instance is written,
     // so pressing Retry cannot create duplicate profiles.
     if (loaderPreparationRequired) {
@@ -2760,9 +2780,11 @@ $('ni-create').addEventListener('click', async () => {
         });
       }
       loaderPrepared = true;
+      assertCreateInstanceOperation(operation);
     }
 
-    $('ni-msg').textContent = 'Сохраняем экземпляр и выбранную версию загрузчика…';
+    setCreateProgress('Сохраняем экземпляр и выбранную версию загрузчика…');
+    assertCreateInstanceOperation(operation);
     created = await invoke('create_instance', {
       name,
       version,
@@ -2772,6 +2794,7 @@ $('ni-create').addEventListener('click', async () => {
     const groupName = currentUi === 'prism' ? String($('ni-group')?.value || '').trim() : '';
     if (created?.id && groupName) savePrismInstanceGroup(created, groupName);
 
+    assertCreateInstanceOperation(operation);
     closeNewInstance();
     $('ni-name').value = '';
     if ($('ni-group')) $('ni-group').value = '';
@@ -2781,6 +2804,7 @@ $('ni-create').addEventListener('click', async () => {
       : `Сборка «${name}» создана и подготовлена`);
   } catch (e) {
     const message = String(e);
+    if (operation.cancelled) return;
     if (created) {
       $('ni-msg').textContent = `Сборка создана, но обновить интерфейс не удалось: ${message}`;
       showToast(`Сборка «${name}» создана, но список не обновлён.`, false);
@@ -2795,8 +2819,10 @@ $('ni-create').addEventListener('click', async () => {
       showToast('Не удалось создать сборку.', false);
     }
   } finally {
+    if (createInstanceOperation === operation) createInstanceOperation = null;
     btn.disabled = false;
     btn.textContent = currentUi === 'prism' ? 'ОК' : '＋ Создать сборку';
+    $('new-instance')?.removeAttribute('aria-busy');
   }
 });
 $('mods-back').addEventListener('click', () => goPage('play'));

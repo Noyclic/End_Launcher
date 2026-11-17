@@ -159,7 +159,8 @@ check(js.includes('let createInstanceOperation = null;')
     && js.includes('function cancelCreateInstanceOperation()')
     && js.includes('operation.cancelled = true')
     && js.includes('assertCreateInstanceOperation(operation)')
-    && js.includes("if (operation.cancelled) return;")
+    && js.includes("if (operation.cancelled)")
+    && js.includes("await invoke('delete_instance', { id: created.id })")
     && js.includes("$('new-instance')?.removeAttribute('aria-busy');")
     && js.includes("setAttribute('aria-busy', 'true')"),
   'Closing the create-instance dialog must cancel the pending workflow and prevent a late installer response from creating an instance');

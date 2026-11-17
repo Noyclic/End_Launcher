@@ -993,3 +993,10 @@
 - Sharpened each style's toolbar, version/loader chips, navigation active marker, and keyboard focus ring while keeping original app controls and behavior unchanged.
 - Added compact-window refinements for horizontally stacked navigation and the cards/toolbar on these three styles.
 - Added regression checks for the style-specific selected states and responsive rules.
+
+## 2026-11-17 — Create-instance cancellation safety
+
+- Closing the new-instance dialog now cancels the pending create workflow at the UI boundary.
+- A late loader-installation response can no longer create an instance after the dialog was closed or superseded.
+- The dialog exposes a busy state during preparation and creation, while existing retry/error messages remain in-app.
+- Added a regression assertion covering cancellation, stale-operation guards, and busy-state cleanup.

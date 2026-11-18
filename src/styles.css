@@ -7605,3 +7605,17 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
     justify-content: flex-start;
   }
 }
+
+/* Modrinth library state package: loading, empty, filtered and narrow-window recovery. */
+:root[data-ui='modrinth'] #library { position:relative; min-width:0; }
+:root[data-ui='modrinth'] .modrinth-library-state { grid-column:1 / -1; min-height:180px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:28px 18px; border:1px dashed #4f8d6a88; border-radius:14px; text-align:center; background:linear-gradient(145deg,#16271f,#121a18); color:var(--el-text); }
+:root[data-ui='modrinth'] .modrinth-library-state strong { font-size:16px; }
+:root[data-ui='modrinth'] .modrinth-library-state .big-btn { margin-top:8px; min-width:190px; }
+:root[data-ui='modrinth'] .modrinth-state-icon, :root[data-ui='modrinth'] .modrinth-state-spinner { width:42px; height:42px; display:grid; place-items:center; border-radius:12px; background:#4f8d6a22; color:#a7e6bc; font-size:22px; }
+:root[data-ui='modrinth'] .modrinth-state-spinner { animation:modrinth-spin 1s linear infinite; }
+@keyframes modrinth-spin { to { transform:rotate(360deg); } }
+:root[data-ui='modrinth'] .inst-card { min-width:0; }
+:root[data-ui='modrinth'] .inst-card .inst-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+:root[data-ui='modrinth'] .inst-card .chip { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+@media (max-width:760px) { :root[data-ui='modrinth'] .modrinth-library-state { min-height:150px; border-radius:12px; } :root[data-ui='modrinth'] .inst-card .chip { max-width:calc(100vw - 52px); } }
+@media (prefers-reduced-motion:reduce) { :root[data-ui='modrinth'] .modrinth-state-spinner { animation:none; } }

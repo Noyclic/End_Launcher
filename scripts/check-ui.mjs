@@ -155,6 +155,15 @@ check(js.includes('function closeNewInstance()')
     && js.includes("trapModalFocus(event, wrapper.querySelector('[role=\"dialog\"]'))")
     && js.includes("if (event.key === 'Escape') {\n    closeNewInstance();"),
   'Prism new-instance dialog must restore focus, trap Tab, and close on Escape');
+check(/id="ni-progress" class="create-instance-progress" hidden/.test(html)
+    && /id="ni-progress-bar"/.test(html)
+    && /id="ni-progress-percent"/.test(html),
+  'Create-instance dialog must expose an in-app progress bar and percentage label');
+check(js.includes('function resetCreateProgress()')
+    && js.includes('function updateCreateProgress(message, ratio = null)')
+    && js.includes("window.__TAURI__.event.listen('install-progress'")
+    && js.includes("if (createInstanceOperation)"),
+  'Create-instance workflow must surface progress events and reject duplicate submissions');
 check(js.includes('let createInstanceOperation = null;')
     && js.includes('function cancelCreateInstanceOperation()')
     && js.includes('operation.cancelled = true')

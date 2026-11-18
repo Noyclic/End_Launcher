@@ -2588,9 +2588,46 @@ function assertCreateInstanceOperation(operation) {
     throw new Error('Создание экземпляра отменено.');
   }
 }
+function resetCreateProgress() {
+  const box = $('ni-progress');
+  const label = $('ni-progress-label');
+  const percent = $('ni-progress-percent');
+  const bar = $('ni-progress-bar');
+  const track = bar?.parentElement;
+  if (box) box.hidden = true;
+  if (label) label.textContent = 'Готово к созданию';
+  if (percent) percent.textContent = '';
+  if (bar) bar.style.width = '0%';
+  track?.classList.remove('indeterminate');
+  track?.setAttribute('aria-valuenow', '0');
+}
+function updateCreateProgress(message, ratio = null) {
+  const box = $('ni-progress');
+  const label = $('ni-progress-label');
+  const percent = $('ni-progress-percent');
+  const bar = $('ni-progress-bar');
+  const track = bar?.parentElement;
+  const wrapper = $('new-instance');
+  if (box) box.hidden = false;
+  if (label) label.textContent = message;
+  if (ratio == null) {
+    if (percent) percent.textContent = '';
+    track?.classList.add('indeterminate');
+    track?.setAttribute('aria-valuenow', '0');
+    if (bar) bar.style.width = '38%';
+  } else {
+    const value = Math.max(0, Math.min(100, Math.round(ratio * 100)));
+    if (percent) percent.textContent = value + '%';
+    track?.classList.remove('indeterminate');
+    track?.setAttribute('aria-valuenow', String(value));
+    if (bar) bar.style.width = value + '%';
+  }
+  wrapper?.setAttribute('aria-busy', 'true');
+}
 function closeNewInstance() {
   createInstanceOpenRequest += 1;
   cancelCreateInstanceOperation();
+  resetCreateProgress();
   const wrapper = $('new-instance');
   wrapper.style.display = 'none';
   wrapper.setAttribute('aria-hidden', 'true');
@@ -2770,17 +2807,26 @@ document.addEventListener('keydown', (event) => {
   }
   trapModalFocus(event, wrapper.querySelector('[role="dialog"]'));
 });
+window.__TAURI__.event.listen('install-progress', ({ payload }) => {
+  const operation = createInstanceOperation;
+  if (!operation || operation.cancelled) return;
+  const stage = payload?.stage || '';
+  const done = Number(payload?.done);
+  const total = Number(payload?.total);
+  const label = STAGES[stage] || stage || 'загрузчик модов';
+  if (Number.isFinite(done) && Number.isFinite(total) && total > 0) {
+    updateCreateProgress('Подготавливаем ' + label + '…', done / total);
+  } else {
+    updateCreateProgress('Подготавливаем ' + label + '…');
+  }
+});
+
 $('ni-create').addEventListener('click', async () => {
   const btn = $('ni-create');
-  const operation = { request: createInstanceOpenRequest, cancelled: false };
-  createInstanceOperation = operation;
-  const setCreateProgress = (message) => {
-    if (operation.cancelled) return;
-    const status = $('ni-msg');
-    if (status) status.textContent = message;
-    const wrapper = $('new-instance');
-    wrapper?.setAttribute('aria-busy', 'true');
-  };
+  if (createInstanceOperation) {
+    $('ni-msg').textContent = 'Создание уже выполняется. Дождись завершения или закрой окно для отмены.';
+    return;
+  }
   const name = $('ni-name').value.trim();
   if (!name) {
     $('ni-msg').textContent = 'Введи название сборки — например, Vanilla 1.21.';
@@ -2796,6 +2842,15 @@ $('ni-create').addEventListener('click', async () => {
     $('ni-loader-version-rows')?.focus();
     return;
   }
+
+  const operation = { request: createInstanceOpenRequest, cancelled: false };
+  createInstanceOperation = operation;
+  const setCreateProgress = (message, ratio = null) => {
+    if (operation.cancelled) return;
+    const status = $('ni-msg');
+    if (status) status.textContent = message;
+    updateCreateProgress(message, ratio);
+  };
 
   const version = $('ni-version').value;
   const loader = $('ni-loader').value;
@@ -2875,6 +2930,7 @@ $('ni-create').addEventListener('click', async () => {
     btn.disabled = false;
     btn.textContent = currentUi === 'prism' ? 'ОК' : '＋ Создать сборку';
     $('new-instance')?.removeAttribute('aria-busy');
+    if ($('new-instance')?.getAttribute('aria-hidden') !== 'false') resetCreateProgress();
   }
 });
 $('mods-back').addEventListener('click', () => goPage('play'));

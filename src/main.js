@@ -550,19 +550,31 @@ function renderInstanceSelect() {
 
 async function loadInstances() {
   // -> Rust: instances.rs :: list_instances() / get_active_instance()
-  instances = await invoke('list_instances');
-  instancesLoaded = true;
-  const a = await invoke('get_active_instance');
-  activeId = instances.some((i) => i.id === a) ? a : (instances[0] ? instances[0].id : null);
-  if (activeId && activeId !== a) await invoke('set_active_instance', { id: activeId }).catch(() => {});
-  renderInstanceSelect();
+  instancesLoaded = false;
   renderLibrary();
-  applyInstanceToMods();
-  updatePlayBtn();
-  showJavaStatus();
-  renderHomeStats();
-  ensureHomeModsLoaded();
-  if (currentUi === 'modrinth') void loadHomeModpacks();
+  try {
+    instances = await invoke('list_instances');
+    const a = await invoke('get_active_instance');
+    activeId = instances.some((i) => i.id === a) ? a : (instances[0] ? instances[0].id : null);
+    if (activeId && activeId !== a) await invoke('set_active_instance', { id: activeId }).catch(() => {});
+    instancesLoaded = true;
+    renderInstanceSelect();
+    renderLibrary();
+    applyInstanceToMods();
+    updatePlayBtn();
+    showJavaStatus();
+    renderHomeStats();
+    ensureHomeModsLoaded();
+    if (currentUi === 'modrinth') void loadHomeModpacks();
+  } catch (error) {
+    instances = [];
+    activeId = null;
+    instancesLoaded = true;
+    renderInstanceSelect();
+    renderLibrary();
+    showToast('Не удалось загрузить сборки. Проверь подключение и повтори попытку.', false);
+    console.error(error);
+  }
 }
 
 async function setActive(id) {
@@ -1841,6 +1853,40 @@ function syncModrinthGroupFilterOptions() {
   select.value = modrinthGroupFilter;
 }
 
+function renderModrinthLibraryState(shownCount) {
+  const box = $('library');
+  if (!box || currentUi !== 'modrinth') return;
+  box.querySelector('.modrinth-library-state')?.remove();
+  if (!instancesLoaded) {
+    const state = mk('div', 'modrinth-library-state is-loading');
+    state.setAttribute('role', 'status');
+    state.setAttribute('aria-live', 'polite');
+    state.append(mk('span', 'modrinth-state-spinner', '⟳'), mk('strong', '', 'Загрузка сборок…'), mk('span', 'dim small', 'Получаем локальную библиотеку.'));
+    box.appendChild(state);
+    return;
+  }
+  if (!instances.length) {
+    const state = mk('div', 'modrinth-library-state is-empty');
+    state.append(mk('span', 'modrinth-state-icon', '+'), mk('strong', '', 'Библиотека пока пуста'), mk('span', 'dim small', 'Создай новый экземпляр или импортируй сборку .mrpack.'));
+    const add = mk('button', 'big-btn', '＋ Добавить экземпляр');
+    add.type = 'button';
+    add.addEventListener('click', () => $('library-add')?.click());
+    state.appendChild(add);
+    box.appendChild(state);
+    return;
+  }
+  if (!shownCount) {
+    const state = mk('div', 'modrinth-library-state is-filtered');
+    state.setAttribute('role', 'status');
+    state.append(mk('span', 'modrinth-state-icon', '⌕'), mk('strong', '', 'Ничего не найдено'), mk('span', 'dim small', 'Измени запрос или сбрось фильтры.'));
+    const reset = mk('button', 'big-btn', 'Сбросить фильтры');
+    reset.type = 'button';
+    reset.addEventListener('click', clearModrinthLibraryFilters);
+    state.appendChild(reset);
+    box.appendChild(state);
+  }
+}
+
 function syncModrinthFilterChrome(shownCount) {
   const count = $('modrinth-filter-count');
   const reset = $('modrinth-clear-filters');
@@ -1965,6 +2011,7 @@ function renderLibrary() {
   let ci = 0;
   const shownCount = visibleInstances.length;
   syncModrinthFilterChrome(shownCount);
+  renderModrinthLibraryState(shownCount);
   let lastGroup = null;
   for (const inst of visibleInstances) {
     let currentGroupLabel = '';

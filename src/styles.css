@@ -7619,3 +7619,13 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 :root[data-ui='modrinth'] .inst-card .chip { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 @media (max-width:760px) { :root[data-ui='modrinth'] .modrinth-library-state { min-height:150px; border-radius:12px; } :root[data-ui='modrinth'] .inst-card .chip { max-width:calc(100vw - 52px); } }
 @media (prefers-reduced-motion:reduce) { :root[data-ui='modrinth'] .modrinth-state-spinner { animation:none; } }
+
+
+/* Create-instance workflow feedback: visible, cancellable, and contained in the modal. */
+.create-instance-progress{margin-top:10px;padding:10px 12px;border:1px solid var(--el-line);border-radius:8px;background:rgba(0,0,0,.14)}
+.create-instance-progress-head{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:.82rem}
+.create-instance-progress-track{height:6px;margin-top:7px;overflow:hidden;border-radius:999px;background:rgba(255,255,255,.09)}
+.create-instance-progress-track>span{display:block;height:100%;width:0;transition:width .2s ease;background:var(--el-accent)}
+.create-instance-progress-track.indeterminate>span{width:38%;animation:create-progress-indeterminate 1.15s ease-in-out infinite}
+@keyframes create-progress-indeterminate{0%{transform:translateX(-110%)}100%{transform:translateX(290%)}}
+@media (prefers-reduced-motion: reduce){.create-instance-progress-track.indeterminate>span{animation:none;width:100%;opacity:.75}}

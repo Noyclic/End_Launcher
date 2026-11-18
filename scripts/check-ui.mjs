@@ -1574,3 +1574,6 @@ check(html.includes('id="p2p-diagnostics-btn"')
     && rustMain.includes('p2p::p2p_diagnostics,')
     && repairCss.includes('.p2p-diagnostics'),
   'P2P diagnostics must expose a working button, report relay/invite/round-trip checks, and keep the current room untouched');
+
+check(js.includes('function renderModrinthLibraryState(shownCount)') && js.includes('Не удалось загрузить сборки') && js.includes('Сбросить фильтры'), 'Modrinth library must expose loading, empty/filtered recovery and retry-safe failure states');
+check(css.includes('modrinth-library-state') && css.includes('text-overflow:ellipsis'), 'Modrinth library states and long-name truncation must remain responsive');

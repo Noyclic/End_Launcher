@@ -332,6 +332,10 @@
                       <div class="create-instance-mode" data-create-panel="technic" hidden>
                         <div class="create-provider-card"><div class="create-provider-symbol">T</div><h3>Модпаки Technic</h3><p>Открой каталог Technic. End Launcher не загружает пакеты Technic автоматически; для совместимых экспортов используй «Импорт».</p><button type="button" data-provider-url="https://www.technicpack.net/modpacks">Открыть каталог Technic ↗</button></div>
                       </div>
+                      <div id="ni-progress" class="create-instance-progress" hidden aria-live="polite">
+                        <div class="create-instance-progress-head"><span id="ni-progress-label">Готово к созданию</span><span id="ni-progress-percent" class="dim small"></span></div>
+                        <div class="create-instance-progress-track" role="progressbar" aria-label="Прогресс создания экземпляра" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="ni-progress-bar"></span></div>
+                      </div>
                       <p class="mono small" id="ni-msg" role="status" aria-live="polite"></p>
                     </div>
                   </div>

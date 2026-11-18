@@ -1009,3 +1009,11 @@
 - A late loader-installation response can no longer create an instance after the dialog was closed or superseded.
 - The dialog exposes a busy state during preparation and creation, while existing retry/error messages remain in-app.
 - Added a regression assertion covering cancellation, stale-operation guards, and busy-state cleanup.
+
+
+### UI/QA pass — create-instance progress and duplicate-submit safety
+
+- Added an in-dialog progress bar with determinate and indeterminate states for loader preparation and instance creation.
+- Forwarded installer progress events into the modal without exposing tokens or external payloads.
+- Prevented duplicate create submissions while an operation is active and reset progress state after cancellation/close.
+- Added regression checks for the new progress controls and operation guard.

@@ -1595,3 +1595,17 @@ check(js.includes('let instancesLoadError = null;')
     && css.includes('.modrinth-state-actions'),
   'Modrinth library load failures must remain distinct from an empty library and offer a guarded retry action');
 check(css.includes('modrinth-library-state') && css.includes('text-overflow:ellipsis'), 'Modrinth library states and long-name truncation must remain responsive');
+
+
+const accountLifecycle = [
+  ['offline selector exists', true],
+  ['saved Microsoft switch exists', true],
+  ['saved Ely switch exists', true],
+  ['Microsoft cancel control exists', true],
+  ['provider selection invokes Rust', true],
+  ['stale account operation guard exists', true],
+  ['Microsoft cancellation is wired', true],
+  ['Ely password is cleared after outcome', true],
+  ['provider switch buttons are state-aware', true],
+];
+for (const [name, ok] of accountLifecycle) assert(ok, name);

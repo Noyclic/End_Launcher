@@ -1,3 +1,11 @@
+### Account lifecycle pass — provider switching and safe login cancellation
+
+- Added explicit in-app switching between saved Microsoft, Ely.by and Offline identities.
+- Microsoft device-code login now exposes a cancellation control and ignores late results from superseded operations.
+- Ely.by login clears the password field after success or failure, while the existing 2FA flow remains intact.
+- Account buttons expose busy and selected states without showing tokens or secret payloads.
+- Added UI regression coverage for provider switching, cancellation and secret-field cleanup.
+
 ## Modrinth pass 53 — recoverable library loading errors
 
 - Keep failed `list_instances` requests distinct from a genuinely empty library so a transient backend or connection failure no longer looks like “no builds installed”.

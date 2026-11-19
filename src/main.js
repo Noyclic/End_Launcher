@@ -318,6 +318,43 @@ function currentName() {
   if (accounts.active === 'ely' && accounts.ely) return accounts.ely.username;
   return settings.username;
 }
+let accountOperation = null;
+function setAccountMessage(text, target = 'acc-msg') {
+  const el = $(target);
+  if (el) el.textContent = text || '';
+}
+function beginAccountOperation(kind) {
+  const op = { kind, id: Symbol(kind), cancelled: false };
+  accountOperation = op;
+  return op;
+}
+function isCurrentAccountOperation(op) {
+  return accountOperation === op && !op.cancelled;
+}
+function cancelAccountOperation(message = 'Операция входа отменена') {
+  if (!accountOperation) return false;
+  accountOperation.cancelled = true;
+  accountOperation = null;
+  setAccountMessage(message, 'ms-code');
+  $('ms-login')?.removeAttribute('aria-busy');
+  $('ms-login')?.removeAttribute('disabled');
+  $('ms-cancel')?.setAttribute('hidden', '');
+  return true;
+}
+async function setActiveAccount(kind, close = true) {
+  const btn = kind === 'microsoft' ? $('account-use-microsoft') : kind === 'ely' ? $('account-use-ely') : $('account-offline-btn');
+  if (btn) btn.disabled = true;
+  try {
+    await invoke('set_active_account', { kind });
+    setAccountMessage(kind === 'offline' ? '✓ Офлайн-режим выбран' : `✓ ${KIND_LABEL[kind]} выбран`);
+    await refreshAccounts();
+    if (close) closeAccountModal();
+  } catch (error) {
+    setAccountMessage(String(error));
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
 function showAccount() {
   const name = currentName();
   $('acc-name').textContent = name;
@@ -332,6 +369,9 @@ function showAccount() {
   $('ms-logout').style.display = accounts.microsoft ? '' : 'none';
   $('ely-form').style.display = accounts.ely ? 'none' : '';
   $('ely-logout').style.display = accounts.ely ? '' : 'none';
+  $('account-use-microsoft').hidden = !(accounts.microsoft && accounts.active !== 'microsoft');
+  $('account-use-ely').hidden = !(accounts.ely && accounts.active !== 'ely');
+  $('account-offline-btn').textContent = accounts.active === 'offline' ? '✓ Офлайн-режим выбран' : '👤 Играть офлайн';
   syncTlNick();
 }
 async function refreshAccounts() {
@@ -343,26 +383,17 @@ refreshAccounts();
 invoke('get_ms_client_id').then((id) => { $('ms-client-id').value = id || ''; });
 
 // Выбор аккаунта открывается с кнопки пользователя; офлайн тоже выбирается здесь.
-$('account-offline-btn').addEventListener('click', async () => {
-  const btn = $('account-offline-btn');
-  btn.disabled = true;
-  try {
-    await invoke('set_active_account', { kind: 'offline' });
-    $('acc-msg').textContent = '✓ Офлайн-режим выбран';
-    await refreshAccounts();
-    closeAccountModal();
-  } catch (e) {
-    $('acc-msg').textContent = String(e);
-  } finally {
-    btn.disabled = false;
-  }
-});
+$('account-offline-btn').addEventListener('click', () => setActiveAccount('offline'));
+$('account-use-microsoft').addEventListener('click', () => setActiveAccount('microsoft'));
+$('account-use-ely').addEventListener('click', () => setActiveAccount('ely'));
 
 // ── Ely.by ──
 $('ely-login-btn').addEventListener('click', async () => {
   const msg = $('acc-msg');
   const btn = $('ely-login-btn');
+  const op = beginAccountOperation('ely');
   btn.disabled = true;
+  btn.setAttribute('aria-busy', 'true');
   try {
     // -> Rust: auth.rs :: ely_login(login, password, totp) -> {needs_2fa, account}
     const r = await invoke('ely_login', {
@@ -378,12 +409,17 @@ $('ely-login-btn').addEventListener('click', async () => {
       $('ely-totp').value = '';
       $('ely-totp').style.display = 'none';
       msg.textContent = '✓ Вход в Ely.by выполнен';
-      await refreshAccounts();
+      if (isCurrentAccountOperation(op)) await refreshAccounts();
     }
   } catch (e) {
-    msg.textContent = String(e);
+    if (isCurrentAccountOperation(op)) msg.textContent = String(e);
   } finally {
-    btn.disabled = false;
+    $('ely-pass').value = '';
+    if (isCurrentAccountOperation(op)) {
+      btn.disabled = false;
+      btn.removeAttribute('aria-busy');
+      accountOperation = null;
+    }
   }
 });
 $('ely-logout').addEventListener('click', async () => {
@@ -403,9 +439,17 @@ $('ms-save-id').addEventListener('click', async () => {
   }
 });
 $('ms-login').addEventListener('click', async () => {
+  if (accountOperation) {
+    setAccountMessage('Сначала заверши или отмени текущую операцию входа', 'ms-code');
+    return;
+  }
   const out = $('ms-code');
   const btn = $('ms-login');
+  const cancel = $('ms-cancel');
+  const op = beginAccountOperation('microsoft');
   btn.disabled = true;
+  btn.setAttribute('aria-busy', 'true');
+  cancel.hidden = false;
   try {
     // -> Rust: auth.rs :: ms_login_start() — получить код для ввода на странице Microsoft
     const dc = await invoke('ms_login_start');
@@ -418,14 +462,21 @@ $('ms-login').addEventListener('click', async () => {
       interval: dc.interval,
       expiresIn: dc.expires_in,
     });
+    if (!isCurrentAccountOperation(op)) return;
     out.textContent = '✓ Вход выполнен';
     await refreshAccounts();
   } catch (e) {
-    out.textContent = String(e);
+    if (isCurrentAccountOperation(op)) out.textContent = String(e);
   } finally {
-    btn.disabled = false;
+    if (isCurrentAccountOperation(op)) {
+      btn.disabled = false;
+      btn.removeAttribute('aria-busy');
+      cancel.hidden = true;
+      accountOperation = null;
+    }
   }
 });
+$('ms-cancel').addEventListener('click', () => cancelAccountOperation());
 $('ms-logout').addEventListener('click', async () => {
   await invoke('ms_logout');
   $('ms-code').textContent = '';

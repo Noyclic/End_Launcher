@@ -7611,6 +7611,11 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 :root[data-ui='modrinth'] .modrinth-library-state { grid-column:1 / -1; min-height:180px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:28px 18px; border:1px dashed #4f8d6a88; border-radius:14px; text-align:center; background:linear-gradient(145deg,#16271f,#121a18); color:var(--el-text); }
 :root[data-ui='modrinth'] .modrinth-library-state strong { font-size:16px; }
 :root[data-ui='modrinth'] .modrinth-library-state .big-btn { margin-top:8px; min-width:190px; }
+:root[data-ui='modrinth'] .modrinth-library-state.is-error { border-color:#c97a7a88; background:linear-gradient(145deg,#2a191b,#181519); }
+:root[data-ui='modrinth'] .modrinth-library-state.is-error .modrinth-state-icon { background:#b95c5c2b; color:#ffb4b4; }
+:root[data-ui='modrinth'] .modrinth-state-actions { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:8px; }
+:root[data-ui='modrinth'] .modrinth-state-actions .ghost { min-width:170px; }
+@media (max-width:520px) { :root[data-ui='modrinth'] .modrinth-state-actions { width:100%; flex-direction:column; } :root[data-ui='modrinth'] .modrinth-state-actions button { width:100%; } }
 :root[data-ui='modrinth'] .modrinth-state-icon, :root[data-ui='modrinth'] .modrinth-state-spinner { width:42px; height:42px; display:grid; place-items:center; border-radius:12px; background:#4f8d6a22; color:#a7e6bc; font-size:22px; }
 :root[data-ui='modrinth'] .modrinth-state-spinner { animation:modrinth-spin 1s linear infinite; }
 @keyframes modrinth-spin { to { transform:rotate(360deg); } }

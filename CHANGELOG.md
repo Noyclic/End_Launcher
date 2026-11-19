@@ -1,3 +1,10 @@
+## Modrinth pass 53 — recoverable library loading errors
+
+- Keep failed `list_instances` requests distinct from a genuinely empty library so a transient backend or connection failure no longer looks like “no builds installed”.
+- Add an in-library `↻ Повторить` action with a guarded in-progress label, plus a secondary `＋ Добавить экземпляр` path that remains available without hiding the error.
+- Style the error state for desktop and narrow mobile layouts with contained actions, readable wrapping and no horizontal overflow.
+- Extend the source-level UI regression check for error state, retry wiring and the new responsive action container.
+
 ## Modrinth pass 52 — group-aware library and readable instance metadata
 
 - Populate the Modrinth group filter from groups that are actually assigned to installed instances, with exact per-group filtering in addition to all/grouped/ungrouped views.

@@ -436,6 +436,7 @@ $('ms-logout').addEventListener('click', async () => {
 const LOADER_NAME = { vanilla: 'Vanilla', fabric: 'Fabric', quilt: 'Quilt', forge: 'Forge', neoforge: 'NeoForge' };
 let instances = [];
 let instancesLoaded = false;
+let instancesLoadError = null;
 let activeId = null;
 let installedCache = [];
 
@@ -550,10 +551,12 @@ function renderInstanceSelect() {
 
 async function loadInstances() {
   // -> Rust: instances.rs :: list_instances() / get_active_instance()
+  instancesLoadError = null;
   instancesLoaded = false;
   renderLibrary();
   try {
     instances = await invoke('list_instances');
+    instancesLoadError = null;
     const a = await invoke('get_active_instance');
     activeId = instances.some((i) => i.id === a) ? a : (instances[0] ? instances[0].id : null);
     if (activeId && activeId !== a) await invoke('set_active_instance', { id: activeId }).catch(() => {});
@@ -569,6 +572,7 @@ async function loadInstances() {
   } catch (error) {
     instances = [];
     activeId = null;
+    instancesLoadError = error;
     instancesLoaded = true;
     renderInstanceSelect();
     renderLibrary();
@@ -1862,6 +1866,30 @@ function renderModrinthLibraryState(shownCount) {
     state.setAttribute('role', 'status');
     state.setAttribute('aria-live', 'polite');
     state.append(mk('span', 'modrinth-state-spinner', '⟳'), mk('strong', '', 'Загрузка сборок…'), mk('span', 'dim small', 'Получаем локальную библиотеку.'));
+    box.appendChild(state);
+    return;
+  }
+  if (instancesLoadError) {
+    const state = mk('div', 'modrinth-library-state is-error');
+    state.setAttribute('role', 'alert');
+    state.append(
+      mk('span', 'modrinth-state-icon', '!'),
+      mk('strong', '', 'Не удалось загрузить библиотеку'),
+      mk('span', 'dim small', 'Локальные сборки не получены. Проверь подключение к данным лаунчера и повтори попытку.')
+    );
+    const actions = mk('div', 'modrinth-state-actions');
+    const retry = mk('button', 'big-btn', '↻ Повторить');
+    retry.type = 'button';
+    retry.addEventListener('click', () => {
+      retry.disabled = true;
+      retry.textContent = 'Повторяем…';
+      void loadInstances();
+    });
+    const add = mk('button', 'ghost', '＋ Добавить экземпляр');
+    add.type = 'button';
+    add.addEventListener('click', () => $('library-add')?.click());
+    actions.append(retry, add);
+    state.appendChild(actions);
     box.appendChild(state);
     return;
   }

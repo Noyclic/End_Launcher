@@ -1585,4 +1585,13 @@ check(html.includes('id="p2p-diagnostics-btn"')
   'P2P diagnostics must expose a working button, report relay/invite/round-trip checks, and keep the current room untouched');
 
 check(js.includes('function renderModrinthLibraryState(shownCount)') && js.includes('Не удалось загрузить сборки') && js.includes('Сбросить фильтры'), 'Modrinth library must expose loading, empty/filtered recovery and retry-safe failure states');
+check(js.includes('let instancesLoadError = null;')
+    && js.includes('instancesLoadError = error;')
+    && js.includes("if (instancesLoadError) {")
+    && js.includes("'↻ Повторить'")
+    && js.includes("'Повторяем…'")
+    && js.includes('void loadInstances();')
+    && css.includes('.modrinth-library-state.is-error')
+    && css.includes('.modrinth-state-actions'),
+  'Modrinth library load failures must remain distinct from an empty library and offer a guarded retry action');
 check(css.includes('modrinth-library-state') && css.includes('text-overflow:ellipsis'), 'Modrinth library states and long-name truncation must remain responsive');

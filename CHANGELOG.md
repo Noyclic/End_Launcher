@@ -1,3 +1,10 @@
+### Modrinth pass 54 — race-safe library reload and retry feedback
+
+- Guarded overlapping Modrinth library requests with a request generation so stale responses cannot overwrite a newer retry.
+- Preserved the selected instance across successful reloads whenever that instance still exists.
+- Added a distinct retry-loading state with busy feedback, while retaining the existing error, empty and filtered recovery paths.
+- Added regression coverage for stale-response protection, retry state and narrow-window message containment.
+
 ### Account lifecycle pass — provider switching and safe login cancellation
 
 - Added explicit in-app switching between saved Microsoft, Ely.by and Offline identities.

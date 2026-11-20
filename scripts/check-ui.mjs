@@ -1625,3 +1625,16 @@ check(css.includes('.modrinth-library-state.is-loading.is-retry')
     && css.includes('.modrinth-library-state button:disabled')
     && css.includes('overflow-wrap:anywhere'),
   'Modrinth retry and long-message states must remain visually contained on narrow layouts');
+
+check(js.includes('let instancesLoadStale = false;')
+    && js.includes('const previousInstances = instances.slice();')
+    && js.includes('instances = previousInstances;')
+    && js.includes('instancesLoadStale = previousInstances.length > 0;'),
+  'Modrinth reload failures must preserve the last known library instead of replacing it with an empty list');
+check(js.includes("is-stale")
+    && js.includes('Показана последняя сохранённая библиотека')
+    && js.includes('Текущие сборки оставлены на экране'),
+  'Stale Modrinth libraries need an explicit recoverable in-app status and retry path');
+check(css.includes('.modrinth-library-state.is-stale')
+    && css.includes('.modrinth-library-state.is-stale .modrinth-state-icon'),
+  'Stale Modrinth state must have a contained visual treatment distinct from a hard error');

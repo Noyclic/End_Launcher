@@ -1,3 +1,10 @@
+### Modrinth pass 55 — preserve the last known library during reload failures
+
+- A transient failure while refreshing the local instance list no longer replaces a previously loaded library with an empty screen.
+- The selected instance is preserved when it still exists in the last known snapshot; otherwise the first known instance remains selected.
+- Modrinth shows a distinct stale-data recovery state with an in-app retry action while keeping existing cards visible.
+- Added regression coverage for stale snapshot retention and its responsive visual treatment.
+
 ### Modrinth pass 54 — race-safe library reload and retry feedback
 
 - Guarded overlapping Modrinth library requests with a request generation so stale responses cannot overwrite a newer retry.

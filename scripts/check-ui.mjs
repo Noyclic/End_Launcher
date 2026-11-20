@@ -1609,3 +1609,19 @@ const accountLifecycle = [
   ['provider switch buttons are state-aware', true],
 ];
 for (const [name, ok] of accountLifecycle) assert(ok, name);
+
+
+check(js.includes('let instancesLoadRequestId = 0;')
+    && js.includes('const requestId = ++instancesLoadRequestId;')
+    && js.includes('if (requestId !== instancesLoadRequestId) return;')
+    && js.includes('const previousActiveId = activeId;'),
+  'Modrinth reloads must ignore stale responses and preserve the selected instance when it still exists');
+check(js.includes('let instancesLoadRetrying = false;')
+    && js.includes('instancesLoadRetrying = Boolean(instancesLoaded && instancesLoadError);')
+    && js.includes('Повторяем загрузку…')
+    && js.includes("retry.setAttribute('aria-busy', 'true')"),
+  'Modrinth retry must expose a distinct busy state instead of allowing overlapping requests');
+check(css.includes('.modrinth-library-state.is-loading.is-retry')
+    && css.includes('.modrinth-library-state button:disabled')
+    && css.includes('overflow-wrap:anywhere'),
+  'Modrinth retry and long-message states must remain visually contained on narrow layouts');

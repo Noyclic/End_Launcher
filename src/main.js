@@ -490,6 +490,7 @@ let instancesLoaded = false;
 let instancesLoadError = null;
 let instancesLoadRequestId = 0;
 let instancesLoadRetrying = false;
+let instancesLoadStale = false;
 let activeId = null;
 let installedCache = [];
 
@@ -606,6 +607,7 @@ async function loadInstances() {
   // -> Rust: instances.rs :: list_instances() / get_active_instance()
   const requestId = ++instancesLoadRequestId;
   const previousActiveId = activeId;
+  const previousInstances = instances.slice();
   instancesLoadRetrying = Boolean(instancesLoaded && instancesLoadError);
   instancesLoadError = null;
   instancesLoaded = false;
@@ -617,6 +619,7 @@ async function loadInstances() {
     if (requestId !== instancesLoadRequestId) return;
     instances = Array.isArray(nextInstances) ? nextInstances : [];
     instancesLoadError = null;
+    instancesLoadStale = false;
     activeId = instances.some((i) => i.id === previousActiveId)
       ? previousActiveId
       : (instances.some((i) => i.id === backendActiveId) ? backendActiveId : (instances[0] ? instances[0].id : null));
@@ -634,9 +637,14 @@ async function loadInstances() {
     if (currentUi === 'modrinth') void loadHomeModpacks();
   } catch (error) {
     if (requestId !== instancesLoadRequestId) return;
-    instances = [];
-    activeId = null;
+    // Keep the last known library visible during a transient reload failure.
+    // This avoids turning a recoverable backend hiccup into a destructive-looking empty state.
+    instances = previousInstances;
+    activeId = previousInstances.some((item) => String(item.id) === String(previousActiveId))
+      ? previousActiveId
+      : (previousInstances[0]?.id || null);
     instancesLoadError = error;
+    instancesLoadStale = previousInstances.length > 0;
     instancesLoaded = true;
     instancesLoadRetrying = false;
     renderInstanceSelect();
@@ -1935,12 +1943,14 @@ function renderModrinthLibraryState(shownCount) {
     return;
   }
   if (instancesLoadError) {
-    const state = mk('div', 'modrinth-library-state is-error');
+    const state = mk('div', `modrinth-library-state is-error${instancesLoadStale ? ' is-stale' : ''}`);
     state.setAttribute('role', 'alert');
     state.append(
-      mk('span', 'modrinth-state-icon', '!'),
-      mk('strong', '', 'Не удалось загрузить библиотеку'),
-      mk('span', 'dim small', 'Локальные сборки не получены. Проверь подключение к данным лаунчера и повтори попытку.')
+      mk('span', 'modrinth-state-icon', instancesLoadStale ? '↻' : '!'),
+      mk('strong', '', instancesLoadStale ? 'Показана последняя сохранённая библиотека' : 'Не удалось загрузить библиотеку'),
+      mk('span', 'dim small', instancesLoadStale
+        ? 'Обновление не удалось. Текущие сборки оставлены на экране; повтори попытку, когда backend снова ответит.'
+        : 'Локальные сборки не получены. Повтори попытку или создай новый экземпляр.')
     );
     const actions = mk('div', 'modrinth-state-actions');
     const retry = mk('button', 'big-btn', '↻ Повторить');

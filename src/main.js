@@ -488,6 +488,8 @@ const LOADER_NAME = { vanilla: 'Vanilla', fabric: 'Fabric', quilt: 'Quilt', forg
 let instances = [];
 let instancesLoaded = false;
 let instancesLoadError = null;
+let instancesLoadRequestId = 0;
+let instancesLoadRetrying = false;
 let activeId = null;
 let installedCache = [];
 
@@ -602,16 +604,26 @@ function renderInstanceSelect() {
 
 async function loadInstances() {
   // -> Rust: instances.rs :: list_instances() / get_active_instance()
+  const requestId = ++instancesLoadRequestId;
+  const previousActiveId = activeId;
+  instancesLoadRetrying = Boolean(instancesLoaded && instancesLoadError);
   instancesLoadError = null;
   instancesLoaded = false;
   renderLibrary();
   try {
-    instances = await invoke('list_instances');
+    const nextInstances = await invoke('list_instances');
+    if (requestId !== instancesLoadRequestId) return;
+    const backendActiveId = await invoke('get_active_instance');
+    if (requestId !== instancesLoadRequestId) return;
+    instances = Array.isArray(nextInstances) ? nextInstances : [];
     instancesLoadError = null;
-    const a = await invoke('get_active_instance');
-    activeId = instances.some((i) => i.id === a) ? a : (instances[0] ? instances[0].id : null);
-    if (activeId && activeId !== a) await invoke('set_active_instance', { id: activeId }).catch(() => {});
+    activeId = instances.some((i) => i.id === previousActiveId)
+      ? previousActiveId
+      : (instances.some((i) => i.id === backendActiveId) ? backendActiveId : (instances[0] ? instances[0].id : null));
+    if (activeId && activeId !== backendActiveId) await invoke('set_active_instance', { id: activeId }).catch(() => {});
+    if (requestId !== instancesLoadRequestId) return;
     instancesLoaded = true;
+    instancesLoadRetrying = false;
     renderInstanceSelect();
     renderLibrary();
     applyInstanceToMods();
@@ -621,10 +633,12 @@ async function loadInstances() {
     ensureHomeModsLoaded();
     if (currentUi === 'modrinth') void loadHomeModpacks();
   } catch (error) {
+    if (requestId !== instancesLoadRequestId) return;
     instances = [];
     activeId = null;
     instancesLoadError = error;
     instancesLoaded = true;
+    instancesLoadRetrying = false;
     renderInstanceSelect();
     renderLibrary();
     showToast('Не удалось загрузить сборки. Проверь подключение и повтори попытку.', false);
@@ -1913,10 +1927,10 @@ function renderModrinthLibraryState(shownCount) {
   if (!box || currentUi !== 'modrinth') return;
   box.querySelector('.modrinth-library-state')?.remove();
   if (!instancesLoaded) {
-    const state = mk('div', 'modrinth-library-state is-loading');
+    const state = mk('div', `modrinth-library-state is-loading${instancesLoadRetrying ? ' is-retry' : ''}`);
     state.setAttribute('role', 'status');
     state.setAttribute('aria-live', 'polite');
-    state.append(mk('span', 'modrinth-state-spinner', '⟳'), mk('strong', '', 'Загрузка сборок…'), mk('span', 'dim small', 'Получаем локальную библиотеку.'));
+    state.append(mk('span', 'modrinth-state-spinner', '⟳'), mk('strong', '', instancesLoadRetrying ? 'Повторяем загрузку…' : 'Загрузка сборок…'), mk('span', 'dim small', instancesLoadRetrying ? 'Проверяем библиотеку ещё раз.' : 'Получаем локальную библиотеку.'));
     box.appendChild(state);
     return;
   }
@@ -1933,6 +1947,7 @@ function renderModrinthLibraryState(shownCount) {
     retry.type = 'button';
     retry.addEventListener('click', () => {
       retry.disabled = true;
+      retry.setAttribute('aria-busy', 'true');
       retry.textContent = 'Повторяем…';
       void loadInstances();
     });

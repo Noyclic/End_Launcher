@@ -1,3 +1,10 @@
+### Modrinth pass 56 — resilient search chrome and keyboard recovery
+
+- Added a visible clear-search control that appears only while a Modrinth library query is active and returns focus to the search field after clearing.
+- Added `/` to focus the Modrinth search field and `Escape` to clear the active query without disturbing the existing filter/sort state.
+- Kept search behavior scoped to Modrinth and contained the search row on narrow screens so the clear action cannot create horizontal overflow.
+- Added source-level regression coverage for clear-search wiring, keyboard recovery and responsive search geometry.
+
 ### Modrinth pass 55 — preserve the last known library during reload failures
 
 - A transient failure while refreshing the local instance list no longer replaces a previously loaded library with an empty screen.

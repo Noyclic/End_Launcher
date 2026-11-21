@@ -4761,6 +4761,17 @@ window.__TAURI__.event.listen('mod-downloaded', ({ payload }) => {
 // Drag-and-drop: .jar импортируется как мод, .mrpack/.zip/папка — как отдельная сборка.
 const dropOverlay = $('instance-drop-overlay');
 let dropBusy = false;
+let dropOperation = null;
+let dropRetryPath = '';
+function syncDropActions() {
+  const cancel = $('instance-drop-cancel');
+  const retry = $('instance-drop-retry');
+  if (cancel) {
+    cancel.hidden = !dropOperation;
+    cancel.disabled = Boolean(dropOperation?.cancelled);
+  }
+  if (retry) retry.hidden = Boolean(dropOperation) || !dropRetryPath;
+}
 function resetDropProgress() {
   const progress = $('instance-drop-progress');
   const track = $('instance-drop-progress-track');
@@ -4770,6 +4781,7 @@ function resetDropProgress() {
   if (bar) bar.style.width = '0%';
   track?.setAttribute('aria-valuenow', '0');
   if ($('instance-drop-progress-detail')) $('instance-drop-progress-detail').textContent = '';
+  syncDropActions();
 }
 function setDropOverlay(active, title = 'Отпусти, чтобы импортировать', subtitle = '.mrpack · .zip · папка сборки · .jar моды') {
   if (!dropOverlay) return;
@@ -4778,6 +4790,7 @@ function setDropOverlay(active, title = 'Отпусти, чтобы импорт
   $('instance-drop-title').textContent = title;
   $('instance-drop-subtitle').textContent = subtitle;
   if (!active) resetDropProgress();
+  syncDropActions();
 }
 function formatImportBytes(value) {
   const bytes = Math.max(0, Number(value) || 0);
@@ -4837,28 +4850,40 @@ function updateDropImportProgress(payload) {
   $('instance-drop-progress-detail').textContent = details.join(' · ') || payload.message || 'Подготавливаем файлы…';
 }
 window.__TAURI__.event.listen('instance-import-progress', ({ payload }) => {
-  if (dropBusy && payload) updateDropImportProgress(payload);
+  if (dropBusy && dropOperation && !dropOperation.cancelled && payload) updateDropImportProgress(payload);
 });
 async function processDroppedPaths(paths) {
-  if (dropBusy || !Array.isArray(paths) || !paths.length) return;
+  if (dropBusy || dropOperation || !Array.isArray(paths) || !paths.length) return;
   dropBusy = true;
+  dropRetryPath = '';
+  const operation = { id: Symbol('instance-import'), cancelled: false, currentPath: '' };
+  dropOperation = operation;
   resetDropProgress();
+  syncDropActions();
   const jars = paths.filter((path) => /\.jar$/i.test(path));
   const imports = paths.filter((path) => !/\.jar$/i.test(path));
   try {
     if (jars.length) {
+      if (operation.cancelled) return;
       if (!activeId) throw new Error('Сначала создай сборку, куда добавить моды .jar.');
       showToast(`Добавляю моды: ${jars.length}…`);
       const rep = await invoke('import_mod_files', { paths: jars });
+      if (operation.cancelled) return;
       showToast(rep.join('\n'), !rep.some((line) => line.startsWith('✖')));
       $('mod-toast').textContent = rep.join('\n');
       refreshInstalled(); renderHomeStats();
     }
     for (const path of imports) {
-      setDropOverlay(true, 'Импортирую сборку…', 'Распаковываю overrides, загружаю обязательные файлы и проверяю SHA-1. Не закрывай лаунчер.');
+      if (operation.cancelled) break;
+      operation.currentPath = path;
+      setDropOverlay(true, 'Импортирую сборку…', 'Проверяю архив, распаковываю overrides и загружаю файлы модпака.');
       showToast('Импортирую сборку… Не закрывай лаунчер, пока скачиваются файлы модпака.');
       try {
         const result = await invoke('import_instance', { path });
+        if (operation.cancelled) {
+          if (result?.instance?.id) { try { await invoke('delete_instance', { id: result.instance.id }); } catch {} }
+          break;
+        }
         const name = result?.instance?.name || 'Сборка';
         const loaderNames = { fabric: 'Fabric', quilt: 'Quilt', forge: 'Forge', neoforge: 'NeoForge' };
         const loaderName = loaderNames[result?.instance?.loader] || 'Vanilla';
@@ -4869,6 +4894,10 @@ async function processDroppedPaths(paths) {
             ? `Версия ${loaderName} не указана в исходном манифесте; при запуске будет выбрана доступная версия.`
             : 'Загрузчик не требуется.';
         await loadInstances();
+        if (operation.cancelled) {
+          if (result?.instance?.id) { try { await invoke('delete_instance', { id: result.instance.id }); } catch {} }
+          break;
+        }
         if (result?.warning) {
           setDropOverlay(true, 'Импорт завершён с предупреждением', result.warning);
           showToast(`Импортирована «${name}». ${result.warning}`, false);
@@ -4880,16 +4909,38 @@ async function processDroppedPaths(paths) {
           showToast(`«${name}» импортирована и выбрана. ${loaderNote}`);
         }
       } catch (error) {
-        setDropOverlay(true, 'Импорт не выполнен', String(error).slice(0, 180));
+        if (operation.cancelled) break;
+        dropRetryPath = path;
+        setDropOverlay(true, 'Импорт не выполнен', 'Можно отменить текущую очередь или повторить последний неудачный файл.');
         showToast(`Не удалось импортировать «${path.split(/[\\/]/).pop()}»: ${String(error)}`, false);
+        break;
       }
     }
     if (!jars.length && !imports.length) showToast('Не найдено файлов для импорта.', false);
   } finally {
-    dropBusy = false;
-    setDropOverlay(false);
+    if (dropOperation === operation) {
+      dropOperation = null;
+      dropBusy = false;
+      syncDropActions();
+      if (!dropRetryPath) setDropOverlay(false);
+      else setDropOverlay(true, 'Импорт не выполнен', 'Последний источник не изменён. Нажми «Повторить импорт» или выбери другой файл.');
+    }
   }
 }
+$('instance-drop-cancel')?.addEventListener('click', () => {
+  if (!dropOperation) return;
+  dropOperation.cancelled = true;
+  $('instance-drop-title').textContent = 'Отмена запрошена…';
+  $('instance-drop-subtitle').textContent = 'Дожидаюсь безопасного завершения текущего шага. Уже существующие сборки не удаляются.';
+  syncDropActions();
+});
+$('instance-drop-retry')?.addEventListener('click', () => {
+  const path = dropRetryPath;
+  if (!path || dropOperation) return;
+  dropRetryPath = '';
+  syncDropActions();
+  void processDroppedPaths([path]);
+});
 function onNativeDragDrop(event) {
   const payload = event?.payload || event;
   if (!payload) return;

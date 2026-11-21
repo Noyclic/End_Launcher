@@ -1,3 +1,10 @@
+### Modrinth pass 57 — cancellable import lifecycle and retry recovery
+
+- Added an in-app cancel action for `.mrpack`, ZIP and folder imports without opening a system dialog.
+- Late results from a cancelled import are ignored and a just-created imported instance is removed by its own ID only.
+- Failed imports keep the last source available for an in-app retry; the original archive/folder is never modified.
+- Added source-level coverage for cancellation, rollback, retry wiring, stale progress events and responsive overlay controls.
+
 ### Modrinth pass 56 — resilient search chrome and keyboard recovery
 
 - Added a visible clear-search control that appears only while a Modrinth library query is active and returns focus to the search field after clearing.

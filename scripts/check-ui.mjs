@@ -1648,3 +1648,16 @@ check(js.includes("is-stale")
 check(css.includes('.modrinth-library-state.is-stale')
     && css.includes('.modrinth-library-state.is-stale .modrinth-state-icon'),
   'Stale Modrinth state must have a contained visual treatment distinct from a hard error');
+
+
+const importLifecycleChecks = [
+  ['import overlay exposes cancel control', html.includes('id="instance-drop-cancel"')],
+  ['import overlay exposes retry control', html.includes('id="instance-drop-retry"')],
+  ['import operation state exists', js.includes('let dropOperation = null;')],
+  ['import cancellation is explicit', js.includes("operation.cancelled = true") && js.includes('Отмена запрошена')],
+  ['late import result is rolled back', js.includes("await invoke('delete_instance', { id: result.instance.id })")],
+  ['retry remembers the failed source', js.includes('let dropRetryPath =') && js.includes('void processDroppedPaths([path])')],
+  ['import progress ignores stale operation events', js.includes('dropOperation && !dropOperation.cancelled')],
+  ['import controls remain responsive', css.includes('.instance-drop-actions') && css.includes('.instance-drop-actions button[hidden]')],
+];
+for (const [name, ok] of importLifecycleChecks) check(ok, name);

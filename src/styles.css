@@ -1373,6 +1373,8 @@ body:not(.customizer-active) .custom-widget{pointer-events:none}
 .instance-drop-progress-bar{height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,var(--el-accent-deep),var(--el-accent));transition:width .18s ease}
 .instance-drop-progress-track.indeterminate .instance-drop-progress-bar{width:36%;animation:instanceImportSweep 1.15s ease-in-out infinite}
 .instance-drop-progress-detail{max-width:100%;overflow-wrap:anywhere;font-size:12px!important}
+.instance-drop-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:4px}
+.instance-drop-actions button[hidden]{display:none}
 @keyframes instanceImportSweep{from{transform:translateX(-110%)}to{transform:translateX(290%)}}
 :root[data-anim='off'] .instance-drop-overlay{backdrop-filter:none;-webkit-backdrop-filter:none}
 

@@ -1130,6 +1130,12 @@ body:not(.customizer-active) .custom-widget{pointer-events:none}
 .library-search > span { font-size: 21px; line-height: 1; }
 .library-search input { width: 100%; min-width: 0; padding: 9px 0; border: 0; outline: 0; background: transparent; box-shadow: none; font: 12px 'Inter', sans-serif; }
 .library-search input:focus { box-shadow: none; }
+.library-search-clear { flex: none; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--el-dim); font-size: 20px; line-height: 1; cursor: pointer; }
+.library-search-clear:hover, .library-search-clear:focus-visible { color: var(--el-text); background: var(--el-accent-soft); outline: none; }
+:root[data-ui='modrinth'] .library-search { min-width: 180px; }
+@media (max-width: 520px) {
+  :root[data-ui='modrinth'] .library-search { flex-basis: 100%; max-width: none; }
+}
 .library-toolbar-actions > button { white-space: nowrap; padding: 9px 11px; font-size: 11px; }
 .library-help { margin-top: 0; }
 #library.list-view { display: flex; flex-direction: column; gap: 5px; }

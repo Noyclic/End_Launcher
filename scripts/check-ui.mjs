@@ -1595,6 +1595,16 @@ check(js.includes('let instancesLoadError = null;')
     && css.includes('.modrinth-state-actions'),
   'Modrinth library load failures must remain distinct from an empty library and offer a guarded retry action');
 check(css.includes('modrinth-library-state') && css.includes('text-overflow:ellipsis'), 'Modrinth library states and long-name truncation must remain responsive');
+check(html.includes('id="library-search-clear"')
+    && js.includes('function clearLibrarySearch')
+    && js.includes("event.key === '/'")
+    && js.includes("event.key === 'Escape'")
+    && js.includes('syncLibrarySearchChrome();'),
+  'Modrinth search must expose a visible clear action plus keyboard focus/escape recovery without changing other layouts');
+check(css.includes('.library-search-clear')
+    && css.includes(":root[data-ui='modrinth'] .library-search")
+    && css.includes('flex-basis: 100%'),
+  'Modrinth search chrome must remain contained and full-width on narrow screens');
 
 
 const accountLifecycle = [

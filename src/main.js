@@ -4195,10 +4195,45 @@ $('ui-restart')?.addEventListener('click', () => {
   window.setTimeout(() => window.location.reload(), 120);
 });
 renderUiCards();
-$('library-filter')?.addEventListener('input', (event) => {
+const libraryFilterInput = $('library-filter');
+const librarySearchClear = $('library-search-clear');
+function syncLibrarySearchChrome() {
+  const active = Boolean(libraryQuery.trim());
+  if (librarySearchClear) {
+    librarySearchClear.hidden = !active;
+    librarySearchClear.tabIndex = active ? 0 : -1;
+  }
+  if (libraryFilterInput) libraryFilterInput.setAttribute('aria-expanded', active ? 'true' : 'false');
+}
+function clearLibrarySearch({ focus = true } = {}) {
+  libraryQuery = '';
+  if (libraryFilterInput) libraryFilterInput.value = '';
+  syncLibrarySearchChrome();
+  renderLibrary();
+  if (focus) libraryFilterInput?.focus({ preventScroll: true });
+}
+libraryFilterInput?.addEventListener('input', (event) => {
   libraryQuery = event.target.value || '';
+  syncLibrarySearchChrome();
   renderLibrary();
 });
+librarySearchClear?.addEventListener('click', (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  clearLibrarySearch();
+});
+document.addEventListener('keydown', (event) => {
+  if (currentUi !== 'modrinth' || event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
+  if (event.key === '/' && document.activeElement !== libraryFilterInput) {
+    event.preventDefault();
+    libraryFilterInput?.focus({ preventScroll: true });
+  }
+  if (event.key === 'Escape' && document.activeElement === libraryFilterInput && libraryQuery) {
+    event.preventDefault();
+    clearLibrarySearch();
+  }
+});
+syncLibrarySearchChrome();
 const modrinthSortSelect = $('modrinth-sort');
 const modrinthGroupSelect = $('modrinth-group-filter');
 const modrinthLoaderSelect = $('modrinth-loader-filter');

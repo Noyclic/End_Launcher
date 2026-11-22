@@ -977,8 +977,9 @@ function syncModrinthSelectionChrome() {
   const clear = $('modrinth-selection-clear');
   const selectAll = $('modrinth-selection-all');
   const favorite = $('modrinth-selection-favorite');
+  const group = $('modrinth-selection-group');
   if (currentUi !== 'modrinth') {
-    [count, clear, selectAll, favorite].forEach((node) => { if (node) node.hidden = true; });
+    [count, clear, selectAll, favorite, group].forEach((node) => { if (node) node.hidden = true; });
     return;
   }
   const selected = modrinthSelectedIds.size;
@@ -989,6 +990,10 @@ function syncModrinthSelectionChrome() {
     favorite.hidden = selected === 0;
     const allFavorite = selected > 0 && [...modrinthSelectedIds].every((id) => favoriteInstanceIds.has(String(id)));
     favorite.textContent = allFavorite ? '★ Убрать из избранного' : '☆ В избранное';
+  }
+  if (group) {
+    group.hidden = selected === 0;
+    group.disabled = selected === 0;
   }
 }
 
@@ -1026,6 +1031,94 @@ function toggleSelectedModrinthFavorites() {
   try { localStorage.setItem(FAVORITES_STORE, JSON.stringify([...next])); } catch {}
   renderLibrary();
   showToast(allFavorite ? 'Выбранные сборки убраны из избранного.' : 'Выбранные сборки добавлены в избранное.');
+}
+
+function applySelectedModrinthGroup(rawGroup) {
+  if (!modrinthSelectedIds.size) return;
+  const group = String(rawGroup || '').trim().slice(0, 32);
+  const next = { ...prismInstanceGroups };
+  modrinthSelectedIds.forEach((id) => {
+    if (!group || group.toLocaleLowerCase() === 'без группы') delete next[String(id)];
+    else next[String(id)] = group;
+  });
+  try {
+    localStorage.setItem(PRISM_INSTANCE_GROUPS_STORE, JSON.stringify(next));
+  } catch {
+    showToast('Не удалось сохранить группу: локальное хранилище недоступно.', false);
+    return;
+  }
+  prismInstanceGroups = next;
+  renderLibrary();
+  showToast(group ? `Группа «${group}» назначена выбранным сборкам.` : 'Группа снята с выбранных сборок.');
+}
+
+function openModrinthBulkGroupEditor(button) {
+  const existing = document.getElementById('modrinth-bulk-group-editor');
+  if (existing) {
+    existing.remove();
+    button?.setAttribute('aria-expanded', 'false');
+    return;
+  }
+  const editor = document.createElement('div');
+  editor.id = 'modrinth-bulk-group-editor';
+  editor.className = 'prism-group-editor modrinth-bulk-group-editor';
+  editor.setAttribute('role', 'group');
+  editor.setAttribute('aria-label', 'Группа выбранных сборок');
+  const select = document.createElement('select');
+  select.setAttribute('aria-label', 'Группа выбранных сборок');
+  const none = document.createElement('option');
+  none.value = '';
+  none.textContent = 'Без группы';
+  select.appendChild(none);
+  [...new Set(Object.values(prismInstanceGroups).filter(Boolean))]
+    .sort((a, b) => naturalCompare(a, b))
+    .forEach((value) => {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = value;
+      select.appendChild(option);
+    });
+  const create = document.createElement('option');
+  create.value = '__new__';
+  create.textContent = '＋ Новая группа…';
+  select.appendChild(create);
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.maxLength = 32;
+  input.placeholder = 'Название группы';
+  input.hidden = true;
+  select.addEventListener('change', () => {
+    input.hidden = select.value !== '__new__';
+    if (!input.hidden) input.focus();
+  });
+  const save = document.createElement('button');
+  save.type = 'button';
+  save.textContent = 'Сохранить';
+  save.addEventListener('click', () => {
+    const value = select.value === '__new__' ? input.value : select.value;
+    if (select.value === '__new__' && !String(value).trim()) {
+      showToast('Введи название новой группы.', false);
+      input.focus();
+      return;
+    }
+    applySelectedModrinthGroup(value);
+    editor.remove();
+    button?.setAttribute('aria-expanded', 'false');
+  });
+  const cancel = document.createElement('button');
+  cancel.type = 'button';
+  cancel.textContent = 'Отмена';
+  cancel.addEventListener('click', () => {
+    editor.remove();
+    button?.setAttribute('aria-expanded', 'false');
+  });
+  const buttons = document.createElement('div');
+  buttons.className = 'prism-group-editor-buttons';
+  buttons.append(save, cancel);
+  editor.append(select, input, buttons);
+  button?.insertAdjacentElement('afterend', editor);
+  button?.setAttribute('aria-expanded', 'true');
+  select.focus();
 }
 let modrinthLoaderFilter = (() => {
   try {
@@ -4344,6 +4437,7 @@ $('library-add')?.addEventListener('click', openNewInstance);
 $('modrinth-selection-all')?.addEventListener('click', selectAllVisibleModrinth);
 $('modrinth-selection-clear')?.addEventListener('click', clearModrinthSelection);
 $('modrinth-selection-favorite')?.addEventListener('click', toggleSelectedModrinthFavorites);
+$('modrinth-selection-group')?.addEventListener('click', () => openModrinthBulkGroupEditor($('modrinth-selection-group')));
 $('modrinth-new-group')?.addEventListener('click', () => {
   const inst = currentInstance();
   const button = $('modrinth-new-group');

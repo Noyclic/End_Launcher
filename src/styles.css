@@ -7650,7 +7650,19 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 
 
 /* Modrinth bulk selection: selection stays scoped to the library and remains usable on narrow cards. */
-:root[data-ui='modrinth'] .modrinth-selection-control[hidden],:root[data-ui='modrinth'] .modrinth-selection-count[hidden]{display:none}
+:root[data-ui='modrinth'] .modrinth-selection-control[hidden],:root[data-ui='modrinth'] .modrinth-bulk-group-editor {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  max-width: min(100%, 420px);
+}
+.modrinth-bulk-group-editor select,
+.modrinth-bulk-group-editor input {
+  min-width: 150px;
+  max-width: 100%;
+}
+.modrinth-selection-count[hidden]{display:none}
 :root[data-ui='modrinth'] .modrinth-selection-count{align-self:center;color:var(--el-dim);font-size:12px;white-space:nowrap}
 :root[data-ui='modrinth'] .inst-card{position:relative}
 :root[data-ui='modrinth'] .inst-card[aria-selected='true']{outline:2px solid color-mix(in srgb,var(--el-accent) 72%,transparent);outline-offset:2px}

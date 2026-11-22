@@ -1667,3 +1667,14 @@ for (const [name, ok] of importLifecycleChecks) check(ok, name);
 check(html.includes('id="modrinth-selection-all"') && html.includes('id="modrinth-selection-clear"') && html.includes('id="modrinth-selection-favorite"'), 'Modrinth library must expose scoped bulk-selection controls');
 check(js.includes('let modrinthSelectedIds = new Set()') && js.includes('function selectAllVisibleModrinth') && js.includes('function toggleSelectedModrinthFavorites') && js.includes("className = 'modrinth-card-select'"), 'Modrinth bulk selection must have explicit state, select-all and favorite actions');
 check(css.includes('.modrinth-card-select') && css.includes("[aria-selected='true']") && css.includes('modrinth-selection-count'), 'Modrinth bulk-selection controls must have contained responsive styling');
+
+
+// Modrinth bulk group assignment regression coverage
+check(html.includes('id="modrinth-selection-group"'), 'Modrinth bulk selection must expose group assignment control');
+check(js.includes('function applySelectedModrinthGroup(rawGroup)')
+    && js.includes('function openModrinthBulkGroupEditor(button)')
+    && js.includes("localStorage.setItem(PRISM_INSTANCE_GROUPS_STORE, JSON.stringify(next))")
+    && js.includes("modrinth-selection-group") ,
+  'Modrinth bulk group assignment must persist to the existing per-instance group store');
+check(css.includes('.modrinth-bulk-group-editor') && css.includes('max-width: min(100%, 420px)'),
+  'Modrinth bulk group editor must remain contained on narrow layouts');

@@ -1,3 +1,10 @@
+### Modrinth pass 59 — bulk group assignment
+
+- Added a contained bulk group editor for the selected Modrinth library instances.
+- Reuses the existing per-instance group store and supports existing groups, removing a group, or creating a new group.
+- Keeps the operation local-only and atomic from the UI perspective; no instance files are touched.
+- Added source-level regression coverage and narrow-layout containment.
+
 ### Modrinth pass 58 — scoped bulk selection and favorite management
 
 - Added checkbox selection to Modrinth instance cards without changing Prism or other launcher skins.

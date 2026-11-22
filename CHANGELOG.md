@@ -1,3 +1,11 @@
+### Modrinth pass 58 — scoped bulk selection and favorite management
+
+- Added checkbox selection to Modrinth instance cards without changing Prism or other launcher skins.
+- Added select-all, clear-selection and bulk favorite/unfavorite actions that operate on the visible Modrinth library set.
+- Preserved selection across search/filter rerenders while removing IDs only when an instance is actually gone from the local library.
+- Added accessible selected state, live selection count and narrow-screen toolbar containment.
+- Added source-level regression coverage for the bulk-selection controls and responsive card treatment.
+
 ### Modrinth pass 57 — cancellable import lifecycle and retry recovery
 
 - Added an in-app cancel action for `.mrpack`, ZIP and folder imports without opening a system dialog.

@@ -7647,3 +7647,12 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 .create-instance-progress-track.indeterminate>span{width:38%;animation:create-progress-indeterminate 1.15s ease-in-out infinite}
 @keyframes create-progress-indeterminate{0%{transform:translateX(-110%)}100%{transform:translateX(290%)}}
 @media (prefers-reduced-motion: reduce){.create-instance-progress-track.indeterminate>span{animation:none;width:100%;opacity:.75}}
+
+
+/* Modrinth bulk selection: selection stays scoped to the library and remains usable on narrow cards. */
+:root[data-ui='modrinth'] .modrinth-selection-control[hidden],:root[data-ui='modrinth'] .modrinth-selection-count[hidden]{display:none}
+:root[data-ui='modrinth'] .modrinth-selection-count{align-self:center;color:var(--el-dim);font-size:12px;white-space:nowrap}
+:root[data-ui='modrinth'] .inst-card{position:relative}
+:root[data-ui='modrinth'] .inst-card[aria-selected='true']{outline:2px solid color-mix(in srgb,var(--el-accent) 72%,transparent);outline-offset:2px}
+:root[data-ui='modrinth'] .modrinth-card-select{position:absolute;top:10px;left:10px;z-index:3;width:18px;height:18px;accent-color:var(--el-accent);cursor:pointer}
+@media (max-width:760px){:root[data-ui='modrinth'] .modrinth-selection-count{flex-basis:100%;text-align:left}:root[data-ui='modrinth'] .modrinth-selection-control{flex:1 1 auto;min-width:0}}

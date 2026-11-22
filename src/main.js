@@ -969,6 +969,64 @@ let modrinthGroupFilter = (() => {
       || (value.startsWith('group:') && value.length > 6) ? value : 'all';
   } catch { return 'all'; }
 })();
+let modrinthSelectedIds = new Set();
+let modrinthSelectionAnchor = null;
+
+function syncModrinthSelectionChrome() {
+  const count = $('modrinth-selection-count');
+  const clear = $('modrinth-selection-clear');
+  const selectAll = $('modrinth-selection-all');
+  const favorite = $('modrinth-selection-favorite');
+  if (currentUi !== 'modrinth') {
+    [count, clear, selectAll, favorite].forEach((node) => { if (node) node.hidden = true; });
+    return;
+  }
+  const selected = modrinthSelectedIds.size;
+  if (count) { count.hidden = selected === 0; count.textContent = selected ? 'Выбрано: ' + selected : ''; }
+  if (clear) clear.hidden = selected === 0;
+  if (selectAll) selectAll.textContent = selected && selected === instances.length ? 'Снять всё' : 'Выбрать всё';
+  if (favorite) {
+    favorite.hidden = selected === 0;
+    const allFavorite = selected > 0 && [...modrinthSelectedIds].every((id) => favoriteInstanceIds.has(String(id)));
+    favorite.textContent = allFavorite ? '★ Убрать из избранного' : '☆ В избранное';
+  }
+}
+
+function clearModrinthSelection() {
+  modrinthSelectedIds = new Set();
+  modrinthSelectionAnchor = null;
+  renderLibrary();
+}
+
+function toggleModrinthSelection(id, checked) {
+  const next = new Set(modrinthSelectedIds);
+  if (checked) next.add(String(id)); else next.delete(String(id));
+  modrinthSelectedIds = next;
+  modrinthSelectionAnchor = String(id);
+  syncModrinthSelectionChrome();
+}
+
+function selectAllVisibleModrinth() {
+  if (currentUi !== 'modrinth') return;
+  const visible = [...document.querySelectorAll('#library .inst-card:not(.add):not([hidden])')].map((card) => card.dataset.instanceId).filter(Boolean);
+  const allSelected = visible.length > 0 && visible.every((id) => modrinthSelectedIds.has(String(id)));
+  const next = new Set(modrinthSelectedIds);
+  visible.forEach((id) => allSelected ? next.delete(String(id)) : next.add(String(id)));
+  modrinthSelectedIds = next;
+  modrinthSelectionAnchor = visible.at(-1) || modrinthSelectionAnchor;
+  renderLibrary();
+}
+
+function toggleSelectedModrinthFavorites() {
+  if (!modrinthSelectedIds.size) return;
+  const allFavorite = [...modrinthSelectedIds].every((id) => favoriteInstanceIds.has(String(id)));
+  const next = new Set(favoriteInstanceIds);
+  modrinthSelectedIds.forEach((id) => allFavorite ? next.delete(String(id)) : next.add(String(id)));
+  favoriteInstanceIds = next;
+  try { localStorage.setItem(FAVORITES_STORE, JSON.stringify([...next])); } catch {}
+  renderLibrary();
+  showToast(allFavorite ? 'Выбранные сборки убраны из избранного.' : 'Выбранные сборки добавлены в избранное.');
+}
 let modrinthLoaderFilter = (() => {
   try {
     const value = localStorage.getItem('el-modrinth-loader-filter') || 'all';
@@ -2113,8 +2171,10 @@ function renderLibrary() {
     return 0;
   });
   let ci = 0;
+  modrinthSelectedIds = new Set([...modrinthSelectedIds].filter((id) => instances.some((inst) => String(inst.id) === String(id))));
   const shownCount = visibleInstances.length;
   syncModrinthFilterChrome(shownCount);
+  syncModrinthSelectionChrome();
   renderModrinthLibraryState(shownCount);
   let lastGroup = null;
   for (const inst of visibleInstances) {
@@ -2158,6 +2218,17 @@ function renderLibrary() {
     card.tabIndex = 0;
     card.setAttribute('role', 'group');
     card.setAttribute('aria-label', `${inst.name}${inst.id === activeId ? ' — выбрана' : ''}${currentUi === 'modrinth' && groupName ? ` · группа ${groupName}` : ''}`);
+    card.setAttribute('aria-selected', String(currentUi === 'modrinth' && modrinthSelectedIds.has(String(inst.id))));
+    let selection = null;
+    if (currentUi === 'modrinth') {
+      selection = document.createElement('input');
+      selection.type = 'checkbox';
+      selection.className = 'modrinth-card-select';
+      selection.checked = modrinthSelectedIds.has(String(inst.id));
+      selection.setAttribute('aria-label', `Выбрать сборку ${inst.name}`);
+      selection.addEventListener('click', (event) => event.stopPropagation());
+      selection.addEventListener('change', (event) => toggleModrinthSelection(inst.id, event.target.checked));
+    }
     const play = mk('button', 'inst-play', '▶');
     play.title = `Играть: ${inst.name}`;
     play.setAttribute('aria-label', `Запустить ${inst.name}`);
@@ -2182,13 +2253,17 @@ function renderLibrary() {
     const metadata = mk('span', 'chip', metadataText);
     metadata.title = metadataText;
     card.append(
+      ...(selection ? [selection] : []),
       icon,
       mk('div', 'inst-name', inst.name),
       metadata,
       play,
       more,
     );
-    card.addEventListener('click', () => setActive(inst.id));
+    card.addEventListener('click', (event) => {
+      if (currentUi === 'modrinth' && event.target.closest('.modrinth-card-select')) return;
+      setActive(inst.id);
+    });
     card.addEventListener('dblclick', async (event) => {
       if (currentUi !== 'prism' || event.target.closest('button, input, select, textarea')) return;
       event.preventDefault();
@@ -4266,6 +4341,9 @@ if (modrinthLoaderSelect) {
   });
 }
 $('library-add')?.addEventListener('click', openNewInstance);
+$('modrinth-selection-all')?.addEventListener('click', selectAllVisibleModrinth);
+$('modrinth-selection-clear')?.addEventListener('click', clearModrinthSelection);
+$('modrinth-selection-favorite')?.addEventListener('click', toggleSelectedModrinthFavorites);
 $('modrinth-new-group')?.addEventListener('click', () => {
   const inst = currentInstance();
   const button = $('modrinth-new-group');

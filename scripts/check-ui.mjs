@@ -155,6 +155,14 @@ check(js.includes('function closeNewInstance()')
     && js.includes("trapModalFocus(event, wrapper.querySelector('[role=\"dialog\"]'))")
     && js.includes("if (event.key === 'Escape') {\n    closeNewInstance();"),
   'Prism new-instance dialog must restore focus, trap Tab, and close on Escape');
+check(/id="ni-retry"[^>]*hidden/.test(html)
+    && js.includes('let lastCreateAttempt = null;')
+    && js.includes('function syncCreateRetry()')
+    && js.includes('rememberCreateAttempt({ name, version:')
+    && js.includes("$('ni-retry')?.addEventListener('click'")
+    && js.includes('clearCreateAttempt()')
+    && js.includes('Повторяем последнюю попытку…'),
+  'Create-instance failures must retain a safe retry action without duplicating a successful instance');
 check(/id="ni-progress" class="create-instance-progress" hidden/.test(html)
     && /id="ni-progress-bar"/.test(html)
     && /id="ni-progress-percent"/.test(html),

@@ -3124,7 +3124,7 @@ $('ni-retry')?.addEventListener('click', () => {
   $('ni-version').value = attempt.version;
   $('ni-loader').value = attempt.loader;
   selectedLoaderVersion = attempt.loaderVersion;
-  renderPrismLoaderVersions?.();
+  if (typeof renderPrismLoaderVersions === 'function') renderPrismLoaderVersions();
   $('ni-msg').textContent = 'Повторяем последнюю попытку…';
   $('ni-retry').hidden = true;
   $('ni-create').click();

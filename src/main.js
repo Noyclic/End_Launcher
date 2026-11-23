@@ -2883,6 +2883,26 @@ function restoreNewInstanceLocation() {
   }
 }
 let createInstanceOperation = null;
+let lastCreateAttempt = null;
+
+function syncCreateRetry() {
+  const retry = $('ni-retry');
+  if (!retry) return;
+  retry.hidden = !lastCreateAttempt || Boolean(createInstanceOperation);
+  retry.disabled = Boolean(createInstanceOperation);
+}
+
+function rememberCreateAttempt(attempt) {
+  lastCreateAttempt = attempt ? { ...attempt } : null;
+  syncCreateRetry();
+}
+
+function clearCreateAttempt() {
+  lastCreateAttempt = null;
+  syncCreateRetry();
+}
+
+
 function cancelCreateInstanceOperation() {
   if (createInstanceOperation) createInstanceOperation.cancelled = true;
 }
@@ -3097,6 +3117,18 @@ async function openNewInstance() {
   $('ni-name').focus();
 }
 $('ni-cancel').addEventListener('click', closeNewInstance);
+$('ni-retry')?.addEventListener('click', () => {
+  const attempt = lastCreateAttempt;
+  if (!attempt || createInstanceOperation) return;
+  $('ni-name').value = attempt.name;
+  $('ni-version').value = attempt.version;
+  $('ni-loader').value = attempt.loader;
+  selectedLoaderVersion = attempt.loaderVersion;
+  renderPrismLoaderVersions?.();
+  $('ni-msg').textContent = 'Повторяем последнюю попытку…';
+  $('ni-retry').hidden = true;
+  $('ni-create').click();
+});
 $('ni-window-close')?.addEventListener('click', closeNewInstance);
 $('new-instance').addEventListener('click', (event) => {
   if (currentUi === 'prism' && event.target === $('new-instance')) closeNewInstance();
@@ -3147,6 +3179,7 @@ $('ni-create').addEventListener('click', async () => {
   }
 
   const operation = { request: createInstanceOpenRequest, cancelled: false };
+  rememberCreateAttempt({ name, version: $('ni-version').value, loader: $('ni-loader').value, loaderVersion: selectedLoaderVersion || null });
   createInstanceOperation = operation;
   const setCreateProgress = (message, ratio = null) => {
     if (operation.cancelled) return;
@@ -3201,6 +3234,7 @@ $('ni-create').addEventListener('click', async () => {
 
     assertCreateInstanceOperation(operation);
     closeNewInstance();
+    clearCreateAttempt();
     $('ni-name').value = '';
     if ($('ni-group')) $('ni-group').value = '';
     await loadInstances();
@@ -3218,26 +3252,31 @@ $('ni-create').addEventListener('click', async () => {
     if (created) {
       $('ni-msg').textContent = `Сборка создана, но обновить интерфейс не удалось: ${message}`;
       showToast(`Сборка «${name}» создана, но список не обновлён.`, false);
+      clearCreateAttempt();
     } else if (loaderPreparationRequired && loaderPrepared) {
       $('ni-msg').textContent = `Загрузчик подготовлен, но экземпляр не создан: ${message}`;
       showToast('Загрузчик подготовлен, но экземпляр не создан.', false);
     } else if (loaderPreparationRequired) {
       $('ni-msg').textContent = `Не удалось подготовить ${prismLoaderDescriptions[loader]?.[0] || loader}. Экземпляр не создан: ${message}`;
       showToast('Загрузчик не подготовлен; сборка не создана.', false);
+      syncCreateRetry();
     } else {
       $('ni-msg').textContent = `Не удалось создать сборку: ${message}`;
       showToast('Не удалось создать сборку.', false);
+      syncCreateRetry();
     }
   } finally {
     if (createInstanceOperation === operation) createInstanceOperation = null;
     btn.disabled = false;
     btn.textContent = currentUi === 'prism' ? 'ОК' : '＋ Создать сборку';
     $('new-instance')?.removeAttribute('aria-busy');
+    syncCreateRetry();
     if ($('new-instance')?.getAttribute('aria-hidden') !== 'false') resetCreateProgress();
   }
 });
 $('mods-back').addEventListener('click', () => goPage('play'));
 $('empty-create').addEventListener('click', openNewInstance);
+syncCreateRetry();
 
 // Keep keyboard focus inside an open modal and cycle at its boundaries.
 function trapModalFocus(event, dialog) {

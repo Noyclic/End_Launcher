@@ -969,8 +969,24 @@ let modrinthGroupFilter = (() => {
       || (value.startsWith('group:') && value.length > 6) ? value : 'all';
   } catch { return 'all'; }
 })();
-let modrinthSelectedIds = new Set();
+const MODRINTH_SELECTION_STORE = 'el-modrinth-selection-v1';
+let modrinthSelectedIds = (() => {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(MODRINTH_SELECTION_STORE) || '[]');
+    return new Set(Array.isArray(parsed) ? parsed.map(String) : []);
+  } catch { return new Set(); }
+})();
 let modrinthSelectionAnchor = null;
+
+function persistModrinthSelection() {
+  try { localStorage.setItem(MODRINTH_SELECTION_STORE, JSON.stringify([...modrinthSelectedIds])); } catch {}
+}
+
+function visibleModrinthSelectionIds() {
+  return [...document.querySelectorAll('#library .inst-card:not(.add):not([hidden])')]
+    .map((card) => String(card.dataset.instanceId || ''))
+    .filter(Boolean);
+}
 
 function syncModrinthSelectionChrome() {
   const count = $('modrinth-selection-count');
@@ -983,9 +999,19 @@ function syncModrinthSelectionChrome() {
     return;
   }
   const selected = modrinthSelectedIds.size;
+  const visible = visibleModrinthSelectionIds();
+  const visibleSelected = visible.filter((id) => modrinthSelectedIds.has(id)).length;
+  const allVisible = visible.length > 0 && visibleSelected === visible.length;
+  const mixedVisible = visibleSelected > 0 && !allVisible;
   if (count) { count.hidden = selected === 0; count.textContent = selected ? 'Выбрано: ' + selected : ''; }
   if (clear) clear.hidden = selected === 0;
-  if (selectAll) selectAll.textContent = selected && selected === instances.length ? 'Снять всё' : 'Выбрать всё';
+  if (selectAll) {
+    selectAll.hidden = visible.length === 0;
+    selectAll.textContent = allVisible ? 'Снять всё' : 'Выбрать всё';
+    selectAll.setAttribute('aria-pressed', String(allVisible));
+    selectAll.dataset.mixed = String(mixedVisible);
+    selectAll.title = mixedVisible ? 'Выбрано ' + visibleSelected + ' из ' + visible.length + ' видимых' : '';
+  }
   if (favorite) {
     favorite.hidden = selected === 0;
     const allFavorite = selected > 0 && [...modrinthSelectedIds].every((id) => favoriteInstanceIds.has(String(id)));
@@ -1000,6 +1026,7 @@ function syncModrinthSelectionChrome() {
 function clearModrinthSelection() {
   modrinthSelectedIds = new Set();
   modrinthSelectionAnchor = null;
+  persistModrinthSelection();
   renderLibrary();
 }
 
@@ -1008,6 +1035,7 @@ function toggleModrinthSelection(id, checked) {
   if (checked) next.add(String(id)); else next.delete(String(id));
   modrinthSelectedIds = next;
   modrinthSelectionAnchor = String(id);
+  persistModrinthSelection();
   syncModrinthSelectionChrome();
 }
 
@@ -1019,6 +1047,7 @@ function selectAllVisibleModrinth() {
   visible.forEach((id) => allSelected ? next.delete(String(id)) : next.add(String(id)));
   modrinthSelectedIds = next;
   modrinthSelectionAnchor = visible.at(-1) || modrinthSelectionAnchor;
+  persistModrinthSelection();
   renderLibrary();
 }
 
@@ -2264,7 +2293,9 @@ function renderLibrary() {
     return 0;
   });
   let ci = 0;
+  const beforeSelectionSize = modrinthSelectedIds.size;
   modrinthSelectedIds = new Set([...modrinthSelectedIds].filter((id) => instances.some((inst) => String(inst.id) === String(id))));
+  if (modrinthSelectedIds.size !== beforeSelectionSize) persistModrinthSelection();
   const shownCount = visibleInstances.length;
   syncModrinthFilterChrome(shownCount);
   syncModrinthSelectionChrome();

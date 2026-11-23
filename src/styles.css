@@ -7650,7 +7650,7 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 
 
 /* Modrinth bulk selection: selection stays scoped to the library and remains usable on narrow cards. */
-:root[data-ui='modrinth'] .modrinth-selection-control[hidden],:root[data-ui='modrinth'] .modrinth-bulk-group-editor {
+:root[data-ui='modrinth'] .modrinth-selection-control:not([hidden]),:root[data-ui='modrinth'] .modrinth-bulk-group-editor {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -7668,3 +7668,7 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 :root[data-ui='modrinth'] .inst-card[aria-selected='true']{outline:2px solid color-mix(in srgb,var(--el-accent) 72%,transparent);outline-offset:2px}
 :root[data-ui='modrinth'] .modrinth-card-select{position:absolute;top:10px;left:10px;z-index:3;width:18px;height:18px;accent-color:var(--el-accent);cursor:pointer}
 @media (max-width:760px){:root[data-ui='modrinth'] .modrinth-selection-count{flex-basis:100%;text-align:left}:root[data-ui='modrinth'] .modrinth-selection-control{flex:1 1 auto;min-width:0}}
+
+:root[data-ui='modrinth'] #modrinth-selection-all[data-mixed='true']{border-style:dashed}
+:root[data-ui='modrinth'] .library-toolbar-actions{min-width:0;align-items:center}
+@media (max-width:760px){:root[data-ui='modrinth'] .library-toolbar-actions{width:100%;justify-content:flex-start}:root[data-ui='modrinth'] .modrinth-bulk-group-editor{flex-basis:100%;order:20}}

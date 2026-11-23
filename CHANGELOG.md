@@ -1082,3 +1082,10 @@
 - Forwarded installer progress events into the modal without exposing tokens or external payloads.
 - Prevented duplicate create submissions while an operation is active and reset progress state after cancellation/close.
 - Added regression checks for the new progress controls and operation guard.
+
+### UI/QA pass — actionable create-instance retry
+
+- Added an in-dialog retry action after loader preparation or instance creation failures.
+- The last attempt is retained in memory only, so retry restores the selected name/version/loader without writing duplicate metadata or exposing secrets.
+- Successful creation clears the retry state; cancellation and stale operations keep the existing rollback behavior.
+- Added regression checks for retry wiring, hidden initial state, and success cleanup.

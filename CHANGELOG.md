@@ -1,3 +1,10 @@
+### Modrinth pass 60 — persistent visible-scope bulk selection
+
+- Fixed hidden bulk controls so the HTML `hidden` attribute is respected instead of being overridden by the Modrinth toolbar CSS.
+- Persisted selected instance IDs locally and restored them across reloads while pruning IDs for deleted instances.
+- Made “Выбрать всё” operate on the currently visible filtered cards and expose an accessible mixed state when only part of the visible result is selected.
+- Added desktop/mobile containment rules and regression coverage for persistence, filtering scope, and hidden-control semantics.
+
 ### Modrinth pass 59 — bulk group assignment
 
 - Added a contained bulk group editor for the selected Modrinth library instances.

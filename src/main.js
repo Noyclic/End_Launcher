@@ -977,6 +977,7 @@ let modrinthSelectedIds = (() => {
   } catch { return new Set(); }
 })();
 let modrinthSelectionAnchor = null;
+let modrinthSelectionUndo = null;
 
 function persistModrinthSelection() {
   try { localStorage.setItem(MODRINTH_SELECTION_STORE, JSON.stringify([...modrinthSelectedIds])); } catch {}
@@ -994,8 +995,9 @@ function syncModrinthSelectionChrome() {
   const selectAll = $('modrinth-selection-all');
   const favorite = $('modrinth-selection-favorite');
   const group = $('modrinth-selection-group');
+  const undo = $('modrinth-selection-undo');
   if (currentUi !== 'modrinth') {
-    [count, clear, selectAll, favorite, group].forEach((node) => { if (node) node.hidden = true; });
+    [count, clear, selectAll, favorite, group, undo].forEach((node) => { if (node) node.hidden = true; });
     return;
   }
   const selected = modrinthSelectedIds.size;
@@ -1020,6 +1022,12 @@ function syncModrinthSelectionChrome() {
   if (group) {
     group.hidden = selected === 0;
     group.disabled = selected === 0;
+  }
+  if (undo) {
+    undo.hidden = !modrinthSelectionUndo;
+    undo.disabled = !modrinthSelectionUndo;
+    undo.textContent = modrinthSelectionUndo ? '↶ ' + modrinthSelectionUndo.label : '↶ Отменить';
+    undo.title = modrinthSelectionUndo ? 'Вернуть состояние до последнего массового действия' : '';
   }
 }
 
@@ -1075,17 +1083,44 @@ function selectAllVisibleModrinth() {
 function toggleSelectedModrinthFavorites() {
   if (!modrinthSelectedIds.size) return;
   const allFavorite = [...modrinthSelectedIds].every((id) => favoriteInstanceIds.has(String(id)));
+  const previous = new Set(favoriteInstanceIds);
   const next = new Set(favoriteInstanceIds);
   modrinthSelectedIds.forEach((id) => allFavorite ? next.delete(String(id)) : next.add(String(id)));
+  try {
+    localStorage.setItem(FAVORITES_STORE, JSON.stringify([...next]));
+  } catch {
+    showToast('Не удалось сохранить избранное: локальное хранилище недоступно.', false);
+    return;
+  }
   favoriteInstanceIds = next;
-  try { localStorage.setItem(FAVORITES_STORE, JSON.stringify([...next])); } catch {}
+  modrinthSelectionUndo = {
+    label: 'Отменить избранное',
+    restore: () => {
+      localStorage.setItem(FAVORITES_STORE, JSON.stringify([...previous]));
+      favoriteInstanceIds = previous;
+    },
+  };
   renderLibrary();
   showToast(allFavorite ? 'Выбранные сборки убраны из избранного.' : 'Выбранные сборки добавлены в избранное.');
+}
+
+function undoModrinthBulkAction() {
+  if (!modrinthSelectionUndo) return;
+  const action = modrinthSelectionUndo;
+  try {
+    action.restore();
+    modrinthSelectionUndo = null;
+    renderLibrary();
+    showToast('Последнее массовое действие отменено.');
+  } catch {
+    showToast('Не удалось отменить массовое действие: локальное хранилище недоступно.', false);
+  }
 }
 
 function applySelectedModrinthGroup(rawGroup) {
   if (!modrinthSelectedIds.size) return;
   const group = String(rawGroup || '').trim().slice(0, 32);
+  const previous = { ...prismInstanceGroups };
   const next = { ...prismInstanceGroups };
   modrinthSelectedIds.forEach((id) => {
     if (!group || group.toLocaleLowerCase() === 'без группы') delete next[String(id)];
@@ -1098,6 +1133,13 @@ function applySelectedModrinthGroup(rawGroup) {
     return;
   }
   prismInstanceGroups = next;
+  modrinthSelectionUndo = {
+    label: group ? 'Отменить группу' : 'Вернуть группу',
+    restore: () => {
+      localStorage.setItem(PRISM_INSTANCE_GROUPS_STORE, JSON.stringify(previous));
+      prismInstanceGroups = previous;
+    },
+  };
   renderLibrary();
   showToast(group ? `Группа «${group}» назначена выбранным сборкам.` : 'Группа снята с выбранных сборок.');
 }
@@ -4549,6 +4591,7 @@ $('modrinth-selection-all')?.addEventListener('click', selectAllVisibleModrinth)
 $('modrinth-selection-clear')?.addEventListener('click', clearModrinthSelection);
 $('modrinth-selection-favorite')?.addEventListener('click', toggleSelectedModrinthFavorites);
 $('modrinth-selection-group')?.addEventListener('click', () => openModrinthBulkGroupEditor($('modrinth-selection-group')));
+$('modrinth-selection-undo')?.addEventListener('click', undoModrinthBulkAction);
 $('modrinth-new-group')?.addEventListener('click', () => {
   const inst = currentInstance();
   const button = $('modrinth-new-group');

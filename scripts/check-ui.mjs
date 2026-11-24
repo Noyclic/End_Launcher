@@ -1693,3 +1693,17 @@ check(html.includes('id="modrinth-selection-all"') && html.includes('aria-contro
 check(js.includes("const MODRINTH_SELECTION_STORE") && js.includes('function persistModrinthSelection') && js.includes('function visibleModrinthSelectionIds'), 'Modrinth selection must persist and derive its visible scope from rendered cards');
 check(js.includes("selectAll.dataset.mixed = String(mixedVisible)") && js.includes("selectAll.setAttribute('aria-pressed', String(allVisible))"), 'Modrinth select-all must expose mixed and pressed states for partial visible selection');
 check(css.includes('.modrinth-selection-control:not([hidden])') && css.includes('data-mixed'), 'Hidden Modrinth bulk controls must stay hidden and mixed selection must be visually distinguishable');
+
+
+// Modrinth keyboard and range-selection regression coverage
+check(js.includes('function selectModrinthSelectionRange(fromId, toId, checked)')
+    && js.includes('event.shiftKey && modrinthSelectionAnchor != null')
+    && js.includes('visibleModrinthSelectionIds()'),
+  'Modrinth selection must support shift-range selection over the current visible result set');
+check(js.includes("event.key === ' '")
+    && js.includes("currentUi === 'modrinth' && event.key === ' '")
+    && js.includes('Shift+Пробел — выбрать диапазон'),
+  'Modrinth cards must support keyboard toggling and advertise the range-selection shortcut');
+check(css.includes('html[data-ui="modrinth"] #library .inst-card:focus-visible')
+    && css.includes('html[data-ui="modrinth"] #library .modrinth-card-select:focus-visible'),
+  'Modrinth keyboard focus must remain visible for both cards and selection checkboxes');

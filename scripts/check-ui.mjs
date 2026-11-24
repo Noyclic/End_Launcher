@@ -1707,3 +1707,13 @@ check(js.includes("event.key === ' '")
 check(css.includes('html[data-ui="modrinth"] #library .inst-card:focus-visible')
     && css.includes('html[data-ui="modrinth"] #library .modrinth-card-select:focus-visible'),
   'Modrinth keyboard focus must remain visible for both cards and selection checkboxes');
+
+
+// Modrinth bulk-action recovery: failed persistence must not claim success, and the last action must be undoable.
+assert(main.includes('modrinthSelectionUndo'), 'Modrinth selection undo state missing');
+assert(main.includes('function undoModrinthBulkAction()'), 'Modrinth bulk undo handler missing');
+assert(main.includes('Не удалось сохранить избранное'), 'Favorite persistence failure is not surfaced');
+assert(main.includes('localStorage.setItem(FAVORITES_STORE, JSON.stringify([...previous]))'), 'Favorite rollback snapshot missing');
+assert(main.includes('localStorage.setItem(PRISM_INSTANCE_GROUPS_STORE, JSON.stringify(previous))'), 'Group rollback snapshot missing');
+assert(html.includes('id="modrinth-selection-undo"'), 'Modrinth undo control missing');
+assert(css.includes('#modrinth-selection-undo'), 'Modrinth undo styling missing');

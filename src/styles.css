@@ -7698,3 +7698,17 @@ html[data-ui="modrinth"] #library .inst-card .modrinth-card-select:checked + .in
     outline-offset: 2px;
   }
 }
+
+
+/* Modrinth bulk-action recovery */
+#modrinth-selection-undo {
+  border-color: color-mix(in srgb, var(--el-accent) 55%, transparent);
+}
+#modrinth-selection-undo:not([hidden]) {
+  font-weight: 700;
+}
+@media (max-width: 760px) {
+  #modrinth-selection-undo {
+    flex: 1 1 100%;
+  }
+}

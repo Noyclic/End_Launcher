@@ -1,3 +1,12 @@
+
+## 2026-11-24 — Modrinth bulk-action recovery
+
+- Added an in-library undo action for the last bulk favorite or group assignment operation.
+- Bulk favorite writes now surface local-storage failures instead of silently changing only in-memory state.
+- Group and favorite operations keep a snapshot of the previous local state and restore it atomically when the user chooses undo.
+- Kept selection, filters, layout switching, and the existing Prism toolbar order unchanged; the recovery control remains inside the main window and wraps on narrow layouts.
+- Added source regression coverage for persistence failure reporting, rollback snapshots, undo wiring, and responsive containment.
+
 # Modrinth pass — keyboard-safe range selection
 
 - Добавлена клавиатурная навигация по карточкам Modrinth: стрелки, Home/End и Enter сохраняют отдельный сценарий выбора сборки.

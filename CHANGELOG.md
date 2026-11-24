@@ -1,3 +1,11 @@
+# Modrinth pass — keyboard-safe range selection
+
+- Добавлена клавиатурная навигация по карточкам Modrinth: стрелки, Home/End и Enter сохраняют отдельный сценарий выбора сборки.
+- Пробел на карточке переключает выбор, а Shift+Пробел выбирает диапазон от последней точки выбора до текущей видимой карточки.
+- Shift-клик по checkbox выбирает диапазон только среди текущих видимых результатов после поиска и фильтров; выбор сохраняется в существующем localStorage.
+- Добавлены focus-visible состояния для карточек и checkbox без изменения Prism и других оформлений.
+- Регрессионные проверки закрепляют видимый scope, keyboard shortcuts, range selection и отсутствие вмешательства в другие UI-режимы.
+
 ### Modrinth pass 60 — persistent visible-scope bulk selection
 
 - Fixed hidden bulk controls so the HTML `hidden` attribute is respected instead of being overridden by the Modrinth toolbar CSS.

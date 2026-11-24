@@ -1039,6 +1039,27 @@ function toggleModrinthSelection(id, checked) {
   syncModrinthSelectionChrome();
 }
 
+function selectModrinthSelectionRange(fromId, toId, checked) {
+  const visibleIds = visibleModrinthSelectionIds();
+  const from = visibleIds.indexOf(String(fromId));
+  const to = visibleIds.indexOf(String(toId));
+  if (from < 0 || to < 0) {
+    toggleModrinthSelection(toId, checked);
+    return;
+  }
+  const next = new Set(modrinthSelectedIds);
+  visibleIds.slice(Math.min(from, to), Math.max(from, to) + 1).forEach((id) => {
+    if (checked) next.add(String(id)); else next.delete(String(id));
+  });
+  modrinthSelectedIds = next;
+  modrinthSelectionAnchor = String(toId);
+  persistModrinthSelection();
+  renderLibrary();
+  [...document.querySelectorAll('#library .inst-card:not(.add)')]
+    .find((card) => card.dataset.instanceId === String(toId))
+    ?.focus({ preventScroll: true });
+}
+
 function selectAllVisibleModrinth() {
   if (currentUi !== 'modrinth') return;
   const visible = [...document.querySelectorAll('#library .inst-card:not(.add):not([hidden])')].map((card) => card.dataset.instanceId).filter(Boolean);
@@ -2351,7 +2372,13 @@ function renderLibrary() {
       selection.checked = modrinthSelectedIds.has(String(inst.id));
       selection.setAttribute('aria-label', `Выбрать сборку ${inst.name}`);
       selection.addEventListener('click', (event) => event.stopPropagation());
-      selection.addEventListener('change', (event) => toggleModrinthSelection(inst.id, event.target.checked));
+      selection.addEventListener('change', (event) => {
+        if (event.shiftKey && modrinthSelectionAnchor != null) {
+          selectModrinthSelectionRange(modrinthSelectionAnchor, inst.id, event.target.checked);
+        } else {
+          toggleModrinthSelection(inst.id, event.target.checked);
+        }
+      });
     }
     const play = mk('button', 'inst-play', '▶');
     play.title = `Играть: ${inst.name}`;
@@ -2411,20 +2438,34 @@ function renderLibrary() {
     if (currentUi === 'prism') {
       card.setAttribute('aria-keyshortcuts', 'ArrowLeft ArrowRight ArrowUp ArrowDown Home End Enter Space Shift+F10');
       card.title = 'Стрелки — переход между сборками; Enter/Пробел — выбрать; Shift+F10 — действия';
+    } else if (currentUi === 'modrinth') {
+      card.setAttribute('aria-keyshortcuts', 'ArrowLeft ArrowRight ArrowUp ArrowDown Home End Enter Space Shift+Space');
+      card.title = 'Стрелки — переход; Enter — открыть; Пробел — выбрать; Shift+Пробел — выбрать диапазон';
     }
     card.addEventListener('keydown', async (event) => {
       if (event.target !== card) return;
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
         const instanceId = String(inst.id);
-        await setActive(inst.id);
-        if (currentUi === 'prism') {
-          [...box.querySelectorAll('.inst-card')].find((item) => item.dataset.instanceId === instanceId)
-            ?.focus({ preventScroll: true });
+        if (currentUi === 'modrinth' && event.key === ' ') {
+          const checkbox = card.querySelector('.modrinth-card-select');
+          const nextChecked = !checkbox?.checked;
+          if (event.shiftKey && modrinthSelectionAnchor != null) {
+            selectModrinthSelectionRange(modrinthSelectionAnchor, instanceId, nextChecked);
+          } else {
+            toggleModrinthSelection(instanceId, nextChecked);
+            if (checkbox) checkbox.checked = nextChecked;
+            card.setAttribute('aria-selected', String(nextChecked));
+          }
+          card.focus({ preventScroll: true });
+          return;
         }
+        await setActive(inst.id);
+        [...box.querySelectorAll('.inst-card')].find((item) => item.dataset.instanceId === instanceId)
+          ?.focus({ preventScroll: true });
         return;
       }
-      if (currentUi !== 'prism') return;
+      if (currentUi !== 'prism' && currentUi !== 'modrinth') return;
       if (event.key === 'ContextMenu' || (event.key === 'F10' && event.shiftKey)) {
         event.preventDefault();
         const menuWasOpen = !!card.querySelector('.inst-menu');

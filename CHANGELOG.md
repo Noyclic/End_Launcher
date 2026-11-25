@@ -1,4 +1,12 @@
-\n## 2026-11-25 — Modrinth transactional bulk-action recovery\n\n- Added an accessible live status region for bulk favorite/group actions.\n- Ctrl/Cmd+Z now undoes the last Modrinth bulk action when the user is not editing a field, while Escape closes the bulk group editor and restores focus.\n- Undo restores the prior selection snapshot as well as the persisted favorite/group data, and reports persistence failures instead of claiming success.\n- Kept the flow scoped to Modrinth and contained on narrow layouts without changing Prism behavior.\n\n
+
+## 2026-11-25 — Modrinth transactional bulk-action recovery
+
+- Added an accessible live status region for bulk favorite/group actions.
+- Ctrl/Cmd+Z now undoes the last Modrinth bulk action when the user is not editing a field, while Escape closes the bulk group editor and restores focus.
+- Undo restores the prior selection snapshot as well as the persisted favorite/group data, and reports persistence failures instead of claiming success.
+- Kept the flow scoped to Modrinth and contained on narrow layouts without changing Prism behavior.
+
+
 ## 2026-11-24 — Modrinth bulk-action recovery
 
 - Added an in-library undo action for the last bulk favorite or group assignment operation.

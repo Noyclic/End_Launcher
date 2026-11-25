@@ -7712,3 +7712,25 @@ html[data-ui="modrinth"] #library .inst-card .modrinth-card-select:checked + .in
     flex: 1 1 100%;
   }
 }
+
+
+/* Modrinth bulk-action recovery and keyboard feedback */
+:root[data-ui='modrinth'] .modrinth-bulk-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  max-width: min(100%, 360px);
+  padding: 4px 8px;
+  border: 1px solid var(--el-line);
+  border-radius: 8px;
+  color: var(--el-dim);
+  font-size: 12px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+:root[data-ui='modrinth'] .modrinth-bulk-status[data-tone='success'] { color: #a9e7b7; border-color: rgba(88, 200, 120, .35); }
+:root[data-ui='modrinth'] .modrinth-bulk-status[data-tone='error'] { color: #ffb2b2; border-color: rgba(255, 100, 100, .35); }
+:root[data-ui='modrinth'] #modrinth-selection-undo:not([hidden]) { outline: 1px solid rgba(255,255,255,.18); }
+@media (max-width: 700px) {
+  :root[data-ui='modrinth'] .modrinth-bulk-status { flex: 1 1 100%; max-width: none; }
+}

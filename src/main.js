@@ -978,6 +978,30 @@ let modrinthSelectedIds = (() => {
 })();
 let modrinthSelectionAnchor = null;
 let modrinthSelectionUndo = null;
+let modrinthBulkFocusTarget = null;
+
+function captureModrinthBulkFocus() {
+  if (currentUi !== 'modrinth') return null;
+  const active = document.activeElement;
+  if (!active || (!active.id && !active.dataset?.instanceId)) return null;
+  return { id: active.id || '', instanceId: active.dataset.instanceId || '' };
+}
+
+function restoreModrinthBulkFocus(target = modrinthBulkFocusTarget) {
+  if (!target) return;
+  const node = target.id
+    ? document.getElementById(target.id)
+    : document.querySelector(`#library .inst-card[data-instance-id="${CSS.escape(String(target.instanceId || ''))}"]`);
+  node?.focus?.({ preventScroll: true });
+}
+
+function setModrinthBulkStatus(message, tone = '') {
+  const status = $('modrinth-bulk-status');
+  if (!status) return;
+  status.hidden = !message;
+  status.textContent = message || '';
+  status.dataset.tone = tone;
+}
 
 function persistModrinthSelection() {
   try { localStorage.setItem(MODRINTH_SELECTION_STORE, JSON.stringify([...modrinthSelectedIds])); } catch {}
@@ -996,8 +1020,9 @@ function syncModrinthSelectionChrome() {
   const favorite = $('modrinth-selection-favorite');
   const group = $('modrinth-selection-group');
   const undo = $('modrinth-selection-undo');
+  const status = $('modrinth-bulk-status');
   if (currentUi !== 'modrinth') {
-    [count, clear, selectAll, favorite, group, undo].forEach((node) => { if (node) node.hidden = true; });
+    [count, clear, selectAll, favorite, group, undo, status].forEach((node) => { if (node) node.hidden = true; });
     return;
   }
   const selected = modrinthSelectedIds.size;
@@ -1027,8 +1052,10 @@ function syncModrinthSelectionChrome() {
     undo.hidden = !modrinthSelectionUndo;
     undo.disabled = !modrinthSelectionUndo;
     undo.textContent = modrinthSelectionUndo ? '↶ ' + modrinthSelectionUndo.label : '↶ Отменить';
-    undo.title = modrinthSelectionUndo ? 'Вернуть состояние до последнего массового действия' : '';
+    undo.title = modrinthSelectionUndo ? 'Вернуть состояние до последнего массового действия (Ctrl/Cmd+Z)' : '';
+    undo.setAttribute('aria-keyshortcuts', 'Control+Z Meta+Z');
   }
+  if (status && !status.textContent) status.hidden = true;
 }
 
 function clearModrinthSelection() {
@@ -1082,6 +1109,8 @@ function selectAllVisibleModrinth() {
 
 function toggleSelectedModrinthFavorites() {
   if (!modrinthSelectedIds.size) return;
+  const focusTarget = captureModrinthBulkFocus();
+  const selectedSnapshot = new Set(modrinthSelectedIds);
   const allFavorite = [...modrinthSelectedIds].every((id) => favoriteInstanceIds.has(String(id)));
   const previous = new Set(favoriteInstanceIds);
   const next = new Set(favoriteInstanceIds);
@@ -1095,12 +1124,18 @@ function toggleSelectedModrinthFavorites() {
   favoriteInstanceIds = next;
   modrinthSelectionUndo = {
     label: 'Отменить избранное',
+    selection: selectedSnapshot,
+    focusTarget,
     restore: () => {
       localStorage.setItem(FAVORITES_STORE, JSON.stringify([...previous]));
       favoriteInstanceIds = previous;
+      modrinthSelectedIds = new Set(selectedSnapshot);
+      return true;
     },
   };
+  modrinthBulkFocusTarget = focusTarget;
   renderLibrary();
+  setModrinthBulkStatus(allFavorite ? 'Избранное обновлено: выбранные сборки убраны.' : 'Избранное обновлено: выбранные сборки добавлены.', 'success');
   showToast(allFavorite ? 'Выбранные сборки убраны из избранного.' : 'Выбранные сборки добавлены в избранное.');
 }
 
@@ -1111,14 +1146,19 @@ function undoModrinthBulkAction() {
     action.restore();
     modrinthSelectionUndo = null;
     renderLibrary();
+    restoreModrinthBulkFocus(action.focusTarget);
+    setModrinthBulkStatus('Последнее массовое действие отменено.', 'success');
     showToast('Последнее массовое действие отменено.');
   } catch {
+    setModrinthBulkStatus('Не удалось отменить действие: локальное хранилище недоступно.', 'error');
     showToast('Не удалось отменить массовое действие: локальное хранилище недоступно.', false);
   }
 }
 
 function applySelectedModrinthGroup(rawGroup) {
   if (!modrinthSelectedIds.size) return;
+  const focusTarget = captureModrinthBulkFocus();
+  const selectedSnapshot = new Set(modrinthSelectedIds);
   const group = String(rawGroup || '').trim().slice(0, 32);
   const previous = { ...prismInstanceGroups };
   const next = { ...prismInstanceGroups };
@@ -1135,12 +1175,18 @@ function applySelectedModrinthGroup(rawGroup) {
   prismInstanceGroups = next;
   modrinthSelectionUndo = {
     label: group ? 'Отменить группу' : 'Вернуть группу',
+    selection: selectedSnapshot,
+    focusTarget,
     restore: () => {
       localStorage.setItem(PRISM_INSTANCE_GROUPS_STORE, JSON.stringify(previous));
       prismInstanceGroups = previous;
+      modrinthSelectedIds = new Set(selectedSnapshot);
+      return true;
     },
   };
+  modrinthBulkFocusTarget = focusTarget;
   renderLibrary();
+  setModrinthBulkStatus(group ? `Группа «${group}» назначена выбранным сборкам.` : 'Группа снята с выбранных сборок.', 'success');
   showToast(group ? `Группа «${group}» назначена выбранным сборкам.` : 'Группа снята с выбранных сборок.');
 }
 
@@ -4431,6 +4477,25 @@ $('page-settings')?.addEventListener('click', (event) => {
   }
 });
 document.addEventListener('keydown', (event) => {
+  if (currentUi === 'modrinth' && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+    const tag = document.activeElement?.tagName;
+    const editing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag) || document.activeElement?.isContentEditable;
+    if (!editing && modrinthSelectionUndo) {
+      event.preventDefault();
+      undoModrinthBulkAction();
+      return;
+    }
+  }
+  if (currentUi === 'modrinth' && event.key === 'Escape') {
+    const editor = document.getElementById('modrinth-bulk-group-editor');
+    if (editor) {
+      event.preventDefault();
+      editor.remove();
+      $('modrinth-selection-group')?.setAttribute('aria-expanded', 'false');
+      restoreModrinthBulkFocus();
+      return;
+    }
+  }
   if (currentUi !== 'prism' || !root.classList.contains('prism-settings-open')) return;
   if (event.key === 'Escape') {
     event.preventDefault();

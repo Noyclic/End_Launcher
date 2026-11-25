@@ -490,6 +490,7 @@ let instancesLoaded = false;
 let instancesLoadError = null;
 let instancesLoadRequestId = 0;
 let instancesLoadRetrying = false;
+let instancesLoadRefreshing = false;
 let instancesLoadStale = false;
 let activeId = null;
 let installedCache = [];
@@ -610,7 +611,11 @@ async function loadInstances() {
   const previousInstances = instances.slice();
   instancesLoadRetrying = Boolean(instancesLoaded && instancesLoadError);
   instancesLoadError = null;
-  instancesLoaded = false;
+  instancesLoadStale = false;
+  instancesLoadRefreshing = true;
+  // Keep a previously loaded library visible while a refresh is in flight.
+  // Only the very first load needs the full blocking loading state.
+  if (!previousInstances.length) instancesLoaded = false;
   renderLibrary();
   try {
     const nextInstances = await invoke('list_instances');
@@ -620,6 +625,7 @@ async function loadInstances() {
     instances = Array.isArray(nextInstances) ? nextInstances : [];
     instancesLoadError = null;
     instancesLoadStale = false;
+    instancesLoadRefreshing = false;
     activeId = instances.some((i) => i.id === previousActiveId)
       ? previousActiveId
       : (instances.some((i) => i.id === backendActiveId) ? backendActiveId : (instances[0] ? instances[0].id : null));
@@ -645,6 +651,7 @@ async function loadInstances() {
       : (previousInstances[0]?.id || null);
     instancesLoadError = error;
     instancesLoadStale = previousInstances.length > 0;
+    instancesLoadRefreshing = false;
     instancesLoaded = true;
     instancesLoadRetrying = false;
     renderInstanceSelect();
@@ -2230,6 +2237,17 @@ function renderModrinthLibraryState(shownCount) {
     state.append(mk('span', 'modrinth-state-spinner', '⟳'), mk('strong', '', instancesLoadRetrying ? 'Повторяем загрузку…' : 'Загрузка сборок…'), mk('span', 'dim small', instancesLoadRetrying ? 'Проверяем библиотеку ещё раз.' : 'Получаем локальную библиотеку.'));
     box.appendChild(state);
     return;
+  }
+  if (instancesLoadRefreshing) {
+    const state = mk('div', 'modrinth-library-state is-refreshing');
+    state.setAttribute('role', 'status');
+    state.setAttribute('aria-live', 'polite');
+    state.append(
+      mk('span', 'modrinth-state-spinner', '⟳'),
+      mk('strong', '', 'Обновляем библиотеку…'),
+      mk('span', 'dim small', 'Текущие сборки остаются доступны, пока проверяем изменения.')
+    );
+    box.appendChild(state);
   }
   if (instancesLoadError) {
     const state = mk('div', `modrinth-library-state is-error${instancesLoadStale ? ' is-stale' : ''}`);

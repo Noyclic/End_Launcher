@@ -1,3 +1,9 @@
+## 2026-11-25 — Modrinth non-destructive refresh state
+
+- Kept the last known Modrinth library visible while a refresh request is in flight instead of replacing cards with a blocking empty/loading state.
+- Added an in-library refresh status that reports progress without hiding existing instances; the stale/error state still appears only after the request fails.
+- Preserved the initial-load blocking state for first launch and added regression coverage for refresh visibility and responsive containment.
+
 
 ## 2026-11-25 — Modrinth transactional bulk-action recovery
 

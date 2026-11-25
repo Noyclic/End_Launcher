@@ -1645,10 +1645,21 @@ check(css.includes('.modrinth-library-state.is-loading.is-retry')
   'Modrinth retry and long-message states must remain visually contained on narrow layouts');
 
 check(js.includes('let instancesLoadStale = false;')
+    && js.includes('let instancesLoadRefreshing = false;')
     && js.includes('const previousInstances = instances.slice();')
+    && js.includes('if (!previousInstances.length) instancesLoaded = false;')
     && js.includes('instances = previousInstances;')
     && js.includes('instancesLoadStale = previousInstances.length > 0;'),
   'Modrinth reload failures must preserve the last known library instead of replacing it with an empty list');
+
+check(js.includes('if (instancesLoadRefreshing) {')
+    && js.includes('Обновляем библиотеку…')
+    && js.includes('Текущие сборки остаются доступны'),
+  'Modrinth refreshes must show an in-app progress state without hiding the last known cards');
+
+check(css.includes('.modrinth-library-state.is-refreshing')
+    && css.includes('min-height:96px'),
+  'Modrinth refresh progress must remain compact and visually distinct');
 check(js.includes("is-stale")
     && js.includes('Показана последняя сохранённая библиотека')
     && js.includes('Текущие сборки оставлены на экране'),

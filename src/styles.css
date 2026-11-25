@@ -7620,6 +7620,7 @@ html[data-anim="off"] #ender-particles { opacity: 0 !important; }
 :root[data-ui='modrinth'] .modrinth-library-state strong { font-size:16px; }
 :root[data-ui='modrinth'] .modrinth-library-state .big-btn { margin-top:8px; min-width:190px; }
 :root[data-ui='modrinth'] .modrinth-library-state.is-loading.is-retry { border-color:#d6b56a99; background:linear-gradient(145deg,#2b2618,#181713); }
+:root[data-ui='modrinth'] .modrinth-library-state.is-refreshing { min-height:96px; padding:14px 18px; border-style:solid; border-color:#6f91b399; background:linear-gradient(145deg,#182331,#151a20); }
 :root[data-ui='modrinth'] .modrinth-library-state.is-error { border-color:#c97a7a88; background:linear-gradient(145deg,#2a191b,#181519); }
 :root[data-ui='modrinth'] .modrinth-library-state.is-stale { border-color:#d6b56a99; background:linear-gradient(145deg,#2b2618,#181713); }
 :root[data-ui='modrinth'] .modrinth-library-state.is-stale .modrinth-state-icon { background:#d6b56a2b; color:#ffe2a1; }

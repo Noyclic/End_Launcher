@@ -7788,3 +7788,15 @@ html[data-ui="modrinth"] #library .inst-card .modrinth-card-select:checked + .in
   :root[data-ui='modrinth'] .modrinth-inspector-actions button { flex: 1 1 calc(50% - 6px); min-width: 0; }
   :root[data-ui='modrinth'] .modrinth-instance-inspector h2 { max-width: calc(100vw - 120px); }
 }
+
+
+/* Modrinth inspector action lifecycle: prevent duplicate commands while preserving the selected library. */
+:root[data-ui='modrinth'] .modrinth-instance-inspector[aria-busy='true'] {
+  outline: 1px solid rgba(116, 222, 151, .55);
+}
+:root[data-ui='modrinth'] .modrinth-instance-inspector[aria-busy='true'] .modrinth-inspector-actions {
+  opacity: .82;
+}
+:root[data-ui='modrinth'] .modrinth-instance-inspector .modrinth-inspector-actions button:disabled {
+  cursor: progress;
+}

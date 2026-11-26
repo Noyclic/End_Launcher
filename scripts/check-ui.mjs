@@ -1737,3 +1737,22 @@ check(js.includes('Control+Z Meta+Z') && js.includes('undoModrinthBulkAction()')
 check(js.includes("event.key === 'Escape'") && js.includes('modrinth-bulk-group-editor') && js.includes('restoreModrinthBulkFocus()'), 'Modrinth bulk group editor must close with Escape and restore focus');
 check(js.includes('selection: selectedSnapshot') && js.includes('modrinthSelectedIds = new Set(selectedSnapshot)'), 'Bulk undo must restore the selection snapshot together with the data snapshot');
 check(css.includes('.modrinth-bulk-status[data-tone=\'success\']') && css.includes('@media (max-width: 700px)'), 'Modrinth bulk status must remain readable and contained on narrow layouts');
+
+
+const modrinthInspectorMarker = 'modrinth-instance-inspector';
+check(html.includes('id="modrinth-instance-inspector"')
+    && html.includes('id="modrinth-inspector-play"')
+    && html.includes('id="modrinth-inspector-folder"')
+    && html.includes('id="modrinth-inspector-more"'),
+  'Modrinth must expose a functional selected-instance inspector with quick actions');
+check(js.includes('function renderModrinthInspector()')
+    && js.includes('await setActive(inst.id); playBtn.click();')
+    && js.includes("invoke('open_instance_folder'")
+    && js.includes('beginRenameInstance(inst, card)')
+    && js.includes('toggleMenu(card, inst)')
+    && js.includes('renderModrinthInspector();'),
+  'Selected-instance inspector must reuse real launcher actions instead of decorative placeholders');
+check(css.includes('.modrinth-instance-inspector')
+    && css.includes('.modrinth-inspector-actions')
+    && css.includes('max-width: calc(100vw - 120px)'),
+  'Modrinth inspector must remain contained on desktop and mobile');

@@ -177,6 +177,27 @@
               <span class="modrinth-filter-count" id="modrinth-filter-count" role="status" aria-live="polite">Все сборки</span>
               <button id="modrinth-clear-filters" class="modrinth-filter-reset" type="button" hidden>Сбросить</button>
             </div>
+            <section id="modrinth-instance-inspector" class="modrinth-instance-inspector" aria-labelledby="modrinth-inspector-title" hidden>
+              <div class="modrinth-inspector-heading">
+                <div class="modrinth-inspector-identity">
+                  <span id="modrinth-inspector-icon" class="modrinth-inspector-icon" aria-hidden="true">?</span>
+                  <div>
+                    <span class="modrinth-inspector-eyebrow">ВЫБРАННАЯ СБОРКА</span>
+                    <h2 id="modrinth-inspector-title">Сборка не выбрана</h2>
+                  </div>
+                </div>
+                <span id="modrinth-inspector-status" class="modrinth-inspector-status">Готово к запуску</span>
+              </div>
+              <div id="modrinth-inspector-meta" class="modrinth-inspector-meta"></div>
+              <div id="modrinth-inspector-actions" class="modrinth-inspector-actions">
+                <button id="modrinth-inspector-play" type="button">▶ Играть</button>
+                <button id="modrinth-inspector-mods" class="ghost" type="button">🧩 Моды</button>
+                <button id="modrinth-inspector-folder" class="ghost" type="button">📂 Папка</button>
+                <button id="modrinth-inspector-rename" class="ghost" type="button">✎ Переименовать</button>
+                <button id="modrinth-inspector-more" class="ghost" type="button">⋯ Ещё</button>
+              </div>
+              <p id="modrinth-inspector-help" class="dim small">Карточки и фильтры остаются доступны ниже.</p>
+            </section>
             <div id="prism-library-tools" class="layout-feature-tools" role="group" aria-label="Настройки списка Prism">
               <label>Сортировка
                 <select id="prism-library-sort" aria-label="Сортировка сборок Prism">

@@ -1,3 +1,10 @@
+## 2026-11-26 — Modrinth selected-instance inspector
+
+- Added a functional selected-instance inspector below the Modrinth filters with version, loader, group and favorite metadata.
+- Reused the real launcher actions for play, mods, instance folder, rename and the existing overflow menu; no decorative placeholders or duplicate backend flows.
+- Preserved the full library, search, filter, bulk-selection and retry flows while keeping the inspector constrained on narrow layouts.
+- Added source regression coverage for the inspector contract and mobile containment.
+
 ## 2026-11-25 — Modrinth non-destructive refresh state
 
 - Kept the last known Modrinth library visible while a refresh request is in flight instead of replacing cards with a blocking empty/loading state.

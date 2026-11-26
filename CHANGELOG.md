@@ -1,3 +1,10 @@
+## 2026-11-26 — Modrinth inspector action lifecycle
+
+- Added a shared busy/error lifecycle for the selected-instance inspector actions.
+- Play, mods and instance-folder actions now reuse the real launcher handlers while blocking duplicate clicks until the async command completes.
+- Backend failures stay inside the inspector with an accessible busy state and an in-app toast; the library and selected instance remain intact.
+- Added source regression coverage for inspector busy-state, duplicate-click protection and error feedback.
+
 ## 2026-11-26 — Modrinth selected-instance inspector
 
 - Added a functional selected-instance inspector below the Modrinth filters with version, loader, group and favorite metadata.

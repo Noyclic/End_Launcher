@@ -1740,6 +1740,14 @@ check(css.includes('.modrinth-bulk-status[data-tone=\'success\']') && css.includ
 
 
 const modrinthInspectorMarker = 'modrinth-instance-inspector';
+check(html.includes('aria-busy="false"')
+    && js.includes('let modrinthInspectorOperation = null;')
+    && js.includes('function runModrinthInspectorAction(label, task)')
+    && js.includes("setModrinthInspectorBusy('Запускаем сборку…')")
+    && js.includes("invoke('open_instance_folder'")
+    && js.includes('showToast(message)'),
+  'Modrinth inspector actions must expose busy state, block duplicate clicks, and surface real backend errors inside the main window');
+
 check(html.includes('id="modrinth-instance-inspector"')
     && html.includes('id="modrinth-inspector-play"')
     && html.includes('id="modrinth-inspector-folder"')

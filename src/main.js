@@ -2338,6 +2338,61 @@ function clearModrinthLibraryFilters() {
   search?.focus({ preventScroll: true });
 }
 
+function renderModrinthInspector() {
+  const panel = $('modrinth-instance-inspector');
+  if (!panel) return;
+  const visible = currentUi === 'modrinth';
+  panel.hidden = !visible;
+  if (!visible) return;
+  const inst = currentInstance();
+  const title = $('modrinth-inspector-title');
+  const icon = $('modrinth-inspector-icon');
+  const meta = $('modrinth-inspector-meta');
+  const status = $('modrinth-inspector-status');
+  const play = $('modrinth-inspector-play');
+  const mods = $('modrinth-inspector-mods');
+  const folder = $('modrinth-inspector-folder');
+  const rename = $('modrinth-inspector-rename');
+  const more = $('modrinth-inspector-more');
+  const help = $('modrinth-inspector-help');
+  if (!inst) {
+    title.textContent = 'Сборка не выбрана';
+    icon.textContent = '?';
+    meta.replaceChildren(mk('span', 'dim small', 'Создай или импортируй сборку, чтобы увидеть быстрые действия.'));
+    status.textContent = 'Нет активной сборки';
+    help.textContent = 'Выбери карточку ниже или добавь новую сборку.';
+    [play, mods, folder, rename, more].forEach((button) => { if (button) button.disabled = true; });
+    return;
+  }
+  [play, mods, folder, rename, more].forEach((button) => { if (button) button.disabled = false; });
+  const group = modrinthGroupFor(inst);
+  title.textContent = inst.name || 'Minecraft';
+  title.title = inst.name || 'Minecraft';
+  icon.textContent = (inst.name || '?').slice(0, 1).toUpperCase();
+  icon.dataset.loader = String(inst.loader || 'vanilla').toLowerCase();
+  status.textContent = inst.id === activeId ? 'Активна' : 'Доступна';
+  meta.replaceChildren(
+    mk('span', 'modrinth-inspector-chip', inst.version || 'Версия не указана'),
+    mk('span', 'modrinth-inspector-chip', LOADER_NAME[inst.loader] || inst.loader || 'Vanilla'),
+    mk('span', 'modrinth-inspector-chip', group || 'Без группы'),
+    mk('span', 'modrinth-inspector-chip', favoriteInstanceIds.has(String(inst.id)) ? '★ Избранная' : '☆ Не в избранном')
+  );
+  help.textContent = 'Быстрые действия применяются к выбранной сборке; полный набор команд доступен в меню «⋯».';
+  play.onclick = async () => { await setActive(inst.id); playBtn.click(); };
+  mods.onclick = async () => { await setActive(inst.id); refreshInstalled(); goPage('mods'); };
+  folder.onclick = async () => { await invoke('open_instance_folder', { id: inst.id }); };
+  rename.onclick = () => {
+    const card = document.querySelector(`#library .inst-card[data-instance-id="${CSS.escape(String(inst.id))}"]`);
+    if (card) beginRenameInstance(inst, card);
+  };
+  more.onclick = () => {
+    const card = document.querySelector(`#library .inst-card[data-instance-id="${CSS.escape(String(inst.id))}"]`);
+    if (card) {
+      toggleMenu(card, inst);
+      card.querySelector('.inst-menu button')?.focus();
+    }
+  };
+}
 function renderLibrary() {
   const box = $('library');
   box.replaceChildren();
@@ -2426,6 +2481,7 @@ function renderLibrary() {
   const shownCount = visibleInstances.length;
   syncModrinthFilterChrome(shownCount);
   syncModrinthSelectionChrome();
+  renderModrinthInspector();
   renderModrinthLibraryState(shownCount);
   let lastGroup = null;
   for (const inst of visibleInstances) {

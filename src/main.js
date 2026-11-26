@@ -2338,6 +2338,53 @@ function clearModrinthLibraryFilters() {
   search?.focus({ preventScroll: true });
 }
 
+let modrinthInspectorOperation = null;
+
+function setModrinthInspectorBusy(label = '') {
+  const panel = $('modrinth-instance-inspector');
+  const buttons = ['modrinth-inspector-play', 'modrinth-inspector-mods', 'modrinth-inspector-folder', 'modrinth-inspector-rename', 'modrinth-inspector-more']
+    .map((id) => $(id)).filter(Boolean);
+  modrinthInspectorOperation = label || 'busy';
+  panel?.setAttribute('aria-busy', 'true');
+  buttons.forEach((button) => {
+    button.disabled = true;
+    button.dataset.inspectorBusy = 'true';
+  });
+  const status = $('modrinth-inspector-status');
+  if (status && label) status.textContent = label;
+}
+
+function clearModrinthInspectorBusy() {
+  const panel = $('modrinth-instance-inspector');
+  const buttons = ['modrinth-inspector-play', 'modrinth-inspector-mods', 'modrinth-inspector-folder', 'modrinth-inspector-rename', 'modrinth-inspector-more']
+    .map((id) => $(id)).filter(Boolean);
+  modrinthInspectorOperation = null;
+  panel?.removeAttribute('aria-busy');
+  buttons.forEach((button) => {
+    delete button.dataset.inspectorBusy;
+  });
+}
+
+async function runModrinthInspectorAction(label, task) {
+  if (modrinthInspectorOperation) return false;
+  setModrinthInspectorBusy(label);
+  try {
+    await task();
+    return true;
+  } catch (error) {
+    const status = $('modrinth-inspector-status');
+    const help = $('modrinth-inspector-help');
+    const message = String(error?.message || error || 'Не удалось выполнить действие.');
+    if (status) status.textContent = 'Ошибка действия';
+    if (help) help.textContent = message;
+    showToast(message);
+    return false;
+  } finally {
+    clearModrinthInspectorBusy();
+    renderModrinthInspector();
+  }
+}
+
 function renderModrinthInspector() {
   const panel = $('modrinth-instance-inspector');
   if (!panel) return;
@@ -2364,23 +2411,24 @@ function renderModrinthInspector() {
     [play, mods, folder, rename, more].forEach((button) => { if (button) button.disabled = true; });
     return;
   }
-  [play, mods, folder, rename, more].forEach((button) => { if (button) button.disabled = false; });
+  const isBusy = Boolean(modrinthInspectorOperation);
+  [play, mods, folder, rename, more].forEach((button) => { if (button) button.disabled = isBusy ? true : false; });
   const group = modrinthGroupFor(inst);
   title.textContent = inst.name || 'Minecraft';
   title.title = inst.name || 'Minecraft';
   icon.textContent = (inst.name || '?').slice(0, 1).toUpperCase();
   icon.dataset.loader = String(inst.loader || 'vanilla').toLowerCase();
-  status.textContent = inst.id === activeId ? 'Активна' : 'Доступна';
+  if (!isBusy) status.textContent = inst.id === activeId ? 'Активна' : 'Доступна';
   meta.replaceChildren(
     mk('span', 'modrinth-inspector-chip', inst.version || 'Версия не указана'),
     mk('span', 'modrinth-inspector-chip', LOADER_NAME[inst.loader] || inst.loader || 'Vanilla'),
     mk('span', 'modrinth-inspector-chip', group || 'Без группы'),
     mk('span', 'modrinth-inspector-chip', favoriteInstanceIds.has(String(inst.id)) ? '★ Избранная' : '☆ Не в избранном')
   );
-  help.textContent = 'Быстрые действия применяются к выбранной сборке; полный набор команд доступен в меню «⋯».';
-  play.onclick = async () => { await setActive(inst.id); playBtn.click(); };
-  mods.onclick = async () => { await setActive(inst.id); refreshInstalled(); goPage('mods'); };
-  folder.onclick = async () => { await invoke('open_instance_folder', { id: inst.id }); };
+  if (!isBusy) help.textContent = 'Быстрые действия применяются к выбранной сборке; полный набор команд доступен в меню «⋯».';
+  play.onclick = () => runModrinthInspectorAction('Запускаем сборку…', async () => { await setActive(inst.id); playBtn.click(); });
+  mods.onclick = () => runModrinthInspectorAction('Открываем моды…', async () => { await setActive(inst.id); refreshInstalled(); goPage('mods'); });
+  folder.onclick = () => runModrinthInspectorAction('Открываем папку…', async () => { await invoke('open_instance_folder', { id: inst.id }); });
   rename.onclick = () => {
     const card = document.querySelector(`#library .inst-card[data-instance-id="${CSS.escape(String(inst.id))}"]`);
     if (card) beginRenameInstance(inst, card);

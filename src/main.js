@@ -2426,7 +2426,19 @@ function renderModrinthInspector() {
     mk('span', 'modrinth-inspector-chip', favoriteInstanceIds.has(String(inst.id)) ? '★ Избранная' : '☆ Не в избранном')
   );
   if (!isBusy) help.textContent = 'Быстрые действия применяются к выбранной сборке; полный набор команд доступен в меню «⋯».';
-  play.onclick = () => runModrinthInspectorAction('Запускаем сборку…', async () => { await setActive(inst.id); playBtn.click(); });
+  play.onclick = () => runModrinthInspectorAction('Запускаем сборку…', async () => {
+    await setActive(inst.id);
+    if (editionSel.value === 'bedrock') throw new Error('Выбранная сборка доступна только в Java Edition.');
+    analyzeBtn.style.display = 'none';
+    playBtn.disabled = true;
+    playBtn.textContent = 'УСТАНОВКА…';
+    await invoke('launch_instance', { id: inst.id });
+    runningInstanceId = String(inst.id);
+    gameRunning = true;
+    startPrismPlaySession(inst);
+    await refreshPlay();
+    playStatus.textContent = 'Игра запущена…';
+  });
   mods.onclick = () => runModrinthInspectorAction('Открываем моды…', async () => { await setActive(inst.id); refreshInstalled(); goPage('mods'); });
   folder.onclick = () => runModrinthInspectorAction('Открываем папку…', async () => { await invoke('open_instance_folder', { id: inst.id }); });
   rename.onclick = () => {

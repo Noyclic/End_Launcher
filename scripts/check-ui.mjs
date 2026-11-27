@@ -1764,3 +1764,10 @@ check(css.includes('.modrinth-instance-inspector')
     && css.includes('.modrinth-inspector-actions')
     && css.includes('max-width: calc(100vw - 120px)'),
   'Modrinth inspector must remain contained on desktop and mobile');
+
+check(js.includes("await invoke('launch_instance', { id: inst.id });")
+    && js.includes("if (editionSel.value === 'bedrock') throw new Error('Выбранная сборка доступна только в Java Edition.')")
+    && js.includes("await refreshPlay();")
+    && js.includes("playStatus.textContent = 'Игра запущена…';"),
+  'Selected Modrinth inspector play must await the real Java launch, reject Bedrock mismatch, and keep busy state until refresh completes');
+

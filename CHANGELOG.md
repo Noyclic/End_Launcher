@@ -1,3 +1,9 @@
+## 2026-11-27 — Modrinth inspector launch completion
+
+- The selected-instance inspector now awaits the real Java launch command instead of firing the main Play button and clearing busy state early.
+- Bedrock/Java mismatches fail inside the inspector without starting a second flow; the selected instance remains intact and launch errors still use the in-app status/toast path.
+- Added source regression coverage for awaited launch, refresh completion and mode mismatch handling.
+
 ## 2026-11-26 — Modrinth inspector action lifecycle
 
 - Added a shared busy/error lifecycle for the selected-instance inspector actions.
